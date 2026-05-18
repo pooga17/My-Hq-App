@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Pooja's HQ" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#FADADD" />
+<title>Pooja's HQ</title>
+<link rel="manifest" id="manifestLink" />
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><radialGradient id='g' cx='30%25' cy='30%25'><stop offset='0%25' stop-color='%23fff'/><stop offset='100%25' stop-color='%23F4B6C2'/></radialGradient></defs><rect width='180' height='180' rx='40' fill='url(%23g)'/><text x='90' y='130' font-family='Georgia,serif' font-style='italic' font-size='120' fill='%23C4607A' text-anchor='middle'>P</text></svg>" />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><radialGradient id='g' cx='30%25' cy='30%25'><stop offset='0%25' stop-color='%23fff'/><stop offset='100%25' stop-color='%23F4B6C2'/></radialGradient></defs><rect width='180' height='180' rx='40' fill='url(%23g)'/><text x='90' y='130' font-family='Georgia,serif' font-style='italic' font-size='120' fill='%23C4607A' text-anchor='middle'>P</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#F4B6C2;--pink-deep:#C4607A;--peach:#FFD7C2;--peach-deep:#D4845A;
+    --blue:#C9DCEB;--blue-deep:#5A8CAA;--cream:#FFF8F4;--ink:#1A1215;
+    --muted:#5A4A50;--line:#E8D0CE;--green:#A7D7C5;--green-deep:#2E7A5A;
+    --red:#E89797;--red-bg:#FCE4E4;--amber:#F5C97A;--amber-bg:#FFF1DA;
+    --shadow:0 6px 20px rgba(196,96,122,0.18);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;overscroll-behavior:none;}
+  body{padding-bottom:calc(80px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top);min-height:100vh;}
+  .app{max-width:480px;margin:0 auto;position:relative;}
+  h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:-.01em;margin:0;}
+  .screen{display:none;padding:24px 22px 12px;animation:fadeIn .35s ease;}
+  .screen.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .install-banner{display:none;position:sticky;top:0;z-index:60;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;padding:10px 14px;font-size:12px;text-align:center;line-height:1.4;}
+  .install-banner.show{display:block;}
+  .install-banner b{font-family:'Cormorant Garamond',serif;font-size:14px;}
+  .install-banner .close{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.25);border:none;color:#fff;width:24px;height:24px;border-radius:50%;font-size:14px;line-height:1;cursor:pointer;}
+  .hero{text-align:center;padding:28px 0 8px;}
+  .avatar{width:140px;height:140px;border-radius:50%;margin:0 auto;background:radial-gradient(circle at 30% 30%,#fff,var(--pink) 80%);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:var(--shadow);}
+  .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none;}
+  .avatar.has-photo .monogram{display:none;}
+  .avatar.has-photo img{display:block;}
+  .monogram{font-family:'Cormorant Garamond',serif;font-size:72px;color:var(--pink-deep);font-style:italic;}
+  .camera-btn{position:absolute;bottom:6px;right:6px;width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .camera-btn svg{width:18px;height:18px;color:var(--ink);}
+  .title{font-size:clamp(28px,8vw,42px);color:var(--pink-deep);margin-top:18px;font-weight:700;white-space:nowrap;}
+  .tagline{font-style:italic;color:#3A2A30;font-family:'Cormorant Garamond',serif;font-size:18px;margin-top:4px;font-weight:600;}
+  .today-label{text-align:center;margin-top:34px;font-size:11px;letter-spacing:.28em;color:var(--pink-deep);font-weight:700;}
+  .today-msg{text-align:center;font-family:'Cormorant Garamond',serif;font-size:22px;margin-top:6px;color:#1A1215;font-weight:700;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:26px 18px;margin-top:36px;}
+  .tile{cursor:pointer;}
+  .tile-icon{font-size:28px;margin-bottom:6px;display:block;}
+  .tile h3{font-size:22px;margin-bottom:2px;color:#1A1215;}
+  .tile p{font-size:13px;color:#3A2A30;margin:0;font-weight:600;}
+  .home-task-card{background:#fff;border-radius:22px;padding:18px 18px 14px;border:1px solid var(--line);margin-top:22px;box-shadow:0 4px 16px rgba(196,96,122,.10);cursor:pointer;}
+  .home-task-row{display:flex;justify-content:space-between;align-items:stretch;gap:10px;margin-bottom:12px;}
+  .home-stat{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:var(--cream);}
+  .home-stat.attention{background:var(--red-bg);}
+  .home-stat.done-s{background:#EEF8F4;}
+  .home-stat .hs-num{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;line-height:1;}
+  .home-stat .hs-num.r{color:#1A1215;}
+  .home-stat .hs-num.a{color:#8B1010;}
+  .home-stat .hs-num.d{color:#1A5038;}
+  .home-stat .hs-label{font-size:10px;letter-spacing:.14em;color:#1A1215;margin-top:4px;text-transform:uppercase;font-weight:700;}
+  .home-task-msg{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;text-align:center;padding:10px 14px;border-radius:12px;line-height:1.4;font-weight:700;}
+  .home-task-msg.good{background:linear-gradient(135deg,#EEF8F4,#E8F4FF);color:#1A5038;}
+  .home-task-msg.warn{background:var(--red-bg);color:#8B1010;}
+  .home-task-msg.neutral{background:linear-gradient(135deg,#FFF1ED,#F0E8F4);color:#5A1A2A;}
+  .home-task-card-link{display:block;text-align:center;margin-top:12px;font-size:12px;color:var(--pink-deep);letter-spacing:.1em;cursor:pointer;font-weight:700;}
+  .notif-prompt{margin-top:12px;text-align:center;}
+  .notif-prompt button{background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:999px;padding:10px 22px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;}
+  .notif-prompt p{font-size:11px;color:#3A2A30;margin:4px 0 0;font-weight:600;}
+  .upcoming-banner{border-radius:18px;padding:14px 16px;margin-top:14px;border:2px solid var(--pink-deep);display:none;background:linear-gradient(135deg,#FFF1ED,#FCE4E4);}
+  .upcoming-banner.show{display:block;}
+  .upcoming-banner.urgent{background:linear-gradient(135deg,#FCE4E4,#FFD7C2);border-color:#8B1010;animation:urgentPulse 2.5s ease-in-out infinite;}
+  .upcoming-banner.today-event{background:linear-gradient(135deg,#FCE4E4,#F4B6C2);border-color:#C4607A;border-width:3px;}
+  @keyframes urgentPulse{0%,100%{box-shadow:0 0 0 0 rgba(196,96,122,.25);}50%{box-shadow:0 0 0 8px rgba(196,96,122,0);}}
+  .upcoming-banner .ub-title{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--pink-deep);margin-bottom:2px;font-weight:700;}
+  .upcoming-banner.urgent .ub-title,.upcoming-banner.today-event .ub-title{color:#8B1010;}
+  .upcoming-banner .ub-count{font-size:12px;color:#5A1A2A;font-weight:700;margin-bottom:10px;}
+  .upcoming-banner .ub-action{display:inline-flex;align-items:center;gap:6px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:9px 18px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.06em;margin-top:2px;}
+  .upcoming-banner.urgent .ub-action,.upcoming-banner.today-event .ub-action{background:#8B1010;}
+  .upcoming-banner .ub-all{background:none;border:none;color:var(--pink-deep);font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;margin-left:10px;letter-spacing:.04em;text-decoration:underline;}
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,248,244,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:50;max-width:480px;margin:0 auto;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;letter-spacing:.12em;color:#3A2A30;cursor:pointer;border:none;background:none;padding:4px 10px;font-family:inherit;font-weight:700;min-width:52px;}
+  .tab .icon{font-size:22px;}
+  .tab.active{color:var(--pink-deep);}
+  .tab.active .icon{transform:scale(1.12);transition:transform .15s ease;}
+  /* FAB – mic button floating on Today screen */
+  .fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));right:18px;width:52px;height:52px;border-radius:50%;background:linear-gradient(145deg,var(--pink-deep),var(--peach-deep));border:none;color:#fff;font-size:22px;display:none;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(196,96,122,.45);cursor:pointer;z-index:49;}
+  .fab.visible{display:flex;}
+  /* More tray */
+  .more-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:55;display:none;}
+  .more-backdrop.show{display:block;}
+  .more-tray{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:448px;background:#fff;border-radius:22px;padding:18px 16px;z-index:56;display:none;box-shadow:0 -4px 30px rgba(0,0,0,.12);}
+  .more-tray.show{display:block;}
+  .more-tray-title{font-size:10px;letter-spacing:.22em;color:#5A4A50;font-weight:700;margin-bottom:12px;text-align:center;}
+  .more-tray-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .more-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;background:var(--cream);border:1px solid var(--line);cursor:pointer;}
+  .more-tile .mt-icon{font-size:26px;}
+  .more-tile .mt-label{font-size:11px;font-weight:700;color:#1A1215;letter-spacing:.04em;text-align:center;}
+  /* Home quick-action row */
+  .home-quick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+  .hq-card{background:#fff;border-radius:18px;padding:16px;border:1px solid var(--line);cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(196,96,122,.07);}
+  .hq-card:active{background:var(--cream);}
+  .hq-icon{font-size:26px;flex-shrink:0;}
+  .hq-label{font-size:13px;font-weight:700;color:#1A1215;line-height:1.2;}
+  .hq-sub{font-size:11px;color:#5A4A50;font-weight:600;margin-top:2px;}
+  .screen-head{padding:8px 0 20px;}
+  .screen-head h2{font-size:34px;color:var(--pink-deep);}
+  .screen-head p{color:#3A2A30;font-size:14px;margin:4px 0 0;font-weight:600;}
+  .summary-strip{background:#fff;border-radius:18px;padding:14px 16px;border:1px solid var(--line);display:flex;justify-content:space-around;margin-bottom:18px;text-align:center;box-shadow:0 2px 8px rgba(196,96,122,.06);}
+  .stat-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--pink-deep);line-height:1;}
+  .stat-num.warn{color:#8B1010;}
+  .stat-num.win{color:var(--green-deep);}
+  .stat-label{font-size:10px;letter-spacing:.16em;color:#1A1215;margin-top:4px;text-transform:uppercase;font-weight:700;}
+  .progress-wrap{margin-bottom:18px;}
+  .progress-label{display:flex;justify-content:space-between;font-size:11px;color:#1A1215;letter-spacing:.12em;margin-bottom:6px;text-transform:uppercase;font-weight:700;}
+  .progress-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--pink-deep),var(--peach-deep));border-radius:99px;transition:width .6s ease;}
+  .focus-card{background:linear-gradient(135deg,#fff,#FFF1ED);border-radius:22px;padding:20px;margin-bottom:24px;border:2px solid var(--pink);box-shadow:0 8px 24px rgba(196,96,122,.15);}
+  .focus-label{font-size:10px;letter-spacing:.28em;color:var(--pink-deep);font-weight:700;margin-bottom:8px;}
+  .focus-title{font-family:'Cormorant Garamond',serif;font-size:24px;color:#1A1215;line-height:1.2;margin-bottom:6px;font-weight:700;}
+  .focus-details{font-size:13px;color:#3A2A30;margin-bottom:14px;font-weight:600;}
+  .focus-actions{display:flex;gap:8px;}
+  .focus-actions button{flex:1;padding:11px 14px;border-radius:999px;border:none;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;cursor:pointer;}
+  .focus-actions .done-btn{background:var(--green-deep);color:#fff;}
+  .focus-actions .snooze-btn{background:#fff;color:var(--pink-deep);border:2px solid var(--pink-deep);}
+  .focus-empty{text-align:center;padding:38px 18px;background:linear-gradient(135deg,#FFF1ED,#E8F1F8);border-radius:22px;margin-bottom:24px;}
+  .focus-empty .icon{font-size:42px;}
+  .focus-empty h3{font-size:26px;color:var(--pink-deep);margin:10px 0 6px;}
+  .focus-empty p{color:#3A2A30;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;}
+  .section-head h3{font-size:15px;font-family:'Inter',sans-serif;font-weight:700;color:#1A1215;display:flex;align-items:center;gap:8px;}
+  .section-head h3.overdue{color:#8B1010;}
+  .section-head h3.today{color:#7A3A10;}
+  .section-head h3.week{color:#1A3A5A;}
+  .section-count{font-size:11px;letter-spacing:.1em;color:#fff;background:#3A2A30;padding:3px 10px;border-radius:999px;font-weight:700;}
+  .section-count.overdue-c{background:#8B1010;}
+  .task-row-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .task-row-card.row-overdue{border-left:4px solid #8B1010;}
+  .trc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .trc-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .trc-date{font-size:11px;color:#1A1215;font-weight:700;background:var(--line);padding:2px 8px;border-radius:999px;}
+  .trc-title{font-size:15px;font-weight:700;color:#1A1215;line-height:1.3;margin-bottom:4px;}
+  .trc-detail{font-size:12px;color:#3A2A30;margin-bottom:8px;line-height:1.4;font-weight:600;}
+  .status-toggle{display:flex;gap:6px;margin:10px 0 4px;flex-wrap:wrap;}
+  .status-btn{border:2px solid var(--line);background:#fff;border-radius:999px;padding:5px 13px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;color:#3A2A30;letter-spacing:.04em;transition:all .15s;}
+  .status-btn.s-open.active{background:#EEF2F8;border-color:#5A8CAA;color:#1A3A5A;}
+  .status-btn.s-progress.active{background:#FFF1DA;border-color:#D4845A;color:#6A3A10;}
+  .status-btn.s-done.active{background:#DFF2EA;border-color:#2E7A5A;color:#1A4030;}
+  .trc-actions{margin-top:8px;}
+  .tt-btn{border:none;border-radius:999px;padding:5px 12px;font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.04em;}
+  .tt-btn.snooze-b{background:var(--line);color:#1A1215;}
+  .swipe-container{position:relative;margin-bottom:10px;border-radius:16px;overflow:hidden;}
+  .swipe-bg{position:absolute;inset:0;display:flex;align-items:center;border-radius:16px;font-size:14px;font-weight:700;color:#fff;}
+  .swipe-bg .done-side{background:var(--green-deep);position:absolute;top:0;bottom:0;left:0;width:50%;display:flex;align-items:center;padding:0 22px;}
+  .swipe-bg .snooze-side{background:var(--peach-deep);position:absolute;top:0;bottom:0;right:0;width:50%;display:flex;align-items:center;padding:0 22px;justify-content:flex-end;}
+  .swipe-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;position:relative;transition:transform .25s ease;touch-action:pan-y;box-shadow:0 2px 8px rgba(196,96,122,.06);}
+  .swipe-card.dragging{transition:none;}
+  .swipe-card.overdue{border-left:4px solid #8B1010;}
+  .swipe-card.today-card{border-left:4px solid var(--peach-deep);}
+  .swipe-card.done{opacity:.65;background:#FAF6F2;}
+  .swipe-card.done .task-title{text-decoration:line-through;color:var(--muted);}
+  .check{width:24px;height:24px;border-radius:50%;border:2px solid var(--pink-deep);flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;}
+  .check.done{background:var(--green-deep);border-color:var(--green-deep);color:#fff;}
+  .check.done::after{content:"✓";font-size:14px;font-weight:700;}
+  .task-body{flex:1;min-width:0;}
+  .task-title{font-weight:700;font-size:15px;line-height:1.3;color:#1A1215;}
+  .task-details{font-size:13px;color:#3A2A30;margin-top:3px;line-height:1.4;font-weight:600;}
+  .task-meta{display:flex;gap:6px;margin-top:8px;font-size:11px;align-items:center;flex-wrap:wrap;}
+  .pill{padding:3px 10px;border-radius:999px;font-weight:700;letter-spacing:.04em;font-size:10px;}
+  .pill.high{background:#FFE0E0;color:#8B1010;}
+  .pill.med{background:#FFF0DA;color:#7A4A10;}
+  .pill.low{background:#E4F0EA;color:#1A5038;}
+  .pill.age{background:var(--line);color:#1A1215;}
+  .pill.age.warn{background:var(--amber-bg);color:#7A4810;}
+  .pill.age.danger{background:var(--red-bg);color:#8B1010;}
+  .pill.due{background:#EDE5F0;color:#4A1A60;}
+  .quick-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .qa-btn{background:#fff;border:2px solid var(--line);color:#1A1215;padding:5px 10px;border-radius:999px;font-size:11px;font-family:inherit;cursor:pointer;letter-spacing:.04em;font-weight:700;}
+  .qa-btn.done-qa{background:var(--green-deep);color:#fff;border-color:var(--green-deep);}
+  .qa-btn.snooze-qa{background:var(--peach);color:#5A2A10;border-color:var(--peach-deep);}
+  .task-del{background:none;border:none;color:#8B1010;font-size:20px;cursor:pointer;padding:0 4px;font-weight:700;line-height:1;}
+  .done-today-wrap{margin-top:18px;}
+  .done-today-toggle{background:#FAF6F2;border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:var(--green-deep);font-weight:700;width:100%;font-family:inherit;}
+  .done-today-toggle .arrow{transition:transform .25s ease;font-size:12px;}
+  .done-today-toggle.open .arrow{transform:rotate(180deg);}
+  .done-today-list{display:none;margin-top:10px;}
+  .done-today-list.open{display:block;}
+  .wrap-card{background:linear-gradient(135deg,#FFE9E0,#F0E5F0);border-radius:22px;padding:22px;margin-top:24px;text-align:center;}
+  .wrap-card h3{font-size:26px;color:var(--pink-deep);margin-bottom:8px;}
+  .wrap-card p{font-size:14px;color:#1A1215;margin:6px 0;line-height:1.5;font-weight:700;}
+  .wrap-card .quote{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--pink-deep);margin-top:14px;font-weight:700;}
+  .voice-finish{background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border-radius:18px;padding:14px 16px;margin-top:20px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 6px 18px rgba(196,96,122,.25);}
+  .voice-finish.recording{animation:pulse 1.4s infinite;}
+  .voice-finish .vf-icon{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .voice-finish .vf-icon svg{width:22px;height:22px;}
+  .voice-finish .vf-text{flex:1;}
+  .voice-finish .vf-text b{font-family:'Cormorant Garamond',serif;font-size:18px;display:block;line-height:1.2;}
+  .voice-finish .vf-text span{font-size:12px;opacity:.9;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(196,96,122,.6)}70%{box-shadow:0 0 0 20px rgba(196,96,122,0)}100%{box-shadow:0 0 0 0 rgba(196,96,122,0)}}
+  .voice-finish-transcript{background:#fff;border:2px dashed var(--pink-deep);border-radius:14px;padding:12px 14px;margin-top:10px;color:#1A1215;font-size:14px;display:none;font-weight:600;}
+  .voice-finish-transcript.show{display:block;}
+  .mic-wrap{display:flex;flex-direction:column;align-items:center;margin:20px 0 30px;}
+  .mic{width:96px;height:96px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(145deg,var(--pink-deep),var(--peach-deep));box-shadow:0 8px 24px rgba(196,96,122,.45);display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .15s ease;}
+  .mic:active{transform:scale(.96);}
+  .mic.recording{animation:pulse 1.4s infinite;}
+  .mic svg{width:38px;height:38px;}
+  .mic-label{margin-top:14px;font-size:13px;color:#1A1215;letter-spacing:.06em;font-weight:700;}
+  .transcript{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;font-size:14px;color:#1A1215;min-height:54px;font-style:italic;font-weight:600;}
+  .transcript:empty::before{content:"Your words will appear here…";color:var(--muted);}
+  .ai-status{font-size:12px;color:var(--pink-deep);text-align:center;margin:6px 0;min-height:18px;font-weight:700;}
+  .manual-add{display:flex;gap:8px;margin:8px 0 18px;}
+  .manual-add input{flex:1;border:2px solid var(--line);border-radius:999px;padding:10px 16px;font-family:inherit;font-size:14px;background:#fff;color:#1A1215;font-weight:600;}
+  .manual-add button{background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:0 18px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;letter-spacing:.04em;}
+  .empty{text-align:center;color:#3A2A30;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:18px;padding:30px 0;font-weight:600;}
+  .date-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid var(--line);display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .date-badge{width:54px;height:54px;border-radius:14px;background:linear-gradient(145deg,var(--peach-deep),var(--pink-deep));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-family:'Cormorant Garamond',serif;}
+  .date-badge .day{font-size:22px;line-height:1;font-weight:700;}
+  .date-badge .mo{font-size:10px;letter-spacing:.16em;margin-top:2px;text-transform:uppercase;font-weight:700;}
+  .date-info{flex:1;min-width:0;}
+  .date-name{font-weight:700;font-size:15px;color:#1A1215;}
+  .date-sub{font-size:12px;color:#3A2A30;margin-top:2px;font-weight:600;}
+  .countdown{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--pink-deep);font-size:13px;margin-top:4px;font-weight:700;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:11px 22px;font-family:inherit;font-size:13px;letter-spacing:.08em;cursor:pointer;font-weight:700;}
+  .btn.ghost{background:#fff;color:var(--pink-deep);border:2px solid var(--pink-deep);}
+  .btn.block{display:flex;width:100%;}
+  .btn-row{display:flex;gap:10px;margin-top:12px;}
+  .form{background:#fff;border-radius:18px;padding:18px;border:1px solid var(--line);margin-bottom:18px;}
+  .form label{display:block;font-size:11px;letter-spacing:.16em;color:#1A1215;margin-bottom:6px;text-transform:uppercase;font-weight:700;}
+  .form input,.form textarea,.form select{width:100%;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;background:var(--cream);margin-bottom:12px;color:#1A1215;font-weight:600;}
+  .form textarea{resize:vertical;min-height:60px;}
+  .gift-card{background:linear-gradient(145deg,#fff,#FFF1ED);border-radius:18px;padding:18px;margin-bottom:12px;border:1px solid var(--line);}
+  .gift-card h4{margin:0 0 4px;font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--pink-deep);font-weight:700;}
+  .gift-card p{margin:0;font-size:13px;color:#3A2A30;font-weight:600;}
+  .amazon-btn{display:flex;width:100%;margin-top:10px;background:linear-gradient(135deg,#FF9900,#E47911);border:none;border-radius:999px;padding:12px 22px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#fff;align-items:center;justify-content:center;gap:6px;letter-spacing:.06em;}
+  .or-divider{text-align:center;font-size:11px;color:#3A2A30;letter-spacing:.08em;font-weight:700;margin:10px 0;}
+  .photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+  .photo-tile{aspect-ratio:1;border-radius:12px;background:linear-gradient(135deg,var(--pink),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;overflow:hidden;}
+  .photo-tile img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
+  .photo-add{aspect-ratio:1;border-radius:12px;border:2px dashed var(--pink-deep);display:flex;align-items:center;justify-content:center;color:var(--pink-deep);font-size:32px;cursor:pointer;background:#fff;font-weight:700;}
+  .step{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  .step h4{margin:0 0 4px;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--pink-deep);font-weight:700;}
+  .step p{margin:0;font-size:13px;color:#3A2A30;line-height:1.5;font-weight:600;}
+  .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1215;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:all .3s ease;z-index:100;pointer-events:none;max-width:90%;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .confetti{position:fixed;top:30%;left:50%;width:0;height:0;pointer-events:none;z-index:200;}
+  .confetti span{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettiFall 1.2s ease-out forwards;}
+  @keyframes confettiFall{0%{transform:translate(0,0) rotate(0);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) rotate(720deg);opacity:0;}}
+  .snooze-sheet{position:fixed;left:0;right:0;bottom:-300px;background:var(--cream);border-radius:24px 24px 0 0;padding:20px 22px calc(20px + env(safe-area-inset-bottom));z-index:150;transition:bottom .3s ease;box-shadow:0 -10px 30px rgba(0,0,0,.15);max-width:480px;margin:0 auto;}
+  .snooze-sheet.show{bottom:0;}
+  .snooze-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:140;display:none;}
+  .snooze-backdrop.show{display:block;}
+  .snooze-sheet h4{font-size:22px;color:var(--pink-deep);margin-bottom:14px;text-align:center;font-weight:700;}
+  .snooze-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .snooze-opt{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px;text-align:center;cursor:pointer;font-family:inherit;font-size:13px;color:#1A1215;font-weight:700;}
+  .snooze-opt:active{background:var(--cream);}
+  .snooze-opt b{display:block;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--pink-deep);margin-bottom:2px;font-weight:700;}
+
+  /* NOTES */
+  .notes-tabs{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+  .notes-tab-btn{flex-shrink:0;padding:8px 18px;border-radius:999px;border:2px solid var(--line);background:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:#3A2A30;letter-spacing:.06em;transition:all .15s;}
+  .notes-tab-btn.active{border-color:var(--pink-deep);background:var(--pink-deep);color:#fff;}
+  .notes-tab-btn .nt-count{display:inline-block;background:rgba(255,255,255,.3);border-radius:999px;padding:1px 7px;margin-left:5px;font-size:10px;}
+  .notes-tab-btn:not(.active) .nt-count{background:var(--line);color:#1A1215;}
+  .note-section{display:none;}
+  .note-section.active{display:block;}
+  .note-add-bar{display:flex;gap:8px;margin-bottom:14px;align-items:flex-start;}
+  .note-add-bar textarea{flex:1;border:2px solid var(--line);border-radius:14px;padding:10px 14px;font-family:inherit;font-size:14px;background:#fff;color:#1A1215;font-weight:600;resize:none;min-height:44px;line-height:1.4;}
+  .note-add-bar textarea:focus{outline:none;border-color:var(--pink-deep);}
+  .note-add-bar button{background:var(--pink-deep);color:#fff;border:none;border-radius:14px;padding:10px 16px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;flex-shrink:0;align-self:flex-end;}
+  .note-mic-row{display:flex;gap:8px;margin-bottom:14px;align-items:center;}
+  .note-mic-btn{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:999px;padding:8px 16px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;}
+  .note-mic-btn.recording{animation:pulse 1.4s infinite;}
+  .note-mic-btn svg{width:14px;height:14px;}
+  .note-mic-transcript{font-size:12px;color:var(--pink-deep);font-weight:700;flex:1;font-style:italic;}
+  .note-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--line);box-shadow:0 2px 8px rgba(196,96,122,.06);}
+  .note-card.grocery{border-left:4px solid var(--green-deep);}
+  .note-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .note-card-text{font-size:14px;color:#1A1215;font-weight:600;line-height:1.5;flex:1;}
+  .note-card-del{background:none;border:none;color:#C4607A;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;}
+  .note-card-footer{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;}
+  .note-badge{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em;}
+  .note-badge.grocery-tag{background:#DFF2EA;color:#1A5038;}
+  .note-badge.time{background:var(--line);color:#1A1215;}
+  .note-badge.auto{background:#E8F1F8;color:#1A3A5A;}
+  .notes-empty{text-align:center;padding:30px 18px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#5A4A50;}
+  .grocery-header{display:flex;align-items:center;gap:8px;margin:14px 0 8px;}
+  .grocery-header-label{font-size:11px;letter-spacing:.2em;font-weight:700;color:var(--green-deep);text-transform:uppercase;}
+  .grocery-divider{flex:1;height:1px;background:var(--green-deep);opacity:.2;}
+
+  /* ── NOTES IN TODAY ── */
+  .today-notes-section{margin-top:22px;}
+  .today-notes-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .today-notes-head h3{font-size:15px;font-family:'Inter',sans-serif;font-weight:700;color:#1A1215;display:flex;align-items:center;gap:6px;}
+  .today-note-group{margin-bottom:14px;}
+  .today-note-group-label{font-size:10px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;margin-bottom:6px;padding:3px 10px;border-radius:999px;display:inline-block;}
+  .tng-office{background:#EDE5F0;color:#4A1A60;}
+  .tng-personal{background:#FFE9E0;color:#8B3A10;}
+  .tng-home{background:#E8F4FF;color:#1A3A5A;}
+  .tng-grocery{background:#DFF2EA;color:#1A5038;}
+  .tng-party{background:#FFF1DA;color:#7A4A10;}
+  .today-note-row{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:#fff;border-radius:12px;margin-bottom:6px;border:1px solid var(--line);box-shadow:0 1px 4px rgba(196,96,122,.05);}
+  .today-note-row.checked{opacity:.55;background:#FAF6F2;}
+  .tn-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--pink-deep);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;margin-top:1px;}
+  .tn-check.done{background:var(--green-deep);border-color:var(--green-deep);color:#fff;font-size:11px;}
+  .tn-text{flex:1;font-size:13px;color:#1A1215;font-weight:600;line-height:1.4;}
+  .tn-text.done{text-decoration:line-through;color:#5A4A50;}
+  .tn-task-btn{background:none;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:999px;padding:3px 9px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;flex-shrink:0;letter-spacing:.04em;white-space:nowrap;}
+  .tn-task-btn:active{background:var(--pink-deep);color:#fff;}
+  /* ── PARTY QUICK NOTES ── */
+  .pqn-wrap{background:linear-gradient(135deg,#FFF8F0,#F0F4FF);border:2px solid var(--pink);border-radius:20px;padding:14px 16px;margin-bottom:18px;}
+  .pqn-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:0;}
+  .pqn-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--pink-deep);display:flex;align-items:center;gap:6px;}
+  .pqn-toggle-arrow{font-size:12px;color:var(--pink-deep);transition:transform .2s;}
+  .pqn-toggle-arrow.open{transform:rotate(180deg);}
+  .pqn-body{display:none;margin-top:12px;}
+  .pqn-body.open{display:block;}
+  .pqn-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .pqn-col-head{font-size:10px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;margin-bottom:6px;}
+  .pqn-col-head.groc{color:var(--green-deep);}
+  .pqn-col-head.cook{color:var(--peach-deep);}
+  .pqn-col{background:#fff;border-radius:14px;padding:10px 10px 8px;border:1px solid var(--line);min-height:80px;}
+  .pqn-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:1px solid var(--line);}
+  .pqn-item:last-child{border-bottom:none;}
+  .pqn-check{width:17px;height:17px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;margin-top:1px;}
+  .pqn-check.done{background:var(--green-deep);border-color:var(--green-deep);color:#fff;font-size:9px;}
+  .pqn-item-text{flex:1;font-size:12px;color:#1A1215;font-weight:600;line-height:1.4;}
+  .pqn-item-text.done{text-decoration:line-through;color:#5A4A50;}
+  .pqn-item-del{background:none;border:none;color:#C4607A;font-size:14px;cursor:pointer;padding:0 1px;line-height:1;flex-shrink:0;}
+  .pqn-add-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+  .pqn-add-col{display:flex;gap:5px;}
+  .pqn-add-col input{flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:inherit;font-size:12px;background:var(--cream);color:#1A1215;font-weight:600;min-width:0;}
+  .pqn-add-col button{background:var(--pink-deep);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:12px;cursor:pointer;font-weight:700;flex-shrink:0;}
+  .pqn-label{font-size:11px;color:#5A4A50;font-weight:600;text-align:center;margin-bottom:6px;font-style:italic;}
+  .pqn-empty{font-size:11px;color:#9A8A90;font-style:italic;text-align:center;padding:8px 0;}
+  /* ── EVENT PLANNER ── */
+  .plan-add-btn{display:flex;align-items:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--peach),var(--pink));border:2px dashed var(--pink-deep);border-radius:16px;padding:13px 16px;font-family:inherit;font-size:13px;font-weight:700;color:var(--pink-deep);cursor:pointer;margin-bottom:16px;letter-spacing:.04em;}
+  .plan-add-btn .pa-icon{font-size:20px;}
+  .plan-card{background:#fff;border-radius:20px;border:1px solid var(--line);margin-bottom:14px;box-shadow:0 3px 14px rgba(196,96,122,.09);overflow:hidden;}
+  .plan-card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:linear-gradient(135deg,#FFF1ED,#fff);}
+  .plan-card-head .pc-emoji{font-size:22px;flex-shrink:0;}
+  .plan-card-head .pc-name{flex:1;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#1A1215;}
+  .plan-card-head .pc-meta{font-size:11px;color:#5A4A50;font-weight:600;}
+  .plan-card-head .pc-toggle{font-size:13px;color:var(--pink-deep);transition:transform .2s;}
+  .plan-card-head.open .pc-toggle{transform:rotate(180deg);}
+  .plan-card-body{display:none;padding:0 16px 16px;}
+  .plan-card-body.open{display:block;}
+  .plan-speak-row{display:flex;gap:8px;align-items:center;background:linear-gradient(135deg,#EEF8F4,#E8F1F8);border-radius:12px;padding:10px 12px;margin-bottom:12px;}
+  .plan-speak-btn{display:flex;align-items:center;gap:5px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;}
+  .plan-speak-btn.recording{animation:pulse 1.4s infinite;}
+  .plan-speak-status{font-size:12px;color:#1A3A5A;font-weight:600;font-style:italic;flex:1;}
+  .plan-section{margin-bottom:10px;}
+  .plan-section-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .plan-section-label{font-size:10px;letter-spacing:.18em;font-weight:700;text-transform:uppercase;}
+  .plan-section-label.groceries{color:var(--green-deep);}
+  .plan-section-label.cooking{color:var(--peach-deep);}
+  .plan-section-label.todo{color:var(--blue-deep);}
+  .plan-section-count{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
+  .plan-section-count.groceries{background:#DFF2EA;color:var(--green-deep);}
+  .plan-section-count.cooking{background:#FFF1DA;color:var(--peach-deep);}
+  .plan-section-count.todo{background:#E8F1F8;color:var(--blue-deep);}
+  .plan-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);}
+  .plan-item:last-child{border-bottom:none;}
+  .plan-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;}
+  .plan-check.done{background:var(--green-deep);border-color:var(--green-deep);color:#fff;font-size:11px;}
+  .plan-item-text{flex:1;font-size:13px;color:#1A1215;font-weight:600;line-height:1.3;}
+  .plan-item-text.done{text-decoration:line-through;color:#5A4A50;}
+  .plan-item-del{background:none;border:none;color:#C4607A;font-size:16px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;}
+  .plan-item-add{display:flex;gap:6px;margin-top:6px;}
+  .plan-item-add input{flex:1;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;background:var(--cream);color:#1A1215;font-weight:600;}
+  .plan-item-add button{background:var(--pink-deep);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-family:inherit;font-size:12px;cursor:pointer;font-weight:700;}
+  .plan-card-del{background:none;border:none;color:#C4607A;font-size:12px;font-family:inherit;font-weight:700;cursor:pointer;padding:8px 16px;width:100%;text-align:center;border-top:1px solid var(--line);}
+  /* name-entry modal */
+  .plan-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+  .plan-modal-bg.show{display:flex;}
+  .plan-modal{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:480px;}
+  .plan-modal h4{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--pink-deep);margin:0 0 16px;font-weight:700;}
+  .plan-modal input{width:100%;border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;background:var(--cream);color:#1A1215;font-weight:600;margin-bottom:12px;}
+  .plan-modal-btns{display:flex;gap:10px;}
+  .plan-modal-btns button{flex:1;padding:12px;border-radius:999px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  .plan-modal-btns .confirm{background:var(--pink-deep);color:#fff;}
+  .plan-modal-btns .cancel{background:var(--line);color:#1A1215;}
+</style>
+</head>
+<body>
+<div class="install-banner" id="installBanner">
+  <b>Install Pooja's HQ</b> · Tap <span id="installAction">Share → Add to Home Screen</span>
+  <button class="close" onclick="dismissInstall()">×</button>
+</div>
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen active" id="screen-home">
+    <div class="hero">
+      <div class="avatar" id="avatar">
+        <span class="monogram">P</span>
+        <img id="avatarImg" alt="Pooja" />
+        <label class="camera-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h3l2-2h8l2 2h3v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <input type="file" accept="image/*" id="avatarInput" style="display:none"/>
+        </label>
+      </div>
+      <h1 class="title">Pooja's HQ</h1>
+      <p class="tagline">all heart, all hustle, all Pooja</p>
+    </div>
+    <div class="today-label">TODAY</div>
+    <div class="today-msg" id="todayMsg">Take a breath. You've got this.</div>
+    <div class="home-task-card" onclick="go('today')">
+      <div class="home-task-row">
+        <div class="home-stat"><div class="hs-num r" id="hStatRemaining">0</div><div class="hs-label">Remaining</div></div>
+        <div class="home-stat attention"><div class="hs-num a" id="hStatOverdue">0</div><div class="hs-label">Needs Attention</div></div>
+        <div class="home-stat done-s"><div class="hs-num d" id="hStatDone">0</div><div class="hs-label">Done Today</div></div>
+      </div>
+      <div class="home-task-msg neutral" id="hTaskMsg">Loading your day…</div>
+      <div class="home-task-card-link">tap to open Today →</div>
+    </div>
+    <div class="notif-prompt" id="notifPrompt" style="display:none">
+      <button onclick="requestNotifications()">🔔 Enable Task Reminders</button>
+      <p>Get nudged every 6 hrs for pending tasks</p>
+    </div>
+    <div id="upcomingBanner" class="upcoming-banner">
+      <div class="ub-title" id="upcomingTitle"></div>
+      <div class="ub-count" id="upcomingText"></div>
+      <div id="upcomingActions"></div>
+    </div>
+    <div class="home-quick">
+      <div class="hq-card" onclick="go('notes')"><span class="hq-icon">📝</span><div><div class="hq-label">Notes</div><div class="hq-sub">office · personal · home</div></div></div>
+      <div class="hq-card" onclick="go('dates')"><span class="hq-icon">💝</span><div><div class="hq-label">Dates</div><div class="hq-sub">birthdays & plans</div></div></div>
+      <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
+      <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
+    </div>
+  </section>
+
+  <!-- TODAY -->
+  <section class="screen" id="screen-today">
+    <div class="screen-head"><h2>Today</h2><p id="todaySubtitle">Your action center.</p></div>
+    <div class="summary-strip">
+      <div><div class="stat-num" id="statOpen">0</div><div class="stat-label">Open</div></div>
+      <div><div class="stat-num warn" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
+      <div><div class="stat-num win" id="statDoneWeek">0</div><div class="stat-label">Done this wk</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>This week's progress</span><span id="progressPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div id="focusCardWrap"></div>
+    <div id="taskGroups"></div>
+    <div class="done-today-wrap" id="doneTodayWrap" style="display:none">
+      <button class="done-today-toggle" id="doneTodayToggle" onclick="toggleDoneToday()">
+        <span id="doneTodayLabel">✨ 0 done today</span><span class="arrow">▼</span>
+      </button>
+      <div class="done-today-list" id="doneTodayList"></div>
+    </div>
+    <!-- Notes in Today -->
+    <div id="todayNotesWrap"></div>
+
+    <div class="voice-finish" id="voiceFinishBtn" onclick="toggleVoiceFinish()">
+      <div class="vf-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></div>
+      <div class="vf-text"><b>What did you finish?</b><span>Tap and tell me — I'll check them off</span></div>
+    </div>
+    <div class="voice-finish-transcript" id="voiceFinishTranscript"></div>
+    <div id="wrapUpWrap"></div>
+  </section>
+
+  <!-- CAPTURE -->
+  <section class="screen" id="screen-tasks">
+    <div class="screen-head"><h2>Capture</h2><p>Speak it or type it. I'll handle the rest.</p></div>
+    <div class="mic-wrap">
+      <button class="mic" id="micBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
+      <div class="mic-label" id="micLabel">tap to speak</div>
+    </div>
+    <div class="transcript" id="transcript"></div>
+    <div class="ai-status" id="aiStatus"></div>
+    <div class="manual-add"><input id="manualInput" placeholder="Or type a task here…" /><button onclick="addManual()">Add</button></div>
+    <p style="text-align:center;font-size:13px;color:#3A2A30;margin-top:20px;font-weight:700;">Captured tasks live in the <b style="color:var(--pink-deep);cursor:pointer" onclick="go('today')">Today</b> tab.</p>
+  </section>
+
+  <!-- DATES -->
+  <section class="screen" id="screen-dates">
+    <div class="screen-head"><h2>Important Dates</h2><p>The moments that matter.</p></div>
+    <div class="form" id="dateForm" style="display:none">
+      <label>Type</label>
+      <select id="dType" onchange="onDateTypeChange()">
+        <option value="birthday">🎂 Birthday</option>
+        <option value="anniversary">💕 Anniversary</option>
+        <option value="party">🎉 Party / Social event</option>
+        <option value="dinner">🍽 Dinner / Night out</option>
+        <option value="weekend">🌿 Weekend plan</option>
+        <option value="other">📅 Other</option>
+      </select>
+      <label>Name / Description</label><input id="dName" placeholder="e.g. Priya's birthday party, Sharma's place…"/>
+      <label>Date</label><input id="dDate" type="date"/>
+      <div id="dTimeRow">
+        <label>Time <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#5A4A50">(optional)</span></label>
+        <input id="dTime" type="time"/>
+      </div>
+      <div id="dLocationRow">
+        <label>Location <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#5A4A50">(optional)</span></label>
+        <input id="dLocation" placeholder="e.g. Sharma's place, 123 Main St"/>
+      </div>
+      <label>For (who)</label><input id="dWho" placeholder="Daughter, husband, friends…"/>
+      <label>Remind me in app</label>
+      <select id="dNotify"><option value="1">1 day before</option><option value="3" selected>3 days before</option><option value="7">1 week before</option><option value="14">2 weeks before</option></select>
+      <div id="dCalendarRow" style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:12px;padding:12px 14px;margin-bottom:12px;border:1px solid #C9DCEB;">
+        <div style="font-size:11px;letter-spacing:.16em;color:#1A1215;margin-bottom:6px;text-transform:uppercase;font-weight:700;">📅 Add to iPhone Calendar</div>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;font-weight:700;color:#1A3A5A;cursor:pointer;margin-bottom:0;">
+          <input type="checkbox" id="dAddCalendar" checked style="width:16px;height:16px;accent-color:var(--pink-deep);margin-bottom:0;flex-shrink:0;"/>
+          Auto-add to calendar + notify 1 day &amp; 2 days before
+        </label>
+      </div>
+      <div class="btn-row"><button class="btn block" onclick="saveDate()">Save ✨</button><button class="btn ghost" onclick="toggleDateForm()">Cancel</button></div>
+    </div>
+    <button class="btn block" onclick="toggleDateForm()" id="addDateBtn">+ Add a Date or Event</button>
+    <div style="height:14px"></div>
+    <div id="dateList"></div>
+  </section>
+
+  <!-- GIFTS -->
+  <section class="screen" id="screen-gifts">
+    <div class="screen-head"><h2>Send a Gift</h2><p>A little something, sent with love.</p></div>
+    <div class="form">
+      <label>To (phone number)</label><input id="gPhone" type="tel" placeholder="+1 555 123 4567"/>
+      <label>Occasion</label>
+      <select id="gOccasion">
+        <option value="anniversary">Anniversary 💕</option>
+        <option value="birthday">Birthday 🎂</option>
+        <option value="thinking of you">Thinking of You 🌸</option>
+        <option value="congratulations">Congratulations 🎉</option>
+        <option value="thank you">Thank You 🙏</option>
+        <option value="just because">Just Because 💖</option>
+      </select>
+      <label>For (name)</label><input id="gForName" placeholder="e.g. my daughter, my husband…"/>
+      <label>Amount (if gift card)</label><input id="gAmount" type="number" placeholder="25"/>
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <button class="btn ghost" style="flex:1" onclick="generateAIMessage()">✨ Generate Sweet Message</button>
+      </div>
+      <div id="aiMsgStatus" style="font-size:12px;color:var(--pink-deep);text-align:center;min-height:16px;margin-bottom:6px;font-weight:700;"></div>
+      <label>Your note</label>
+      <textarea id="gNote" placeholder="Tap Generate or write your own…" style="min-height:80px"></textarea>
+      <button class="btn block" onclick="sendGift()">💌 Send via Messages</button>
+      <div class="or-divider">— OR —</div>
+      <button class="amazon-btn" onclick="sendAmazonGift()">🛍 Send Amazon Gift Card</button>
+      <p style="font-size:11px;color:#3A2A30;text-align:center;margin:6px 0 0;line-height:1.5;font-weight:700;">Opens Amazon with your amount. Enter recipient's email on Amazon to send.</p>
+    </div>
+    <div id="giftHistory"></div>
+  </section>
+
+  <!-- PHOTOS -->
+  <section class="screen" id="screen-photos">
+    <div class="screen-head"><h2>Event Photos</h2><p>Your directory of moments.</p></div>
+    <p style="font-size:13px;color:#3A2A30;font-weight:700;margin:0 0 10px;">Tap + to pick photos from any album. Select multiple at once!</p>
+    <div class="photo-grid" id="photoGrid">
+      <label class="photo-add">+<input type="file" accept="image/*" id="photoInput" multiple style="display:none"/></label>
+    </div>
+  </section>
+
+  <!-- NOTES -->
+  <section class="screen" id="screen-notes">
+    <div class="screen-head"><h2>Notes</h2><p>Office, personal, home — all in one place.</p></div>
+    <div class="notes-tabs">
+      <button class="notes-tab-btn active" data-ntab="office" onclick="switchNotesTab('office')">💼 Office <span class="nt-count" id="nc-office">0</span></button>
+      <button class="notes-tab-btn" data-ntab="personal" onclick="switchNotesTab('personal')">🌸 Personal <span class="nt-count" id="nc-personal">0</span></button>
+      <button class="notes-tab-btn" data-ntab="home" onclick="switchNotesTab('home')">🏡 Home <span class="nt-count" id="nc-home">0</span></button>
+    </div>
+
+    <!-- OFFICE -->
+    <div class="note-section active" id="nsec-office">
+      <div class="note-mic-row">
+        <button class="note-mic-btn" id="noteMicOffice" onclick="toggleNoteMic('office')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg>
+          Speak a note
+        </button>
+        <span class="note-mic-transcript" id="noteMicStatus-office"></span>
+      </div>
+      <div class="note-add-bar">
+        <textarea id="noteInput-office" placeholder="Type an office note…" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addNote('office');}"></textarea>
+        <button onclick="addNote('office')">Add</button>
+      </div>
+      <div id="noteList-office"></div>
+    </div>
+
+    <!-- PERSONAL -->
+    <div class="note-section" id="nsec-personal">
+      <!-- Party Quick Notes -->
+      <div class="pqn-wrap">
+        <div class="pqn-header" onclick="togglePQN()">
+          <div class="pqn-title">🎉 Party Quick Notes</div>
+          <span class="pqn-toggle-arrow" id="pqnArrow">▼</span>
+        </div>
+        <div class="pqn-body" id="pqnBody">
+          <div class="pqn-label">Your at-a-glance party reference — groceries & what you're making</div>
+          <div class="pqn-cols">
+            <div>
+              <div class="pqn-col-head groc">🛒 Groceries</div>
+              <div class="pqn-col" id="pqnGrocList"></div>
+            </div>
+            <div>
+              <div class="pqn-col-head cook">🍳 I'm Making</div>
+              <div class="pqn-col" id="pqnCookList"></div>
+            </div>
+          </div>
+          <div class="pqn-add-row">
+            <div class="pqn-add-col">
+              <input id="pqnGrocInput" placeholder="e.g. paneer, coke…" onkeydown="if(event.key==='Enter')addPQNItem('groc')"/>
+              <button onclick="addPQNItem('groc')">+</button>
+            </div>
+            <div class="pqn-add-col">
+              <input id="pqnCookInput" placeholder="e.g. biryani, cake…" onkeydown="if(event.key==='Enter')addPQNItem('cook')"/>
+              <button onclick="addPQNItem('cook')">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Event Planner -->
+      <button class="plan-add-btn" onclick="openPlanModal()">
+        <span class="pa-icon">🎉</span> Plan an Event
+      </button>
+      <div id="planList"></div>
+      <div class="note-mic-row">
+        <button class="note-mic-btn" id="noteMicPersonal" onclick="toggleNoteMic('personal')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg>
+          Speak a note
+        </button>
+        <span class="note-mic-transcript" id="noteMicStatus-personal"></span>
+      </div>
+      <div class="note-add-bar">
+        <textarea id="noteInput-personal" placeholder="Type a personal note…" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addNote('personal');}"></textarea>
+        <button onclick="addNote('personal')">Add</button>
+      </div>
+      <div class="grocery-header"><span class="grocery-divider"></span><span class="grocery-header-label">🛒 Grocery / Shopping</span><span class="grocery-divider"></span></div>
+      <div id="noteList-grocery"></div>
+      <div style="height:10px"></div>
+      <div id="noteList-personal"></div>
+    </div>
+
+    <!-- HOME -->
+    <div class="note-section" id="nsec-home">
+      <div class="note-mic-row">
+        <button class="note-mic-btn" id="noteMicHome" onclick="toggleNoteMic('home')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg>
+          Speak a note
+        </button>
+        <span class="note-mic-transcript" id="noteMicStatus-home"></span>
+      </div>
+      <div class="note-add-bar">
+        <textarea id="noteInput-home" placeholder="Type a home note…" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addNote('home');}"></textarea>
+        <button onclick="addNote('home')">Add</button>
+      </div>
+      <div id="noteList-home"></div>
+    </div>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="screen" id="screen-guide">
+    <div class="screen-head"><h2>How it works</h2><p>Your action center, explained.</p></div>
+    <div class="step"><h4>📝 Notes</h4><p>Three tabs: Office, Personal, Home. Say "Costco", "groceries", "Amazon" or any food/shopping word and the note auto-routes to your Personal Grocery section. You can also speak notes with the mic — review in the text box, then tap Add.</p></div>
+    <div class="step"><h4>✨ Today</h4><p>Your most important task is always at the top. Tap Open / In Progress / Done to update status. Swipe right = done, swipe left = snooze.</p></div>
+    <div class="step"><h4>🎤 Capture</h4><p>Tap the mic and speak your task (works in Safari). Say "urgent" → auto high priority. Or just type it.</p></div>
+    <div class="step"><h4>🪄 Voice finish</h4><p>Tap "What did you finish?" and say what you completed. It matches and checks them off automatically.</p></div>
+    <div class="step"><h4>🔔 Notifications</h4><p>Enable reminders on the home screen. You'll get nudged every 6 hours for pending tasks.</p></div>
+    <div class="step"><h4>🎁 Send a Gift</h4><p>Pick an occasion, generate a heartfelt AI message, send via SMS, or open Amazon to send a gift card directly.</p></div>
+    <div class="step"><h4>💝 Important Dates</h4><p>Add birthdays, anniversaries, plans. A banner appears on your home screen when a date is coming up soon.</p></div>
+  </section>
+
+<!-- Plan Name Modal -->
+<div class="plan-modal-bg" id="planModalBg" onclick="if(event.target===this)closePlanModal()">
+  <div class="plan-modal">
+    <h4>🎉 Name your event</h4>
+    <input id="planNameInput" placeholder="e.g. Diwali Party, Riya's birthday dinner…" onkeydown="if(event.key==='Enter')confirmPlanName()"/>
+    <div class="plan-modal-btns">
+      <button class="cancel" onclick="closePlanModal()">Cancel</button>
+      <button class="confirm" onclick="confirmPlanName()">Create Plan ✨</button>
+    </div>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-screen="home" onclick="go('home')"><span class="icon">🏠</span>HOME</button>
+  <button class="tab" data-screen="today" onclick="go('today')"><span class="icon">✨</span>TODAY</button>
+  <button class="tab" data-screen="dates" onclick="go('dates')"><span class="icon">💝</span>DATES</button>
+  <button class="tab" data-screen="notes" onclick="go('notes')"><span class="icon">📝</span>NOTES</button>
+  <button class="tab" id="moreTab" onclick="toggleMoreTray()"><span class="icon">⋯</span>MORE</button>
+</nav>
+
+<!-- FAB mic button (shows on Today screen) -->
+<button class="fab" id="fabMic" onclick="go('tasks')" title="Add a task">🎤</button>
+
+<!-- More tray backdrop + sheet -->
+<div class="more-backdrop" id="moreBackdrop" onclick="closeMoreTray()"></div>
+<div class="more-tray" id="moreTray">
+  <div class="more-tray-title">MORE</div>
+  <div class="more-tray-grid">
+    <div class="more-tile" onclick="closeMoreTray();go('tasks')"><span class="mt-icon">🎤</span><span class="mt-label">Add Task</span></div>
+    <div class="more-tile" onclick="closeMoreTray();go('gifts')"><span class="mt-icon">🎁</span><span class="mt-label">Send Gift</span></div>
+    <div class="more-tile" onclick="closeMoreTray();go('photos')"><span class="mt-icon">📸</span><span class="mt-label">Photos</span></div>
+    <div class="more-tile" onclick="closeMoreTray();go('guide')"><span class="mt-icon">📖</span><span class="mt-label">Guide</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="snooze-backdrop" id="snoozeBackdrop" onclick="closeSnooze()"></div>
+<div class="snooze-sheet" id="snoozeSheet">
+  <h4>Snooze until…</h4>
+  <div class="snooze-options">
+    <button class="snooze-opt" onclick="applySnooze(1)"><b>Tomorrow</b>same time</button>
+    <button class="snooze-opt" onclick="applySnooze(2)"><b>In 2 days</b></button>
+    <button class="snooze-opt" onclick="applySnooze(3)"><b>3 days</b></button>
+    <button class="snooze-opt" onclick="applySnooze(7)"><b>Next week</b></button>
+    <button class="snooze-opt" onclick="applySnooze(14)"><b>2 weeks</b></button>
+    <button class="snooze-opt" onclick="closeSnooze()">Cancel</button>
+  </div>
+</div>
+
+<script>
+const ICON_PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAIWUlEQVR42u3d13LcRhCFYT6JH8KP49eUbEm2cs452parJFGJIkUlWw6qWnMBLrBYABvIabDn9D9V554XX7EWA3SftTXH579HT0dFHv7eyr+zeTDOb535Z5z70/m1nXtl/m7kSZ277Xyt8nj09c7i/HX70fzcmuTh6M+u3JzNgyJfJrnRl/tlrt8ffZ6Xa/da+TSbq/dGa5zu8+3x09G3Cdq+gNkV5k9X73bm4zhXygQC/MeozNMRmDUxl7nTiChiMEfEXORymQ+XM8bdhgzm6Jjr3B5lDhnMYK4xV7nkHDaYwbwK5kn8QX7SBxnMYJ6PeZJtL7DBDOYUmMvcGoEZzDKYty+WORjIYAazAebpgBnMMpgHQQ1mMA+J2RQ1mMF8EJjfX7hZhAdAMMtgTg4azGA+SMxJUYMZzB4wJ0ENZjB7wlzk/D5QgxnM3jDvGTSYwewR8/vzN0ZbOwEzmGUwb62KGsxg9o55adBgBnMOmIucWwI1mMGcC+aFoMHcBvzDd9+7TmTMC1GDOXPQATFvnbu+DGgwZwc6KOZe0GDOGHRgzJu76QEN5tkHQPegwTzaPNsJGsxdtxn+QYO5HzSYW1dzOYKOhrkFGsz998y5gY6IuYUazP0vTXICHRlzA7QiZu8QU4OOjnnz7LUlQGf8nzkSaDBfWwJ05j8zooAGc4l588w80AK/mcOABnOB+V0vaJEHwHigY2PuBi10mxELNJgr0KpXc3FAg7mBWvWeOSzowJhL0KIvTUKCDo65EzSTJu10jUxxm+EP87vTV5ugmTRZHvT0DCAPgD4wN0AzabIK6O6BVh4ADxZzBZpJk1VAz5/O5jfzwWEuQDNpsgro5VcNmIMGcwtzGzSTJnNAr743www1mDsxbzRAM2kyB/Tel8BYgQZzG3MNmkmTxaD3sdHIAjWY25hL0EyaLAadYD2XDWgwb7RBa+6aS4knxa659KDBPIt541QPaIXFiYOAXnFxoglqMFeYN05daYNW2QJqDnqPW0CTggZzA3MLtNJKW1PQ+1hpawk6OuYGaLX9zGagE+xntgAN5inQisvGTUAnWjaeGjSYp0Crbs5PDjrh5vyUfxuYZ0GL1kAkBW1QA5EWNJjHedsErdVpYgk6RQ1EOtBgnmB+e7ICrVfQYwU6VadJMtBgrjDvgtZsm7IAnbKgZyjQkTB3gxapTksNOnXb1BCgo2F+e/LyDGihHkDv1WnWoCNiboIWK7X0Xp1mCToq5hq0YEOr9+o0K9CRMZegReuGvVenWYCOjrkCrdid7b06LTVoMO/kxA5o1SJ479VpKUGDucQ8A1oH8xCgPWAeB8w15jc1aC3Mqddzpa5OA7MN5l3Qepg/G4JO0WkyCOiAmJughTBbgfaEeS7ooJjfnLi0C1oMswXoVG1T5qADYy5BC2JODdoj5k7QwTF3glbAnBw0mLPA/Ob4DGgVzHag976f2RQ0mAvMDdBKmG1A+8HcAA3mCnMFWg1z6q2fYM4DcwFaEbM56APEXIEGcwvzFGgtzKagwewW8+sStB5mM9AHcJvRAg3mXswlaEHMJqDB7B7z6+MXF4POEXPqBeNDvs5eDBrMfZhf/7IAdK6YLUBbfgIK5jSY54LOGfMnwwYqbwFzjbkXdO6Y44KOjbkTtAJmi04T/6DB3AKtgtmiz8Q3aDC3QCthjgUazC3QapijgQbzFGhFzJFAg3kV0JliDgcazEVe/XxhDuiMMYcCDeYKcz/ozDF/DA86JuZu0AKYUzdN5QU6LuY2aBHMcUHHxtwELYQ5Jmgw16DFMKfsMMkDNJhr0IKYY4EGcwdoLczhQIO5zLECtB7mUKDBXGEuQCtijgQazDXmV8fOd4AWwJyyNo3qtHwwv2yBFsFsDRrMPjE3QQth/mAIGsx+MdegxTBbgQazb8wlaEHMFqDB7B9zB2gNzFSnxcT88mgDtA7mQUGD2Q3mKdBamGmbiol5F7QeZtqmYmKuQKthNgcNZpeYXx49N1pTxGwKGsxuMdegxTCbgQaza8zrBWhBzCagwewe8xzQeWPeTg0azFlgXj/SCTp/zDagwewdcwdoDczbl24lBg3mHDDPgNbBPP72IulCRDBngXkKtBZmc9Bgdol5F7QeZlPQYHaLuQYthtkMNJhdY14/cnYHtCBmE9Bgdo+5AK2IOTloMGeBef2neaAzxmwLGsxeMb/oBZ05ZjvQYPaMuRu0AGYb0GD2jrkNWgTz+GMiqtPiYW6CFsJsARrM/jHXoMUwpwYN5jwwl6AFMZuABrN7zJ2gFTAnBw3mLDC/+PFME7QK5mFAg9kb5gZoJcz2oMHsEXMFWg2zLWgwe8VcgFbEPB6ZojotHuY2aBHMNqDB7B3z8wZoIczjGUCq0+JhrkGLYd6yAA1m95hL0IKYk4MGcxaYC9Djo4Y5NWgwZ4S5C3TumAcDDWY3mJ8f7gGtgHkQ0GB2hfn54dNt0CqYxx/km4IGszvMLdBKmE1Bg9kl5gZoNcxmoMHsFnMTtBhmE9Bgdo25B7QGZmYA42FugC5RgxnMIpg7QYMZzJlgfrYQNJjBnBHmZ4fmgQYzmDPD3Am6QA1mMKtgnoAGM5hzwjwXNJjBnBvmZ4dO9YOuUYMZzAKYS9BgBnMemJcCXaEGM5gVMBegwQxm55hXAj2LGsxgzhrzNGowg1kC8/iAGczeMO8LdIkazGAWwVyhBjOYVTAvQg1mMGeHuQ80mME8BGYT0LOowQzmrDFPowYzmCUwTw6YwSyDeS5sMIPZ4wPgnlCDGcy5Y65QgxnMKpinD5jBPOi3GYOjBjOYc8bcgA1mMKf4ON8nbDCD+XTekLsOmNmbIX3AHGRxIqc8YHbeNuXw/A9CoB0DB965NgAAAABJRU5ErkJggg==';
+document.querySelector('link[rel="apple-touch-icon"]').href=ICON_PNG;
+const manifest={name:"Pooja's HQ",short_name:"Pooja's HQ",start_url:".",display:"standalone",background_color:"#FFF8F4",theme_color:"#F4B6C2",orientation:"portrait",icons:[{src:ICON_PNG,sizes:"180x180",type:"image/png",purpose:"any maskable"}]};
+document.getElementById('manifestLink').href='data:application/manifest+json;charset=utf-8,'+encodeURIComponent(JSON.stringify(manifest));
+
+let state={tasks:[],dates:[],gifts:[],photos:[],notes:[],plans:[],partyNotes:{groc:[],cook:[]},avatar:null,notificationsEnabled:false};
+const STORAGE_KEY='poojas-hq-state-v3';
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){state={...state,...JSON.parse(raw)};}
+    else{
+      const old=localStorage.getItem('poojas-hq-state-v2')||localStorage.getItem('poojas-hq-state-v1');
+      if(old){state={...state,...JSON.parse(old)};saveState();}
+    }
+  }catch(e){}
+  render();
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+  catch(e){if(state.photos.length>0){state.photos.pop();try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(_){}toast('Storage full — oldest photo removed');}}
+}
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.screen===name));
+  window.scrollTo(0,0);
+  if(name==='today')renderToday();
+  // Show FAB mic only on Today screen
+  const fab=document.getElementById('fabMic');
+  if(fab)fab.classList.toggle('visible',name==='today');
+  closeMoreTray();
+}
+function toggleMoreTray(){
+  const tray=document.getElementById('moreTray');
+  const bd=document.getElementById('moreBackdrop');
+  const open=tray.classList.contains('show');
+  if(open){closeMoreTray();}else{tray.classList.add('show');bd.classList.add('show');document.getElementById('moreTab').classList.add('active');}
+}
+function closeMoreTray(){
+  document.getElementById('moreTray').classList.remove('show');
+  document.getElementById('moreBackdrop').classList.remove('show');
+  // Keep moreTab active only if we're on one of its sub-screens
+  const active=document.querySelector('.screen.active');
+  const moreScreens=['tasks','gifts','photos','guide'];
+  const onMore=active&&moreScreens.includes(active.id.replace('screen-',''));
+  document.getElementById('moreTab').classList.toggle('active',onMore);
+}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+function detectPlatform(){const ua=navigator.userAgent;return{isIOS:/iPad|iPhone|iPod/.test(ua)&&!window.MSStream,isAndroid:/Android/.test(ua),isStandalone:window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true};}
+function maybeShowInstallBanner(){
+  const{isIOS,isAndroid,isStandalone}=detectPlatform();
+  if(isStandalone||localStorage.getItem('install-dismissed'))return;
+  const banner=document.getElementById('installBanner');const action=document.getElementById('installAction');
+  if(isIOS){action.textContent='Share → Add to Home Screen';banner.classList.add('show');}
+  else if(isAndroid){action.textContent='⋮ menu → Add to Home Screen';banner.classList.add('show');}
+}
+function dismissInstall(){document.getElementById('installBanner').classList.remove('show');localStorage.setItem('install-dismissed','1');}
+
+document.getElementById('avatarInput').addEventListener('change',(e)=>{
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=()=>{state.avatar=reader.result;document.getElementById('avatarImg').src=reader.result;document.getElementById('avatar').classList.add('has-photo');saveState();toast('Photo saved ✨');};
+  reader.readAsDataURL(f);
+});
+
+const micBtn=document.getElementById('micBtn');
+const micLabel=document.getElementById('micLabel');
+const transcriptEl=document.getElementById('transcript');
+const aiStatus=document.getElementById('aiStatus');
+let recognition=null,isRecording=false,finalTranscript='';
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){
+  recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
+  recognition.onresult=(e)=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalTranscript+=t+' ';else interim+=t;}transcriptEl.textContent=finalTranscript+interim;};
+  recognition.onerror=(e)=>{micLabel.textContent=e.error==='not-allowed'?'mic permission needed':'try again';stopRecording();};
+  recognition.onend=()=>{if(isRecording){try{recognition.start();}catch(e){}}};
+}else{micLabel.textContent='voice not supported — type below';}
+micBtn.addEventListener('click',()=>{if(!recognition){toast('Voice not supported — type below');return;}if(isRecording)stopRecording();else startRecording();});
+function startRecording(){finalTranscript='';transcriptEl.textContent='';aiStatus.textContent='';isRecording=true;micBtn.classList.add('recording');micLabel.textContent='listening… tap to stop';try{recognition.start();}catch(e){}}
+function stopRecording(){isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';try{recognition.stop();}catch(e){}const text=transcriptEl.textContent.trim();if(!text){aiStatus.textContent='nothing heard, try again';return;}parseAndCreateTask(text);}
+function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';parseAndCreateTask(text);}
+
+function parseAndCreateTask(text){
+  aiStatus.textContent='✨ organizing…';
+  const lower=text.toLowerCase();
+  let priority='medium';
+  if(/\b(urgent|asap|critical|right now|emergency)\b/.test(lower))priority='high';
+  else if(/\b(sometime|eventually|whenever|low priority|no rush|someday)\b/.test(lower))priority='low';
+  else if(/\b(important|need to|must|have to|deadline|today)\b/.test(lower))priority='high';
+  let dueHint='none';
+  if(/\btoday\b/.test(lower))dueHint='today';
+  else if(/\btomorrow\b/.test(lower))dueHint='tomorrow';
+  else if(/\bthis week\b/.test(lower))dueHint='this week';
+  else if(/\bnext week\b/.test(lower))dueHint='next week';
+  let title=text.split(/[.!?]/)[0].trim();
+  if(title.length>60){title=title.slice(0,60);const ls=title.lastIndexOf(' ');if(ls>30)title=title.slice(0,ls);title+='…';}
+  title=title.charAt(0).toUpperCase()+title.slice(1);
+  const rest=text.slice(title.replace('…','').length).trim();
+  state.tasks.unshift({id:Date.now(),title,details:rest.length>3?rest:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+  saveState();aiStatus.textContent='✓ added to Today';toast('Added — tap TODAY to act on it');
+  setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},1800);
+}
+
+function ageInDays(ts){return(Date.now()-ts)/86400000;}
+function relativeTime(ts){
+  const mins=Math.floor((Date.now()-ts)/60000);
+  if(mins<1)return'just now';if(mins<60)return`${mins} min ago`;
+  const hrs=Math.floor(mins/60);if(hrs<24)return`${hrs}h ago`;
+  const days=Math.floor(hrs/24);if(days<7)return`${days}d ago`;
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function isSnoozed(t){return t.snoozeUntil&&Date.now()<t.snoozeUntil;}
+function isOverdue(t){
+  if(t.done||isSnoozed(t))return false;
+  const age=ageInDays(t.createdAt);
+  if(t.priority==='high')return age>1;if(t.priority==='medium')return age>3;return age>7;
+}
+function isToday(t){if(t.done||isSnoozed(t)||isOverdue(t))return false;return t.dueHint==='today'||t.priority==='high';}
+function isThisWeek(t){if(t.done||isSnoozed(t)||isOverdue(t)||isToday(t))return false;return true;}
+function isDoneToday(t){if(!t.done||!t.completedAt)return false;const today=new Date();today.setHours(0,0,0,0);return t.completedAt>=today.getTime();}
+function isDoneThisWeek(t){if(!t.done||!t.completedAt)return false;return ageInDays(t.completedAt)<7;}
+
+function renderToday(){
+  const open=state.tasks.filter(t=>!t.done&&!isSnoozed(t));
+  const overdue=state.tasks.filter(isOverdue).sort((a,b)=>a.createdAt-b.createdAt);
+  const todayTasks=state.tasks.filter(isToday).sort((a,b)=>a.createdAt-b.createdAt);
+  const week=state.tasks.filter(isThisWeek).sort((a,b)=>{const p={high:0,medium:1,low:2};return p[a.priority]-p[b.priority]||a.createdAt-b.createdAt;});
+  const doneToday=state.tasks.filter(isDoneToday).sort((a,b)=>b.completedAt-a.completedAt);
+  const doneWeek=state.tasks.filter(isDoneThisWeek);
+  const pendingNotes=(state.notes||[]).filter(n=>!n.checkedInToday).length;
+  const pn=state.partyNotes||{groc:[],cook:[]};
+  const pendingParty=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
+  const totalOpen=open.length+pendingNotes+pendingParty;
+  document.getElementById('statOpen').textContent=totalOpen;
+  document.getElementById('statOverdue').textContent=overdue.length;
+  document.getElementById('statDoneWeek').textContent=doneWeek.length;
+  const pct=totalOpen+doneWeek.length>0?Math.round((doneWeek.length/(totalOpen+doneWeek.length))*100):0;
+  document.getElementById('progressFill').style.width=pct+'%';document.getElementById('progressPct').textContent=pct+'%';
+  const sub=document.getElementById('todaySubtitle');
+  if(totalOpen===0)sub.textContent=doneWeek.length>0?`${doneWeek.length} done this week — you're killing it! 🔥`:'Nothing on your plate ✨';
+  else if(overdue.length>0)sub.textContent=`${overdue.length} overdue · ${totalOpen} total open`;
+  else sub.textContent=`${totalOpen} open · let's go 💪`;
+  const allOpen=[...overdue,...todayTasks,...week];
+  const focusWrap=document.getElementById('focusCardWrap');
+  if(allOpen.length===0){
+    focusWrap.innerHTML=`<div class="focus-empty"><div class="icon">✨</div><h3>Inbox zero</h3><p>You're unstoppable, Pooja.</p></div>`;
+  }else{
+    const f=allOpen[0];
+    focusWrap.innerHTML=`<div class="focus-card"><div class="focus-label">YOUR FOCUS RIGHT NOW</div><div class="focus-title">${escapeHtml(f.title)}</div>${f.details?`<div class="focus-details">${escapeHtml(f.details)}</div>`:''}<div class="task-meta" style="margin-bottom:12px"><span class="pill ${f.priority==='high'?'high':f.priority==='low'?'low':'med'}">${f.priority}</span><span class="pill age ${isOverdue(f)?'danger':ageInDays(f.createdAt)>2?'warn':''}">added ${relativeTime(f.createdAt)}</span>${f.dueHint&&f.dueHint!=='none'?`<span class="pill due">${f.dueHint}</span>`:''}</div><div class="focus-actions"><button class="done-btn" onclick="setTaskStatus(${f.id},'done')">✓ Done</button><button class="snooze-btn" onclick="openSnooze(${f.id})">⏰ Snooze</button></div></div>`;
+  }
+  const groupsEl=document.getElementById('taskGroups');
+  let html='';
+  if(overdue.length>1)html+=sectionHTML('🔥 More overdue','overdue',overdue.slice(1));
+  if(todayTasks.length>0&&!(overdue.length===0&&allOpen[0]&&isToday(allOpen[0])))html+=sectionHTML('⏰ Today','today',todayTasks.filter(t=>t.id!==(allOpen[0]&&allOpen[0].id)));
+  else if(todayTasks.length>1)html+=sectionHTML('⏰ Today','today',todayTasks.slice(1));
+  const weekFiltered=week.filter(t=>t.id!==(allOpen[0]&&allOpen[0].id));
+  if(weekFiltered.length>0)html+=sectionHTML('📋 This week','week',weekFiltered);
+  const snoozed=state.tasks.filter(t=>!t.done&&isSnoozed(t));
+  if(snoozed.length>0){
+    html+=`<div class="section-head"><h3 style="color:var(--muted)">😴 Snoozed</h3><span class="section-count">${snoozed.length}</span></div>`;
+    html+=snoozed.sort((a,b)=>a.snoozeUntil-b.snoozeUntil).map(t=>`<div class="swipe-card" style="opacity:.75"><div class="check" onclick="setTaskStatus(${t.id},'done')"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill ${t.priority==='high'?'high':t.priority==='low'?'low':'med'}">${t.priority}</span><span class="pill due">wakes ${snoozeWakeLabel(t.snoozeUntil)}</span></div><div class="quick-actions"><button class="qa-btn" onclick="unsnoozeTask(${t.id})">↩ Wake now</button><button class="qa-btn" onclick="deleteTask(${t.id})">Delete</button></div></div></div>`).join('');
+  }
+  groupsEl.innerHTML=html;attachSwipeHandlers();renderTodayNotes();
+  const doneWrap=document.getElementById('doneTodayWrap');
+  if(doneToday.length>0){
+    doneWrap.style.display='block';
+    document.getElementById('doneTodayLabel').textContent=`✨ ${doneToday.length} done today — good job!`;
+    document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
+  }else{doneWrap.style.display='none';}
+  const homeOpenEl=document.getElementById('homeOpenCount');if(homeOpenEl)homeOpenEl.textContent=totalOpen>0?`${totalOpen} open · act now`:'nothing pending ✨';
+  updateHomeCard(totalOpen,overdue.length,doneToday.length);
+  const hr=new Date().getHours();const wrapEl=document.getElementById('wrapUpWrap');
+  if(hr>=18&&(doneToday.length>0||totalOpen>0)){wrapEl.innerHTML=`<div class="wrap-card"><h3>Wrap up your day</h3><p><b>${doneToday.length}</b> finished today${doneToday.length>=3?" — that's a great day":''}.</p>${totalOpen>0?`<p><b>${totalOpen}</b> rolls into tomorrow.</p>`:''}<div class="quote">${dayClosingLine(doneToday.length)}</div></div>`;}else{wrapEl.innerHTML='';}
+}
+
+function sectionHTML(title,cssClass,tasks){
+  if(tasks.length===0)return'';
+  const cards=tasks.map(t=>{
+    const overdue=isOverdue(t);
+    const dateStr=new Date(t.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const status=t.status||'open';
+    const statusBtns=[{val:'open',label:'Open',cls:'s-open'},{val:'inprogress',label:'In Progress',cls:'s-progress'},{val:'done',label:'Done ✓',cls:'s-done'}]
+      .map(s=>`<button class="status-btn ${s.cls}${status===s.val?' active':''}" onclick="setTaskStatus(${t.id},'${s.val}')">${s.label}</button>`).join('');
+    return`<div class="task-row-card ${overdue?'row-overdue':''}"><div class="trc-top"><div class="trc-meta"><span class="trc-date">${dateStr}</span><span class="pill ${t.priority==='high'?'high':t.priority==='low'?'low':'med'}">${t.priority}</span>${overdue?'<span class="pill age danger">⚠ overdue</span>':''}</div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div><div class="trc-title">${escapeHtml(t.title)}</div>${t.details?`<div class="trc-detail">${escapeHtml(t.details)}</div>`:''}<div class="status-toggle">${statusBtns}</div><div class="trc-actions"><button class="tt-btn snooze-b" onclick="openSnooze(${t.id})">⏰ Snooze</button></div></div>`;
+  }).join('');
+  return`<div class="section-head"><h3 class="${cssClass}">${title}</h3><span class="section-count ${cssClass==='overdue'?'overdue-c':''}">${tasks.length}</span></div>${cards}`;
+}
+
+function snoozeWakeLabel(ts){const days=Math.ceil((ts-Date.now())/86400000);if(days<=1)return'tomorrow';if(days<7)return`in ${days}d`;return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function humanDuration(ms){const hrs=ms/3600000;if(hrs<1)return'under an hour';if(hrs<24)return`${Math.round(hrs)}h`;return`${Math.round(hrs/24)}d`;}
+function dayClosingLine(n){if(n>=5)return"You're a force of nature, Pooja.";if(n>=3)return"That's a great day. Rest now.";if(n>=1)return"Progress is progress. Well done.";return"Tomorrow is yours.";}
+
+function setTaskStatus(id,status){
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  t.status=status;
+  if(status==='done'){t.done=true;t.completedAt=Date.now();confettiBurst();toast('Awesome job! ✨');}
+  else{t.done=false;t.completedAt=null;}
+  saveState();renderToday();
+}
+function completeTask(id,makeDone){
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  t.done=makeDone;t.completedAt=makeDone?Date.now():null;t.status=makeDone?'done':'open';
+  if(makeDone){confettiBurst();toast('Awesome job! ✨');}
+  saveState();renderToday();
+}
+function deleteTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);saveState();renderToday();}
+
+let snoozeTargetId=null;
+function openSnooze(id){snoozeTargetId=id;document.getElementById('snoozeSheet').classList.add('show');document.getElementById('snoozeBackdrop').classList.add('show');}
+function closeSnooze(){document.getElementById('snoozeSheet').classList.remove('show');document.getElementById('snoozeBackdrop').classList.remove('show');snoozeTargetId=null;}
+function applySnooze(days){const t=state.tasks.find(x=>x.id===snoozeTargetId);if(!t){closeSnooze();return;}t.snoozeUntil=Date.now()+days*86400000;saveState();closeSnooze();toast(`Snoozed ${days===1?'until tomorrow':`for ${days} days`}`);renderToday();}
+function unsnoozeTask(id){const t=state.tasks.find(x=>x.id===id);if(!t)return;t.snoozeUntil=null;saveState();renderToday();toast('Back on your list');}
+
+function attachSwipeHandlers(){
+  document.querySelectorAll('.swipe-card[data-id]').forEach(card=>{
+    const id=parseInt(card.dataset.id);if(!id)return;
+    let startX=0,currentX=0,dragging=false;
+    card.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;dragging=true;card.classList.add('dragging');},{passive:true});
+    card.addEventListener('touchmove',e=>{if(!dragging)return;currentX=e.touches[0].clientX-startX;currentX=Math.max(-160,Math.min(160,currentX));card.style.transform=`translateX(${currentX}px)`;},{passive:true});
+    card.addEventListener('touchend',()=>{dragging=false;card.classList.remove('dragging');if(currentX>80){card.style.transform='translateX(100%)';setTimeout(()=>completeTask(id,true),200);}else if(currentX<-80){card.style.transform='';openSnooze(id);}else{card.style.transform='';}currentX=0;});
+  });
+}
+
+function confettiBurst(){
+  const colors=['#F4B6C2','#FFD7C2','#C9DCEB','#A7D7C5','#F5C97A'];
+  const el=document.createElement('div');el.className='confetti';
+  for(let i=0;i<24;i++){const s=document.createElement('span');s.style.background=colors[i%colors.length];s.style.setProperty('--tx',(Math.random()*400-200)+'px');s.style.setProperty('--ty',(Math.random()*300+100)+'px');s.style.animationDelay=(Math.random()*0.2)+'s';el.appendChild(s);}
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1500);
+}
+function toggleDoneToday(){document.getElementById('doneTodayToggle').classList.toggle('open');document.getElementById('doneTodayList').classList.toggle('open');}
+
+let vfRecognition=null,vfRecording=false,vfTranscript='';
+const vfBtn=document.getElementById('voiceFinishBtn');const vfTrans=document.getElementById('voiceFinishTranscript');
+function toggleVoiceFinish(){
+  if(!SR){toast('Voice not supported here — try Safari');return;}
+  if(vfRecording){stopVoiceFinish();return;}
+  if(!vfRecognition){vfRecognition=new SR();vfRecognition.continuous=true;vfRecognition.interimResults=true;vfRecognition.lang='en-US';vfRecognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)vfTranscript+=t+' ';else interim+=t;}vfTrans.textContent=(vfTranscript+interim).trim()||'…';};vfRecognition.onerror=()=>stopVoiceFinish();vfRecognition.onend=()=>{if(vfRecording){try{vfRecognition.start();}catch(e){}}};}
+  vfTranscript='';vfTrans.textContent='listening… tell me what you finished';vfTrans.classList.add('show');vfRecording=true;vfBtn.classList.add('recording');try{vfRecognition.start();}catch(e){}
+}
+function stopVoiceFinish(){vfRecording=false;vfBtn.classList.remove('recording');try{vfRecognition&&vfRecognition.stop();}catch(e){}const text=vfTranscript.trim();if(!text){vfTrans.textContent='nothing heard';setTimeout(()=>vfTrans.classList.remove('show'),1500);return;}matchAndComplete(text);}
+function matchAndComplete(spoken){
+  vfTrans.textContent='✨ matching…';
+  const open=state.tasks.filter(t=>!t.done);if(open.length===0){vfTrans.textContent='nothing open to finish';setTimeout(()=>vfTrans.classList.remove('show'),1800);return;}
+  const cleaned=spoken.toLowerCase().replace(/^(i |i'?ve |just )?(finished|completed|did|done with|wrapped up|knocked out|took care of)/g,'').replace(/\b(also|and then|then|plus)\b/g,'|');
+  const chunks=cleaned.split('|').map(s=>s.replace(/^and\s+/,'').trim()).filter(s=>s.length>2);
+  let matched=[];
+  chunks.forEach(chunk=>{let best=null,bestScore=0;open.forEach(t=>{if(matched.includes(t.id))return;const score=similarity(chunk,t.title.toLowerCase()+' '+(t.details||'').toLowerCase());if(score>bestScore){bestScore=score;best=t;}});if(best&&bestScore>0.18)matched.push(best.id);});
+  if(matched.length===0){vfTrans.innerHTML=`Couldn't match: "<i>${escapeHtml(spoken)}</i>". Try the task name more directly.`;setTimeout(()=>vfTrans.classList.remove('show'),4000);return;}
+  matched.forEach(id=>{const t=state.tasks.find(x=>x.id===id);if(t){t.done=true;t.status='done';t.completedAt=Date.now();}});
+  saveState();confettiBurst();
+  vfTrans.innerHTML=`✨ Checked off ${matched.length}: <b>${matched.map(id=>escapeHtml(state.tasks.find(x=>x.id===id).title)).join(', ')}</b>`;
+  toast(`Awesome — ${matched.length} done`);renderToday();setTimeout(()=>{vfTrans.classList.remove('show');vfTrans.textContent='';},4500);
+}
+function similarity(a,b){const wA=a.split(/\W+/).filter(w=>w.length>2);const wB=b.split(/\W+/).filter(w=>w.length>2);if(!wA.length||!wB.length)return 0;let hits=0;wA.forEach(w=>{if(wB.some(wb=>wb.includes(w)||w.includes(wb)))hits++;});return hits/wA.length;}
+
+function onDateTypeChange(){
+  const t=document.getElementById('dType').value;
+  const showTime=['party','dinner','weekend','other'].includes(t);
+  const showLoc=['party','dinner','weekend','other'].includes(t);
+  document.getElementById('dTimeRow').style.display=showTime?'block':'none';
+  document.getElementById('dLocationRow').style.display=showLoc?'block':'none';
+}
+function toggleDateForm(){
+  const f=document.getElementById('dateForm');const b=document.getElementById('addDateBtn');
+  const open=f.style.display==='none';
+  f.style.display=open?'block':'none';b.style.display=open?'none':'flex';
+  if(open)onDateTypeChange();
+}
+const DATE_TYPE_EMOJI={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'};
+async function saveDate(){
+  const type=document.getElementById('dType').value;
+  const d={
+    id:Date.now(),
+    type,
+    name:document.getElementById('dName').value.trim(),
+    date:document.getElementById('dDate').value,
+    time:document.getElementById('dTime').value||null,
+    location:document.getElementById('dLocation').value.trim()||null,
+    who:document.getElementById('dWho').value.trim(),
+    notify:parseInt(document.getElementById('dNotify').value),
+    calendarAdded:false
+  };
+  if(!d.name||!d.date){toast('Name and date please');return;}
+  const addToCalendar=document.getElementById('dAddCalendar').checked;
+  state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));saveState();
+  ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  toggleDateForm();renderDates();
+  if(addToCalendar){
+    await addDateToCalendar(d);
+  } else {
+    toast('Saved ✨');
+  }
+}
+async function addDateToCalendar(d){
+  const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+  const title=`${emoji} ${d.name}${d.who?' ('+d.who+')':''}`;
+  // build start datetime
+  let startISO,endISO;
+  const isAllDay=!d.time;
+  if(isAllDay){
+    startISO=d.date+'T00:00:00';endISO=d.date+'T23:59:00';
+  }else{
+    startISO=d.date+'T'+d.time+':00';
+    const [hh,mm]=d.time.split(':').map(Number);
+    const endH=String(hh+2).padStart(2,'0');
+    endISO=d.date+'T'+endH+':'+String(mm).padStart(2,'0')+':00';
+  }
+  // 2-day and 1-day before notifications (in minutes)
+  const nudges=[
+    {minutesBefore:2880,method:'notification'}, // 2 days before
+    {minutesBefore:1440,method:'notification'}  // 1 day before
+  ];
+  try{
+    const result=await window.__claudeCalendarCreate({
+      title,
+      startTime:startISO,
+      endTime:endISO,
+      allDay:isAllDay,
+      location:d.location||undefined,
+      eventDescription:d.who?`For ${d.who}`:'',
+      calendarId:'1634C0E6-9B19-41B0-A721-657421EE66E6',
+      nudges,
+      status:'confirmed'
+    });
+    if(result&&result.success!==false){
+      const idx=state.dates.findIndex(x=>x.id===d.id);
+      if(idx>=0)state.dates[idx].calendarAdded=true;
+      saveState();renderDates();
+      toast('Added to iPhone Calendar 📅 + reminders set!');
+    }else{
+      toast('Saved in app ✨ (calendar not connected)');
+    }
+  }catch(e){
+    toast('Saved in app ✨');
+  }
+}
+function deleteDate(id){state.dates=state.dates.filter(x=>x.id!==id);saveState();renderDates();}
+function renderDates(){
+  const el=document.getElementById('dateList');
+  if(!state.dates.length){el.innerHTML='<div class="empty">No dates yet.</div>';return;}
+  const now=new Date();now.setHours(0,0,0,0);
+  el.innerHTML=state.dates.map(d=>{
+    const dt=new Date(d.date+'T00:00:00');const diff=Math.round((dt-now)/86400000);
+    let cd=diff===0?'today 🎉':diff===1?'tomorrow':diff>0?`in ${diff} days`:`${Math.abs(diff)} days ago`;
+    const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+    const calTag=d.calendarAdded?'<span style="font-size:10px;background:#DFF2EA;color:#1A5038;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:4px;">📅 in calendar</span>':'';
+    const locLine=d.location?`<div class="date-sub" style="color:#5A8CAA">📍 ${escapeHtml(d.location)}</div>`:'';
+    const timeLine=d.time?` · ${d.time}`:'';
+    return`<div class="date-card"><div class="date-badge"><div class="day">${dt.getDate()}</div><div class="mo">${dt.toLocaleString('en-US',{month:'short'})}</div></div><div class="date-info"><div class="date-name">${emoji} ${escapeHtml(d.name)}${calTag}</div>${d.who?`<div class="date-sub">for ${escapeHtml(d.who)}${timeLine} · remind ${d.notify}d before</div>`:`<div class="date-sub">remind ${d.notify}d before${timeLine}</div>`}${locLine}<div class="countdown">${cd}</div></div><button class="task-del" onclick="deleteDate(${d.id})">×</button></div>`;
+  }).join('');
+}
+
+function checkUpcomingDates(){
+  const banner=document.getElementById('upcomingBanner');
+  const now=new Date();now.setHours(0,0,0,0);
+
+  // Find all dates within 2 days or today, sorted by urgency
+  const urgent=state.dates.filter(d=>{
+    const dt=new Date(d.date+'T00:00:00');
+    const diff=Math.round((dt-now)/86400000);
+    return diff>=0&&diff<=2;
+  }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  if(!urgent.length){banner.classList.remove('show','urgent','today-event');return;}
+
+  const d=urgent[0]; // most urgent first
+  const dt=new Date(d.date+'T00:00:00');
+  const diff=Math.round((dt-now)/86400000);
+  const emoji=DATE_TYPE_EMOJI[d.type]||'💝';
+
+  // Title
+  let title='',countText='',urgencyClass='';
+  if(diff===0){
+    title=`${emoji} Today — ${d.name}${d.who?' for '+d.who:''}!`;
+    countText='Right now! Don\'t forget to send your wishes 💌';
+    urgencyClass='today-event';
+  }else if(diff===1){
+    title=`${emoji} Tomorrow — ${d.name}${d.who?' for '+d.who:''}`;
+    countText='Send a message today so it\'s ready! 💕';
+    urgencyClass='urgent';
+  }else{
+    title=`${emoji} In 2 days — ${d.name}${d.who?' for '+d.who:''}`;
+    countText='Coming up soon — plan ahead ✨';
+    urgencyClass='';
+  }
+  if(urgent.length>1)countText+=` · +${urgent.length-1} more coming up`;
+
+  document.getElementById('upcomingTitle').textContent=title;
+  document.getElementById('upcomingText').textContent=countText;
+  banner.className='upcoming-banner show'+(urgencyClass?' '+urgencyClass:'');
+
+  // Action button — only for personal events (birthday, anniversary, etc.)
+  const isSendable=['birthday','anniversary','other'].includes(d.type);
+  const isSocial=['party','dinner','weekend'].includes(d.type);
+  const actionsEl=document.getElementById('upcomingActions');
+  let actionsHTML='';
+  if(isSendable){
+    actionsHTML+=`<button class="ub-action" onclick="openGiftsForDate(${d.id})">💌 Send a message</button>`;
+  }else if(isSocial){
+    actionsHTML+=`<button class="ub-action" onclick="go('dates')">📅 View details</button>`;
+  }
+  if(urgent.length>1){
+    actionsHTML+=`<button class="ub-all" onclick="go('dates')">see all</button>`;
+  }
+  actionsEl.innerHTML=actionsHTML;
+}
+
+// Deep-link into Gifts tab pre-filled for a specific date
+function openGiftsForDate(dateId){
+  const d=state.dates.find(x=>x.id===dateId);
+  if(!d)return;
+  // Map date type to gift occasion
+  const occasionMap={birthday:'birthday',anniversary:'anniversary',other:'just because'};
+  const occasion=occasionMap[d.type]||'just because';
+  // Pre-fill the gifts form
+  const occEl=document.getElementById('gOccasion');
+  const nameEl=document.getElementById('gForName');
+  if(occEl)occEl.value=occasion;
+  if(nameEl)nameEl.value=d.who||d.name;
+  go('gifts');
+  // Scroll to top so form is visible
+  window.scrollTo(0,0);
+  // Give a nudge to auto-generate
+  setTimeout(()=>{
+    const statusEl=document.getElementById('aiMsgStatus');
+    if(statusEl)statusEl.textContent='✨ Tap "Generate Sweet Message" to write something beautiful!';
+    setTimeout(()=>{if(statusEl)statusEl.textContent='';},4000);
+  },300);
+}
+
+async function generateAIMessage(){
+  const occasion=document.getElementById('gOccasion').value;const forName=document.getElementById('gForName').value.trim();
+  const statusEl=document.getElementById('aiMsgStatus');const noteEl=document.getElementById('gNote');
+  const btn=document.querySelector('[onclick="generateAIMessage()"]');
+  statusEl.textContent='✨ Writing something beautiful…';
+  if(btn){btn.disabled=true;btn.style.opacity='0.6';}
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages:[{role:'user',content:'Write a warm, heartfelt personal message for the occasion: "'+occasion+'"'+(forName?' for '+forName:'')+'. From Pooja — a loving, hardworking woman who deeply cares for the people in her life. 2-3 sentences max. Warm, genuine, not too formal. One sweet emoji at the end.'}]
+      })
+    });
+    if(!resp.ok){throw new Error('API '+resp.status);}
+    const data=await resp.json();
+    const msg=data.content&&data.content[0]&&data.content[0].text;
+    if(msg){noteEl.value=msg.trim();statusEl.textContent='✨ Message ready — feel free to edit!';}
+    else{statusEl.textContent='Try again in a moment.';}
+  }catch(e){
+    const fallbacks={'anniversary':['Every year with you is a gift I never take for granted. Thank you for being my person, always. 💕','Another year of us and I fall in love all over again. Here is to forever. 💖'],'birthday':['Wishing you a day as beautiful and bright as you make every day for the people around you. Happy birthday! 🎂','Another trip around the sun and you just keep getting more wonderful. Happy birthday! 🎉'],'thinking of you':['Just thinking of you and sending all the love your way. You mean so much to me. 🌸','You crossed my mind today because you are someone I am always grateful for. 💛'],'congratulations':['This is such a big deal and you deserve every bit of it. So proud of you! 🎉','You worked so hard for this and watching you shine makes my heart full. Congratulations! ✨'],'thank you':['Thank you from the bottom of my heart. You truly made a difference and I will not forget it. 🙏','Your kindness means more than words can say. Grateful for you every day. 💛'],'just because':['No reason needed, just wanted to remind you that you are loved and appreciated. 💖','Thinking of you and smiling, because having you in my life is one of my greatest blessings. 🌸']};
+    const opts=fallbacks[occasion]||fallbacks['just because'];
+    noteEl.value=opts[Math.floor(Math.random()*opts.length)];
+    statusEl.textContent='✨ Message ready — feel free to edit!';
+  }
+  if(btn){btn.disabled=false;btn.style.opacity='1';}
+  setTimeout(()=>{statusEl.textContent='';},4000);
+}
+function sendAmazonGift(){const amt=document.getElementById('gAmount').value||'25';window.open(`https://www.amazon.com/gift-cards/b/?ie=UTF8&node=2238192011&amount=${amt}`,'_blank');}
+function sendGift(){
+  const phone=document.getElementById('gPhone').value.trim();const note=document.getElementById('gNote').value.trim();const amt=document.getElementById('gAmount').value;
+  if(!phone||!note){toast('Phone and note please');return;}
+  state.gifts.unshift({id:Date.now(),phone,note,amount:amt,at:Date.now()});saveState();renderGifts();
+  window.location.href=`sms:${phone}?body=${encodeURIComponent(amt?`🎁 $${amt} for you — ${note}`:note)}`;
+}
+function renderGifts(){
+  const el=document.getElementById('giftHistory');if(!state.gifts.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="margin:20px 0 10px;font-size:11px;letter-spacing:.2em;color:#1A1215;font-weight:700;">RECENT</div>'+state.gifts.slice(0,5).map(g=>`<div class="gift-card"><h4>${g.amount?'🎁 $'+g.amount:'💌 message'}</h4><p>to ${escapeHtml(g.phone)} · ${escapeHtml(g.note)}</p></div>`).join('');
+}
+
+document.getElementById('photoInput').addEventListener('change',async(e)=>{
+  const files=Array.from(e.target.files);
+  for(const f of files){await new Promise(res=>{const r=new FileReader();r.onload=()=>{state.photos.unshift({id:Date.now()+Math.random(),src:r.result,at:Date.now()});res();};r.readAsDataURL(f);});}
+  saveState();renderPhotos();toast(`Added ${files.length} photo${files.length>1?'s':''} ✨`);
+});
+function renderPhotos(){
+  const el=document.getElementById('photoGrid');const add=el.querySelector('.photo-add');el.innerHTML='';el.appendChild(add);
+  state.photos.forEach(p=>{const tile=document.createElement('div');tile.className='photo-tile';tile.innerHTML=`<img src="${p.src}"/>`;el.appendChild(tile);});
+}
+
+const NOTIF_ICON='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="40" fill="%23F4B6C2"/><text x="90" y="130" font-size="120" text-anchor="middle" fill="%23C4607A">P</text></svg>';
+
+// ── Service Worker registration ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    console.log('SW registered');
+    // Request periodic sync if supported (Chrome/Android)
+    if('periodicSync' in reg){
+      navigator.permissions.query({name:'periodic-background-sync'}).then(status=>{
+        if(status.state==='granted'){
+          reg.periodicSync.register('nudge-check',{minInterval:60*60*1000}).catch(()=>{});
+        }
+      }).catch(()=>{});
+    }
+  }).catch(e=>console.log('SW error',e));
+}
+
+// ── Write open counts to IndexedDB so SW can read them ──
+function saveNudgeDataToIDB(){
+  if(!('indexedDB' in window))return;
+  const total=getTotalOpen();
+  const overdue=(state.tasks||[]).filter(isOverdue).length;
+  const req=indexedDB.open('poojas-hq-sw',1);
+  req.onupgradeneeded=ev=>ev.target.result.createObjectStore('kv');
+  req.onsuccess=ev=>{
+    const db=ev.target.result;
+    const tx=db.transaction('kv','readwrite');
+    tx.objectStore('kv').put({total,overdue},'nudge-data');
+  };
+}
+
+async function requestNotifications(){
+  if(!('Notification' in window)){toast('Notifications not supported here');return;}
+  const perm=await Notification.requestPermission();
+  if(perm==='granted'){
+    state.notificationsEnabled=true;saveState();
+    document.getElementById('notifPrompt').style.display='none';
+    saveNudgeDataToIDB();
+    // Tell SW to start watching
+    if(navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:'SCHEDULE_NUDGES'});
+    }
+    scheduleDailyNudges();
+    toast('Reminders on! Morning, midday & evening nudges set ✨');
+  }else{toast('Permission denied — enable in iPhone Settings → Notifications');}
+}
+
+function getTotalOpen(){
+  const taskOpen=(state.tasks||[]).filter(t=>!t.done&&!isSnoozed(t)).length;
+  const noteOpen=(state.notes||[]).filter(n=>!n.checkedInToday).length;
+  const pn=state.partyNotes||{groc:[],cook:[]};
+  const partyOpen=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
+  return taskOpen+noteOpen+partyOpen;
+}
+
+function fireNudge(type){
+  if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
+  const total=getTotalOpen();
+  const overdue=(state.tasks||[]).filter(isOverdue).length;
+  let title,body;
+  if(type==='morning'){
+    if(total===0){title="Good morning, Pooja! ☀️";body="You're all clear — enjoy your day!";}
+    else if(overdue>0){title="Good morning, Pooja! ☀️";body=`${overdue} overdue + ${total} total open. Let's tackle them! 💪`;}
+    else{title="Good morning, Pooja! ☀️";body=`${total} item${total>1?'s':''} waiting today. You've got this!`;}
+  }else if(type==='midday'){
+    if(total===0){title="Midday check-in 🌸";body="Inbox zero! You're unstoppable, Pooja.";}
+    else if(overdue>0){title="Midday check-in ⚠️";body=`${overdue} overdue — quick, you can knock these out!`;}
+    else{title="Midday check-in 🌸";body=`${total} still open. How's your afternoon looking?`;}
+  }else{
+    if(total===0){title="Evening wrap-up ✨";body="Everything done today! Amazing, Pooja. 🎉";}
+    else{title="Evening wrap-up 🌙";body=`${total} item${total>1?'s':''} still open. You need to finish up! 💪`;}
+  }
+  new Notification(title,{body,icon:NOTIF_ICON,tag:'poojas-hq-'+type,renotify:true});
+}
+
+// Foreground scheduler (runs when app is open)
+function scheduleDailyNudges(){
+  if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
+  saveNudgeDataToIDB();
+  if(window._nudgeInterval)clearInterval(window._nudgeInterval);
+  window._nudgeInterval=setInterval(()=>{
+    if(!state.notificationsEnabled)return;
+    saveNudgeDataToIDB();
+    const now=new Date();const h=now.getHours();const m=now.getMinutes();
+    const key='nudge-'+now.toDateString();
+    let fired={};try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
+    if(h===8&&m===0&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
+    if(h===13&&m===0&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
+    if(h===20&&m===0&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
+  },60000);
+  // Fire immediately if within the window and not yet fired today
+  const now=new Date();const h=now.getHours();const m=now.getMinutes();
+  const key='nudge-'+now.toDateString();
+  let fired={};try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
+  if(h===8&&m<5&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
+  if(h===13&&m<5&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
+  if(h===20&&m<5&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
+}
+
+// Refresh IDB data hourly so SW always has fresh counts
+setInterval(()=>{if(state.notificationsEnabled){saveNudgeDataToIDB();scheduleDailyNudges();}},60*60*1000);
+
+function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+// ── Calendar bridge ──────────────────────────────────────────────
+// Routes calendar creation through the Claude app's native calendar tool
+// by encoding the event and opening a special URL scheme.
+window.__claudeCalendarCreate=function(event){
+  return new Promise((resolve)=>{
+    // Store pending event for the app to pick up
+    try{
+      const pending=JSON.parse(localStorage.getItem('poojas-pending-calendar')||'[]');
+      pending.push({...event,_requestedAt:Date.now()});
+      localStorage.setItem('poojas-pending-calendar',JSON.stringify(pending));
+    }catch(e){}
+    // Try native calendar via data URI + ics fallback
+    const dt=event.startTime.replace(/[-:]/g,'').replace('T','T').slice(0,15)+'Z';
+    const dte=event.endTime.replace(/[-:]/g,'').replace('T','T').slice(0,15)+'Z';
+    const loc=event.location?`LOCATION:${event.location}\r\n`:'';
+    const desc=event.eventDescription?`DESCRIPTION:${event.eventDescription}\r\n`:'';
+    const ics=[
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Pooja HQ//EN',
+      'BEGIN:VEVENT',
+      `DTSTART:${dt}`,`DTEND:${dte}`,
+      `SUMMARY:${event.title}`,
+      loc,desc,
+      'BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY',`DESCRIPTION:📅 2 days until: ${event.title} — send a message soon! 💌`,'END:VALARM',
+      'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY',`DESCRIPTION:⏰ Tomorrow: ${event.title} — send your wishes today! 💕`,'END:VALARM',
+      'BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today is ${event.title}! Open Pooja\'s HQ to send a message now 💌`,'END:VALARM',
+      'END:VEVENT','END:VCALENDAR'
+    ].filter(Boolean).join('\r\n');
+    const blob=new Blob([ics],{type:'text/calendar'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=event.title.replace(/[^a-z0-9]/gi,'_')+'.ics';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    resolve({success:true});
+  });
+};
+// ── End calendar bridge ──────────────────────────────────────────
+// ============ EVENT PLANNER ============
+const PLAN_EMOJIS=['🎉','🍽','🎂','💃','🥳','🌟','🪔','🎊'];
+
+// keyword buckets for local sorting fallback
+const COOK_KW=/\b(mak(e|ing)|cook(ing)?|bak(e|ing)|prepar(e|ing)|grill(ing)?|fry(ing)?|roast(ing)?|boil(ing)?|biryani|curry|dal|sabzi|paneer|chicken|mutton|fish|rice|roti|naan|paratha|kheer|halwa|gulab|ladoo|samosa|pakora|chaat|pasta|cake|dessert|salad|appetizer|starter|main|dish|recipe|menu)\b/i;
+const TODO_KW=/\b(book|call|invite|order|arrange|decor(ate)?|set up|clean|send|print|confirm|reserve|hire|organiz|remind|check|contact|venue|caterer|flower|balloon|music|DJ|playlist|seating|table|chair|plate|cutlery|napkin|theme|dress|outfit|gift bag|favor)\b/i;
+
+function classifyPlanItem(text){
+  if(COOK_KW.test(text))return'cooking';
+  if(TODO_KW.test(text))return'todo';
+  return'groceries';
+}
+
+async function aiSortPlanItems(planId,raw){
+  const plan=state.plans.find(p=>p.id===planId);if(!plan)return;
+  const statusEl=document.getElementById('planSpeakStatus-'+planId);
+  if(statusEl)statusEl.textContent='✨ sorting your items…';
+  let items=[];
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:600,
+        system:`You are a smart party planner assistant. Given a free-form note, extract individual items and classify each:
+- "groceries": ingredients, drinks, food items to buy
+- "cooking": dishes to make, things to cook/bake, menu items
+- "todo": tasks, logistics, things to arrange/book/call/decorate
+
+Return ONLY a valid JSON array, no markdown. Format: [{"text":"item","bucket":"groceries|cooking|todo"},...]
+Split combined sentences into individual items. Be smart about Indian food and party contexts.`,
+        messages:[{role:'user',content:raw}]
+      })
+    });
+    if(resp.ok){
+      const data=await resp.json();
+      const txt=data.content&&data.content[0]&&data.content[0].text;
+      if(txt){items=JSON.parse(txt.replace(/```json|```/g,'').trim());}
+    }
+  }catch(e){
+    items=[{text:raw,bucket:classifyPlanItem(raw)}];
+  }
+  if(!items||!items.length)items=[{text:raw,bucket:classifyPlanItem(raw)}];
+  items.forEach(item=>{
+    if(!item.text)return;
+    const bucket=['groceries','cooking','todo'].includes(item.bucket)?item.bucket:'groceries';
+    plan[bucket].push({id:Date.now()+Math.floor(Math.random()*1000),text:item.text.trim(),done:false});
+  });
+  saveState();renderPlans();
+  if(statusEl)statusEl.textContent=`✓ added ${items.length} item${items.length>1?'s':''}`;
+  setTimeout(()=>{if(statusEl)statusEl.textContent='';},2500);
+}
+
+function openPlanModal(){
+  document.getElementById('planModalBg').classList.add('show');
+  setTimeout(()=>document.getElementById('planNameInput').focus(),100);
+}
+function closePlanModal(){
+  document.getElementById('planModalBg').classList.remove('show');
+  document.getElementById('planNameInput').value='';
+}
+function confirmPlanName(){
+  const name=document.getElementById('planNameInput').value.trim();
+  if(!name){toast('Give your plan a name!');return;}
+  if(!state.plans)state.plans=[];
+  const emoji=PLAN_EMOJIS[Math.floor(Math.random()*PLAN_EMOJIS.length)];
+  state.plans.unshift({id:Date.now(),name,emoji,groceries:[],cooking:[],todo:[],createdAt:Date.now(),open:true});
+  saveState();closePlanModal();renderPlans();
+}
+
+let planMicRecs={};let planMicRec={};let planMicTx={};
+function togglePlanMic(planId){
+  if(!SR){toast('Voice not supported — try Safari');return;}
+  if(planMicRec[planId]){stopPlanMic(planId);return;}
+  if(!planMicRecs[planId]){
+    const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';
+    r.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)planMicTx[planId]=(planMicTx[planId]||'')+t+' ';else interim+=t;}const s=document.getElementById('planSpeakStatus-'+planId);if(s)s.textContent=(planMicTx[planId]||'')+interim;};
+    r.onerror=()=>stopPlanMic(planId);
+    r.onend=()=>{if(planMicRec[planId])try{r.start();}catch(e){}};
+    planMicRecs[planId]=r;
+  }
+  planMicTx[planId]='';planMicRec[planId]=true;
+  const btn=document.getElementById('planMicBtn-'+planId);
+  if(btn){btn.innerHTML='⏹ Stop';btn.classList.add('recording');}
+  try{planMicRecs[planId].start();}catch(e){}
+}
+function stopPlanMic(planId){
+  planMicRec[planId]=false;
+  try{planMicRecs[planId]&&planMicRecs[planId].stop();}catch(e){}
+  const btn=document.getElementById('planMicBtn-'+planId);
+  if(btn){btn.innerHTML='🎤 Speak';btn.classList.remove('recording');}
+  const text=(planMicTx[planId]||'').trim();
+  if(!text)return;
+  aiSortPlanItems(planId,text);
+}
+
+function addPlanItem(planId,bucket){
+  const input=document.getElementById(`pi-${planId}-${bucket}`);
+  const text=(input.value||'').trim();if(!text)return;input.value='';
+  const plan=state.plans.find(p=>p.id===planId);if(!plan)return;
+  plan[bucket].push({id:Date.now(),text,done:false});
+  saveState();renderPlans();
+}
+function togglePlanItem(planId,bucket,itemId){
+  const plan=state.plans.find(p=>p.id===planId);if(!plan)return;
+  const item=plan[bucket].find(i=>i.id===itemId);if(!item)return;
+  item.done=!item.done;saveState();renderPlans();
+}
+function deletePlanItem(planId,bucket,itemId){
+  const plan=state.plans.find(p=>p.id===planId);if(!plan)return;
+  plan[bucket]=plan[bucket].filter(i=>i.id!==itemId);saveState();renderPlans();
+}
+function deletePlan(planId){
+  if(!confirm('Delete this plan?'))return;
+  state.plans=state.plans.filter(p=>p.id!==planId);saveState();renderPlans();
+}
+function togglePlanOpen(planId){
+  const plan=state.plans.find(p=>p.id===planId);if(!plan)return;
+  plan.open=!plan.open;saveState();renderPlans();
+}
+
+function renderPlans(){
+  if(!state.plans)state.plans=[];
+  const el=document.getElementById('planList');if(!el)return;
+  if(!state.plans.length){el.innerHTML='';return;}
+  el.innerHTML=state.plans.map(plan=>{
+    const total=plan.groceries.length+plan.cooking.length+plan.todo.length;
+    const done=plan.groceries.filter(i=>i.done).length+plan.cooking.filter(i=>i.done).length+plan.todo.filter(i=>i.done).length;
+    const isOpen=plan.open!==false;
+    const buckets=[
+      {key:'groceries',label:'🛒 Groceries',cls:'groceries'},
+      {key:'cooking',label:'🍳 Cooking / Making',cls:'cooking'},
+      {key:'todo',label:'📋 To-Do',cls:'todo'}
+    ];
+    const bucketsHTML=buckets.map(b=>{
+      const items=plan[b.key]||[];
+      return`<div class="plan-section">
+        <div class="plan-section-head">
+          <span class="plan-section-label ${b.cls}">${b.label}</span>
+          <span class="plan-section-count ${b.cls}">${items.filter(i=>i.done).length}/${items.length}</span>
+        </div>
+        ${items.map(item=>`<div class="plan-item">
+          <div class="plan-check${item.done?' done':''}" onclick="togglePlanItem(${plan.id},'${b.key}',${item.id})">${item.done?'✓':''}</div>
+          <span class="plan-item-text${item.done?' done':''}">${escapeHtml(item.text)}</span>
+          <button class="plan-item-del" onclick="deletePlanItem(${plan.id},'${b.key}',${item.id})">×</button>
+        </div>`).join('')}
+        <div class="plan-item-add">
+          <input id="pi-${plan.id}-${b.key}" placeholder="Add ${b.key==='groceries'?'ingredient':'item'}…"
+            onkeydown="if(event.key==='Enter')addPlanItem(${plan.id},'${b.key}')"/>
+          <button onclick="addPlanItem(${plan.id},'${b.key}')">+</button>
+        </div>
+      </div>`;
+    }).join('');
+    return`<div class="plan-card">
+      <div class="plan-card-head${isOpen?' open':''}" onclick="togglePlanOpen(${plan.id})">
+        <span class="pc-emoji">${plan.emoji}</span>
+        <div style="flex:1"><div class="pc-name">${escapeHtml(plan.name)}</div><div class="pc-meta">${done}/${total} done · tap to ${isOpen?'collapse':'expand'}</div></div>
+        <span class="pc-toggle">▼</span>
+      </div>
+      <div class="plan-card-body${isOpen?' open':''}">
+        <div class="plan-speak-row">
+          <button class="plan-speak-btn" id="planMicBtn-${plan.id}" onclick="togglePlanMic(${plan.id})">🎤 Speak</button>
+          <span class="plan-speak-status" id="planSpeakStatus-${plan.id}">Say what you need — I'll sort it for you</span>
+        </div>
+        ${bucketsHTML}
+      </div>
+      <button class="plan-card-del" onclick="deletePlan(${plan.id})">🗑 Delete this plan</button>
+    </div>`;
+  }).join('');
+}
+// ============ END EVENT PLANNER ============
+
+// ============ NOTES IN TODAY ============
+function promoteNoteToTask(noteId){
+  if(!state.notes)return;
+  const note=state.notes.find(n=>n.id===noteId);if(!note)return;
+  const title=note.text.length>60?note.text.slice(0,60)+'…':note.text;
+  state.tasks.unshift({id:Date.now(),title,details:'',priority:'medium',dueHint:'none',done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+  saveState();renderToday();toast('Added to tasks ✨');
+}
+function promotePQNToTask(bucket,itemId){
+  if(!state.partyNotes)return;
+  const item=(state.partyNotes[bucket]||[]).find(i=>i.id===itemId);if(!item)return;
+  const label=bucket==='groc'?'🛒 ':'🍳 ';
+  const title=label+(item.text.length>55?item.text.slice(0,55)+'…':item.text);
+  state.tasks.unshift({id:Date.now(),title,details:'',priority:'medium',dueHint:'none',done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+  saveState();renderToday();toast('Added to tasks ✨');
+}
+function toggleTodayNote(noteId){
+  if(!state.notes)return;
+  const note=state.notes.find(n=>n.id===noteId);if(!note)return;
+  note.checkedInToday=!note.checkedInToday;saveState();renderTodayNotes();
+}
+function renderTodayNotes(){
+  const wrap=document.getElementById('todayNotesWrap');if(!wrap)return;
+  if(!state.notes)state.notes=[];
+  const groups=[
+    {key:'office',label:'💼 Office',cls:'tng-office',items:state.notes.filter(n=>n.section==='office')},
+    {key:'personal',label:'🌸 Personal',cls:'tng-personal',items:state.notes.filter(n=>n.section==='personal')},
+    {key:'grocery',label:'🛒 Grocery',cls:'tng-grocery',items:state.notes.filter(n=>n.section==='grocery')},
+    {key:'home',label:'🏡 Home',cls:'tng-home',items:state.notes.filter(n=>n.section==='home')},
+  ];
+  const pn=state.partyNotes||{groc:[],cook:[]};
+  const partyItems=[...(pn.groc||[]).map(i=>({...i,_bucket:'groc'})),...(pn.cook||[]).map(i=>({...i,_bucket:'cook'}))];
+  if(partyItems.length)groups.push({key:'party',label:'🎉 Party Notes',cls:'tng-party',items:partyItems,isParty:true});
+  const nonEmpty=groups.filter(g=>g.items.length>0);
+  if(!nonEmpty.length){wrap.innerHTML='';return;}
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog</h3></div>`;
+  nonEmpty.forEach(g=>{
+    html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
+    g.items.forEach(item=>{
+      const checked=item.checkedInToday||item.done||false;
+      if(g.isParty){
+        html+=`<div class="today-note-row${checked?' checked':''}"><div class="tn-check${checked?' done':''}" onclick="togglePQNItem('${item._bucket}',${item.id})">${checked?'✓':''}</div><span class="tn-text${checked?' done':''}">${escapeHtml(item.text)}</span><button class="tn-task-btn" onclick="promotePQNToTask('${item._bucket}',${item.id})">→ Task</button></div>`;
+      }else{
+        html+=`<div class="today-note-row${checked?' checked':''}"><div class="tn-check${checked?' done':''}" onclick="toggleTodayNote(${item.id})">${checked?'✓':''}</div><span class="tn-text${checked?' done':''}">${escapeHtml(item.text)}</span><button class="tn-task-btn" onclick="promoteNoteToTask(${item.id})">→ Task</button></div>`;
+      }
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+// ============ END NOTES IN TODAY ============
+
+// ============ PARTY QUICK NOTES ============
+function togglePQN(){
+  const body=document.getElementById('pqnBody');
+  const arrow=document.getElementById('pqnArrow');
+  const open=body.classList.toggle('open');
+  if(arrow)arrow.classList.toggle('open',open);
+  if(open)renderPQN();
+}
+function addPQNItem(bucket){
+  const inputId=bucket==='groc'?'pqnGrocInput':'pqnCookInput';
+  const input=document.getElementById(inputId);
+  const text=(input.value||'').trim();if(!text){toast('Nothing to add');return;}
+  input.value='';
+  if(!state.partyNotes)state.partyNotes={groc:[],cook:[]};
+  state.partyNotes[bucket].unshift({id:Date.now(),text,done:false});
+  saveState();renderPQN();
+}
+function togglePQNItem(bucket,id){
+  if(!state.partyNotes)return;
+  const item=state.partyNotes[bucket].find(i=>i.id===id);if(!item)return;
+  item.done=!item.done;saveState();renderPQN();
+}
+function deletePQNItem(bucket,id){
+  if(!state.partyNotes)return;
+  state.partyNotes[bucket]=state.partyNotes[bucket].filter(i=>i.id!==id);
+  saveState();renderPQN();
+}
+function renderPQN(){
+  if(!state.partyNotes)state.partyNotes={groc:[],cook:[]};
+  ['groc','cook'].forEach(b=>{
+    const el=document.getElementById('pqn'+b.charAt(0).toUpperCase()+b.slice(1)+'List');
+    if(!el)return;
+    const items=state.partyNotes[b]||[];
+    if(!items.length){el.innerHTML='<div class="pqn-empty">Tap + to add</div>';return;}
+    el.innerHTML=items.map(item=>`<div class="pqn-item">
+      <div class="pqn-check${item.done?' done':''}" onclick="togglePQNItem('${b}',${item.id})">${item.done?'✓':''}</div>
+      <span class="pqn-item-text${item.done?' done':''}">${escapeHtml(item.text)}</span>
+      <button class="pqn-item-del" onclick="deletePQNItem('${b}',${item.id})">×</button>
+    </div>`).join('');
+  });
+}
+// ============ END PARTY QUICK NOTES ============
+
+const GROCERY_KEYWORDS=/\b(groceries?|grocery|groc|costco|walmart|wholefoods|whole foods|safeway|trader joe|kroger|aldi|meal|meals|dinner|lunch|breakfast|snack|food|foods|drinks?|beverages?|milk|eggs?|bread|butter|cheese|meat|chicken|beef|pork|fish|fruits?|veggies?|vegetables?|produce|pantry|amazon fresh|amazon|target|cvs|walgreens|pharmacy|shampoo|soap|toothpaste|cleaning|laundry|detergent|paper towels?|toilet paper|diapers?|cocktail|cocktails?|wine|beer|alcohol|vodka|juice|coffee|tea|snacks?|chips|pasta|rice|cereal|yogurt|ice cream|frozen|canned)\b/i;
+
+let activeNotesTab='office';
+let noteMicRecognitions={};let noteMicRecording={};let noteMicTranscripts={};
+
+function switchNotesTab(tab){
+  activeNotesTab=tab;
+  document.querySelectorAll('.notes-tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.ntab===tab));
+  document.querySelectorAll('.note-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('nsec-'+tab).classList.add('active');
+}
+
+function detectNoteCategory(text){
+  if(GROCERY_KEYWORDS.test(text))return'grocery';
+  return null; // stays in whichever section was active
+}
+
+function addNote(section){
+  const input=document.getElementById('noteInput-'+section);
+  const text=(input.value||'').trim();
+  if(!text){toast('Nothing to add');return;}
+  input.value='';
+  const autoCategory=detectNoteCategory(text);
+  const finalSection=autoCategory||section;
+  if(autoCategory&&autoCategory==='grocery'&&section!=='personal'){
+    // if spoken from office or home but it's a grocery item, route to personal grocery
+    toast('Grocery item → moved to Personal 🛒');
+  }
+  if(!state.notes)state.notes=[];
+  state.notes.unshift({id:Date.now(),text,section:finalSection,createdAt:Date.now()});
+  saveState();renderNotes();
+  if(autoCategory==='grocery'&&section!=='personal'){
+    switchNotesTab('personal');
+  }
+}
+
+function deleteNote(id){state.notes=state.notes.filter(x=>x.id!==id);saveState();renderNotes();}
+
+function renderNoteList(containerId,items,isGrocery){
+  const el=document.getElementById(containerId);if(!el)return;
+  if(!items.length){
+    el.innerHTML=isGrocery?'':'<div class="notes-empty">Nothing here yet ✨</div>';
+    return;
+  }
+  el.innerHTML=items.map(n=>{
+    const ago=relativeTime(n.createdAt);
+    const grocTag=isGrocery?'<span class="note-badge grocery-tag">🛒 grocery</span>':'';
+    return`<div class="note-card${isGrocery?' grocery':''}"><div class="note-card-top"><span class="note-card-text">${escapeHtml(n.text)}</span><button class="note-card-del" onclick="deleteNote(${n.id})">×</button></div><div class="note-card-footer">${grocTag}<span class="note-badge time">${ago}</span></div></div>`;
+  }).join('');
+}
+
+function renderNotes(){
+  if(!state.notes)state.notes=[];
+  const office=state.notes.filter(n=>n.section==='office');
+  const personal=state.notes.filter(n=>n.section==='personal');
+  const grocery=state.notes.filter(n=>n.section==='grocery');
+  const home=state.notes.filter(n=>n.section==='home');
+  renderNoteList('noteList-office',office,false);
+  renderNoteList('noteList-personal',personal,false);
+  renderNoteList('noteList-grocery',grocery,true);
+  renderNoteList('noteList-home',home,false);
+  document.getElementById('nc-office').textContent=office.length||'';
+  document.getElementById('nc-personal').textContent=(personal.length+grocery.length)||'';
+  document.getElementById('nc-home').textContent=home.length||'';
+}
+
+function toggleNoteMic(section){
+  if(!SR){toast('Voice not supported — try Safari');return;}
+  if(noteMicRecording[section]){stopNoteMic(section);return;}
+  if(!noteMicRecognitions[section]){
+    const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';
+    r.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)noteMicTranscripts[section]=(noteMicTranscripts[section]||'')+t+' ';else interim+=t;}const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent=(noteMicTranscripts[section]||'')+interim;};
+    r.onerror=()=>stopNoteMic(section);
+    r.onend=()=>{if(noteMicRecording[section]){try{r.start();}catch(e){}}};
+    noteMicRecognitions[section]=r;
+  }
+  noteMicTranscripts[section]='';
+  const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent='listening…';
+  noteMicRecording[section]=true;
+  const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+  if(btn)btn.classList.add('recording');
+  try{noteMicRecognitions[section].start();}catch(e){}
+}
+
+function stopNoteMic(section){
+  noteMicRecording[section]=false;
+  const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+  if(btn)btn.classList.remove('recording');
+  try{noteMicRecognitions[section]&&noteMicRecognitions[section].stop();}catch(e){}
+  const text=(noteMicTranscripts[section]||'').trim();
+  const statusEl=document.getElementById('noteMicStatus-'+section);
+  if(!text){if(statusEl)statusEl.textContent='';return;}
+  // put spoken text into the textarea so user can review/edit before adding
+  const input=document.getElementById('noteInput-'+section);
+  if(input)input.value=text;
+  if(statusEl)statusEl.textContent='✓ ready — tap Add';
+  // auto-detect grocery and give a hint
+  if(GROCERY_KEYWORDS.test(text)&&section!=='personal'){
+    if(statusEl)statusEl.textContent='🛒 grocery detected — tap Add to route to Personal';
+  }
+}
+// ============ END NOTES ============
+
+document.getElementById('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addManual();});
+
+
+const affirmations=["Take a breath. You've got this.","Hardworking. Loving. Unstoppable.","Today is yours, Pooja.","Small steps, big wins.","You're the heart of everything you do.","One thing at a time — that's the secret.","You make it look easy. It isn't.","Lead with grace. You always do."];
+function setTodayMessage(){const d=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/86400000);document.getElementById('todayMsg').textContent=affirmations[d%affirmations.length];}
+
+function updateHomeCard(remaining,overdue,doneToday){
+  document.getElementById('hStatRemaining').textContent=remaining;document.getElementById('hStatOverdue').textContent=overdue;document.getElementById('hStatDone').textContent=doneToday;
+  const msg=document.getElementById('hTaskMsg');let text,cls;
+  if(remaining===0&&doneToday>0){text='Good job! You closed everything today 🎉';cls='good';}
+  else if(remaining===0){text='Nothing pending — enjoy your day ✨';cls='good';}
+  else if(overdue>0){text=`${overdue} task${overdue>1?'s':''} need${overdue===1?'s':''} your attention now 🔴`;cls='warn';}
+  else if(doneToday>0){text=`Good job closing ${doneToday} today — ${remaining} still open 💪`;cls='neutral';}
+  else{text=`${remaining} open task${remaining>1?'s':''} waiting for you`;cls='neutral';}
+  msg.textContent=text;msg.className='home-task-msg '+cls;
+}
+
+function render(){
+  if(state.avatar){document.getElementById('avatarImg').src=state.avatar;document.getElementById('avatar').classList.add('has-photo');}
+  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();
+  const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);const doneToday=state.tasks.filter(isDoneToday);
+  updateHomeCard(totalOpen,overdue.length,doneToday.length);
+  if(!state.notificationsEnabled&&'Notification' in window&&Notification.permission!=='granted'){document.getElementById('notifPrompt').style.display='block';}
+  if(state.notificationsEnabled)scheduleDailyNudges();
+}
+loadState();maybeShowInstallBanner();
+setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
+</script>
+</body>
+</html>
