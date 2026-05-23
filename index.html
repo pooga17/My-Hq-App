@@ -483,7 +483,7 @@
       📝 <i>"Remember to check the report"</i> → Note
     </div>
     <div class="mic-wrap">
-      <button class="mic" id="micBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
+      <button class="mic" id="micBtn" onclick="handleMicClick()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
       <div class="mic-label" id="micLabel">tap to speak</div>
     </div>
     <div class="transcript" id="transcript"></div>
@@ -834,7 +834,10 @@ const aiStatus=document.getElementById('aiStatus');
 let recognition=null,isRecording=false,finalTranscript='',interimTranscript='';
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(SR){
-  recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
   recognition.onresult=(e)=>{
     let interim='';
     for(let i=e.resultIndex;i<e.results.length;i++){
@@ -845,25 +848,45 @@ if(SR){
     interimTranscript=interim;
     transcriptEl.textContent=(finalTranscript+interim).trim();
   };
-  recognition.onerror=(e)=>{micLabel.textContent=e.error==='not-allowed'?'mic permission needed':'try again';stopRecording();};
+  recognition.onerror=(e)=>{
+    micLabel.textContent=e.error==='not-allowed'?'Allow mic in Settings':'try again';
+    isRecording=false;micBtn.classList.remove('recording');
+  };
   recognition.onend=()=>{if(isRecording){try{recognition.start();}catch(e){}}};
-}else{micLabel.textContent='voice not supported — type below';}
-micBtn.addEventListener('click',()=>{if(!recognition){toast('Voice not supported — type below');return;}if(isRecording)stopRecording();else startRecording();});
+}else{
+  micLabel.textContent='type below — voice not supported';
+}
+function handleMicClick(){
+  if(!SR){toast('Type your note below');return;}
+  if(isRecording)stopRecording();else startRecording();
+}
 function startRecording(){
-  finalTranscript='';interimTranscript='';transcriptEl.textContent='';aiStatus.textContent='';
-  isRecording=true;micBtn.classList.add('recording');
-  micLabel.textContent='🎤 listening… tap to stop';
-  try{recognition.start();}catch(e){}
+  finalTranscript='';interimTranscript='';
+  transcriptEl.textContent='';aiStatus.textContent='';
+  isRecording=true;
+  micBtn.classList.add('recording');
+  micLabel.textContent='🔴 listening… tap to stop';
+  try{recognition.start();}catch(e){
+    try{recognition.stop();setTimeout(()=>recognition.start(),300);}catch(e2){}
+  }
 }
 function stopRecording(){
-  isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';
+  isRecording=false;
+  micBtn.classList.remove('recording');
+  micLabel.textContent='tap to speak';
   try{recognition.stop();}catch(e){}
   const text=(finalTranscript+interimTranscript).trim();
   if(!text){aiStatus.textContent='nothing heard — try again';return;}
   transcriptEl.textContent=text;
   smartCapture(text);
 }
-function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';smartCapture(text);}
+function addManual(){
+  const input=document.getElementById('manualInput');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  smartCapture(text);
+}
 
 async function smartCapture(text){
   aiStatus.textContent='✨ figuring out where this goes…';
@@ -1423,18 +1446,15 @@ function renderPhotos(){
 
 const NOTIF_ICON='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="40" fill="%23F4B6C2"/><text x="90" y="130" font-size="120" text-anchor="middle" fill="%23C4607A">P</text></svg>';
 
-// ── Service Worker registration ──
-if('serviceWorker' in navigator){
+// ── Service Worker ──
+if('serviceWorker' in navigator && location.protocol === 'https:'){
   navigator.serviceWorker.register('sw.js').then(reg=>{
-    console.log('SW registered ✅');
     if('periodicSync' in reg){
-      navigator.permissions.query({name:'periodic-background-sync'}).then(status=>{
-        if(status.state==='granted'){
-          reg.periodicSync.register('nudge-check',{minInterval:6*60*60*1000}).catch(()=>{});
-        }
+      navigator.permissions.query({name:'periodic-background-sync'}).then(s=>{
+        if(s.state==='granted')reg.periodicSync.register('nudge-check',{minInterval:6*60*60*1000}).catch(()=>{});
       }).catch(()=>{});
     }
-  }).catch(e=>console.log('SW error',e));
+  }).catch(()=>{}); // silently ignore all SW errors
 }
 
 // ── Write open counts to IndexedDB so SW can read them ──
@@ -1933,14 +1953,10 @@ function toggleNoteMic(section){
         if(e.results[i].isFinal)noteMicTranscripts[section]=(noteMicTranscripts[section]||'')+t+' ';
         else interim+=t;
       }
-      noteMicInterim=noteMicInterim||{};
+      if(!noteMicInterim)noteMicInterim={};
       noteMicInterim[section]=interim;
       const statusEl=document.getElementById('noteMicStatus-'+section);
       if(statusEl)statusEl.textContent=(noteMicTranscripts[section]||'')+interim;
-      // Auto-stop after 1.5s silence
-      if(!noteMicSilenceTimers)noteMicSilenceTimers={};
-      if(noteMicSilenceTimers[section])clearTimeout(noteMicSilenceTimers[section]);
-      noteMicSilenceTimers[section]=setTimeout(()=>{if(noteMicRecording[section])stopNoteMic(section);},1500);
     };
     r.onerror=()=>stopNoteMic(section);
     r.onend=()=>{if(noteMicRecording[section]){try{r.start();}catch(e){}}};
@@ -1949,7 +1965,8 @@ function toggleNoteMic(section){
   noteMicTranscripts[section]='';
   if(!noteMicInterim)noteMicInterim={};
   noteMicInterim[section]='';
-  const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent='🎤 listening…';
+  const statusEl=document.getElementById('noteMicStatus-'+section);
+  if(statusEl)statusEl.textContent='🎤 listening…';
   noteMicRecording[section]=true;
   const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
   if(btn)btn.classList.add('recording');
@@ -1957,13 +1974,10 @@ function toggleNoteMic(section){
 }
 
 function stopNoteMic(section){
-  if(!noteMicSilenceTimers)noteMicSilenceTimers={};
-  if(noteMicSilenceTimers[section])clearTimeout(noteMicSilenceTimers[section]);
   noteMicRecording[section]=false;
   const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
   if(btn)btn.classList.remove('recording');
   try{noteMicRecognitions[section]&&noteMicRecognitions[section].stop();}catch(e){}
-  // Capture both final + any remaining interim
   const interim=(noteMicInterim&&noteMicInterim[section])||'';
   const text=((noteMicTranscripts[section]||'')+interim).trim();
   const statusEl=document.getElementById('noteMicStatus-'+section);
