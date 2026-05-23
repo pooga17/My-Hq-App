@@ -498,7 +498,12 @@
         <option value="weekend">🌿 Weekend plan</option>
         <option value="other">📅 Other</option>
       </select>
-      <label>Name / Description</label><input id="dName" placeholder="e.g. Priya's birthday party, Sharma's place…"/>
+      <label>Name / Description</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+        <input id="dName" placeholder="e.g. Priya's birthday party, Sharma's place…" style="flex:1;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;background:var(--cream);color:#1A1215;font-weight:600;"/>
+        <button type="button" id="dateMicBtn" onclick="toggleDateMic()" style="background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🎤 Speak</button>
+      </div>
+      <div id="dateMicStatus" style="font-size:12px;color:var(--pink-deep);font-weight:700;margin-bottom:8px;min-height:16px;"></div>
       <label>Date</label><input id="dDate" type="date"/>
       <div id="dTimeRow">
         <label>Time <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#5A4A50">(optional)</span></label>
@@ -873,7 +878,7 @@ async function smartRoute(text){
       max_tokens:300,
       system:`Classify this input into one of: date, task, grocery, note.
 Return ONLY JSON, no markdown.
-- date: any event/birthday/anniversary/dinner/party/plan WITH a date
+- date: any event/birthday/anniversary/dinner/party/plan WITH a date OR person's name + day (e.g. 'Pooja tomorrow', 'dinner with Priya Friday')
 - task: something to do, call, reminder
 - grocery: food/shopping items
 - note: general info
@@ -1033,9 +1038,11 @@ function dayClosingLine(n){if(n>=5)return"You're a force of nature, Pooja.";if(n
 function setTaskStatus(id,status){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   t.status=status;
-  if(status==='done'){t.done=true;t.completedAt=Date.now();confettiBurst();toast('Awesome job! ✨');setTimeout(()=>{const dw=document.getElementById('doneTodayWrap');if(dw)dw.style.display='block';const dl=document.getElementById('doneTodayList');if(dl)dl.classList.add('open');const dt=document.getElementById('doneTodayToggle');if(dt)dt.classList.add('open');},300);}
-  else{t.done=false;t.completedAt=null;}
-  saveState();renderToday();
+  if(status==='done'){
+    t.done=true;t.completedAt=Date.now();
+    confettiBurst();toast('Closed! ✨');
+  }else{t.done=false;t.completedAt=null;t.status=status;}
+  saveState();renderToday();updateHomeCard(getTotalOpen(),(state.tasks||[]).filter(isOverdue).length,state.tasks.filter(isDoneToday).length);
 }
 function completeTask(id,makeDone){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
@@ -1105,6 +1112,39 @@ function toggleDateForm(){
   const open=f.style.display==='none';
   f.style.display=open?'block':'none';b.style.display=open?'none':'flex';
   if(open)onDateTypeChange();
+}
+let dateMicRec=null,dateMicRecording=false,dateMicTranscript='';
+function toggleDateMic(){
+  if(!SR){toast('Voice not supported — type below');return;}
+  if(dateMicRecording){
+    dateMicRecording=false;
+    document.getElementById('dateMicBtn').textContent='🎤 Speak';
+    try{dateMicRec&&dateMicRec.stop();}catch(e){}
+    const text=dateMicTranscript.trim();
+    if(text){document.getElementById('dName').value=text;}
+    document.getElementById('dateMicStatus').textContent='';
+    return;
+  }
+  dateMicRec=new SR();
+  dateMicRec.continuous=true;dateMicRec.interimResults=true;dateMicRec.lang='en-US';
+  dateMicRec.onresult=e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal)dateMicTranscript+=t+' ';
+      else interim+=t;
+    }
+    const full=(dateMicTranscript+interim).trim();
+    document.getElementById('dateMicStatus').textContent=full;
+    document.getElementById('dName').value=full;
+  };
+  dateMicRec.onerror=()=>{dateMicRecording=false;document.getElementById('dateMicBtn').textContent='🎤 Speak';};
+  dateMicRec.onend=()=>{if(dateMicRecording){try{dateMicRec.start();}catch(e){}}};
+  dateMicTranscript='';
+  document.getElementById('dateMicStatus').textContent='🔴 listening…';
+  document.getElementById('dateMicBtn').textContent='⏹ Stop';
+  dateMicRecording=true;
+  try{dateMicRec.start();}catch(e){}
 }
 const DATE_TYPE_EMOJI={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'};
 async function saveDate(){
@@ -1873,8 +1913,19 @@ function render(){
   renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);const doneToday=state.tasks.filter(isDoneToday);
   updateHomeCard(totalOpen,overdue.length,doneToday.length);
-  if(!state.notificationsEnabled&&'Notification' in window&&Notification.permission!=='granted'){document.getElementById('notifPrompt').style.display='block';}
-  if(state.notificationsEnabled){document.getElementById('notifTestWrap').style.display='block';scheduleDailyNudges();}
+  // Show notification button or test button
+  if('Notification' in window){
+    if(!state.notificationsEnabled||Notification.permission!=='granted'){
+      document.getElementById('notifPrompt').style.display='block';
+      document.getElementById('notifTestWrap').style.display='none';
+    }else{
+      document.getElementById('notifPrompt').style.display='none';
+      document.getElementById('notifTestWrap').style.display='block';
+      scheduleDailyNudges();
+    }
+  }else{
+    document.getElementById('notifPrompt').style.display='none';
+  }
 }
 loadState();maybeShowInstallBanner();
 setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
