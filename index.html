@@ -511,12 +511,8 @@
       <label>For (who)</label><input id="dWho" placeholder="Daughter, husband, friends…"/>
       <label>Remind me in app</label>
       <select id="dNotify"><option value="1">1 day before</option><option value="3" selected>3 days before</option><option value="7">1 week before</option><option value="14">2 weeks before</option></select>
-      <div id="dCalendarRow" style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:12px;padding:12px 14px;margin-bottom:12px;border:1px solid #C9DCEB;">
-        <div style="font-size:11px;letter-spacing:.16em;color:#1A1215;margin-bottom:6px;text-transform:uppercase;font-weight:700;">📅 Add to iPhone Calendar</div>
-        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;font-weight:700;color:#1A3A5A;cursor:pointer;margin-bottom:0;">
-          <input type="checkbox" id="dAddCalendar" checked style="width:16px;height:16px;accent-color:var(--pink-deep);margin-bottom:0;flex-shrink:0;"/>
-          Auto-add to calendar + notify 1 day &amp; 2 days before
-        </label>
+      <div style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:12px;padding:10px 14px;margin-bottom:12px;border:1px solid #C9DCEB;font-size:12px;color:#1A3A5A;font-weight:700;">
+        📅 This will automatically open iPhone Calendar to add the event with reminders
       </div>
       <div class="btn-row"><button class="btn block" onclick="saveDate()">Save ✨</button><button class="btn ghost" onclick="toggleDateForm()">Cancel</button></div>
     </div>
@@ -1055,58 +1051,77 @@ async function saveDate(){
     calendarAdded:false
   };
   if(!d.name||!d.date){toast('Name and date please');return;}
-  const addToCalendar=document.getElementById('dAddCalendar').checked;
   state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));saveState();
   ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   toggleDateForm();renderDates();
-  if(addToCalendar){
-    await addDateToCalendar(d);
-  } else {
-    toast('Saved ✨');
-  }
+  await addDateToCalendar(d);
 }
 async function addDateToCalendar(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
   const title=`${emoji} ${d.name}${d.who?' ('+d.who+')':''}`;
-  // build start datetime
-  let startISO,endISO;
+  const isRecurring=['birthday','anniversary'].includes(d.type);
   const isAllDay=!d.time;
-  if(isAllDay){
-    startISO=d.date+'T00:00:00';endISO=d.date+'T23:59:00';
-  }else{
-    startISO=d.date+'T'+d.time+':00';
-    const [hh,mm]=d.time.split(':').map(Number);
-    const endH=String(hh+2).padStart(2,'0');
-    endISO=d.date+'T'+endH+':'+String(mm).padStart(2,'0')+':00';
-  }
-  // 2-day and 1-day before notifications (in minutes)
-  const nudges=[
-    {minutesBefore:2880,method:'notification'}, // 2 days before
-    {minutesBefore:1440,method:'notification'}  // 1 day before
+
+  // Format date parts
+  const [yr,mo,day]=d.date.split('-');
+
+  // Build ICS lines
+  let lines=[
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'CALSCALE:GREGORIAN',
+    'PRODID:-//PoojaHQ//EN',
+    'BEGIN:VEVENT',
+    `UID:${d.id}@poojas-hq`,
+    `SUMMARY:${title}`,
   ];
-  try{
-    const result=await window.__claudeCalendarCreate({
-      title,
-      startTime:startISO,
-      endTime:endISO,
-      allDay:isAllDay,
-      location:d.location||undefined,
-      eventDescription:d.who?`For ${d.who}`:'',
-      calendarId:'1634C0E6-9B19-41B0-A721-657421EE66E6',
-      nudges,
-      status:'confirmed'
-    });
-    if(result&&result.success!==false){
-      const idx=state.dates.findIndex(x=>x.id===d.id);
-      if(idx>=0)state.dates[idx].calendarAdded=true;
-      saveState();renderDates();
-      toast('Added to iPhone Calendar 📅 + reminders set!');
-    }else{
-      toast('Saved in app ✨ (calendar not connected)');
-    }
-  }catch(e){
-    toast('Saved in app ✨');
+
+  if(isAllDay){
+    lines.push(`DTSTART;VALUE=DATE:${yr}${mo}${day}`);
+    lines.push(`DTEND;VALUE=DATE:${yr}${mo}${day}`);
+  }else{
+    const [hh,mm]=d.time.split(':');
+    const endHH=String((parseInt(hh)+2)%24).padStart(2,'0');
+    lines.push(`DTSTART:${yr}${mo}${day}T${hh}${mm}00`);
+    lines.push(`DTEND:${yr}${mo}${day}T${endHH}${mm}00`);
   }
+
+  if(d.location) lines.push(`LOCATION:${d.location}`);
+  if(d.who) lines.push(`DESCRIPTION:For ${d.who}`);
+
+  // Yearly repeat for birthdays & anniversaries
+  if(isRecurring){
+    lines.push('RRULE:FREQ=YEARLY');
+  }
+
+  // Reminders
+  if(isRecurring){
+    // 2 days before + on the day
+    lines.push('BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY',`DESCRIPTION:💕 ${title} is in 2 days — send a message! 🌸`,'END:VALARM');
+    lines.push('BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today is ${title}! Open Pooja\'s HQ 💌`,'END:VALARM');
+  }else{
+    // Events: 1 week, 1 day, day-of
+    lines.push('BEGIN:VALARM','TRIGGER:-P7D','ACTION:DISPLAY',`DESCRIPTION:📅 1 week until: ${title}`,'END:VALARM');
+    lines.push('BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY',`DESCRIPTION:⏰ Tomorrow: ${title}${d.location?' at '+d.location:''}! Get ready 💃`,'END:VALARM');
+    lines.push('BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today: ${title}! Have the best time 🌟`,'END:VALARM');
+  }
+
+  lines.push('END:VEVENT','END:VCALENDAR');
+
+  const ics=lines.join('\r\n');
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=title.replace(/[^a-z0-9]/gi,'_')+'.ics';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+
+  // Mark as added
+  const idx=state.dates.findIndex(x=>x.id===d.id);
+  if(idx>=0)state.dates[idx].calendarAdded=true;
+  saveState();renderDates();
+  toast('📅 Tap the downloaded file to add to iPhone Calendar!');
 }
 function deleteDate(id){state.dates=state.dates.filter(x=>x.id!==id);saveState();renderDates();}
 function renderDates(){
@@ -1418,42 +1433,7 @@ setInterval(()=>{if(state.notificationsEnabled){saveNudgeDataToIDB();scheduleDai
 
 function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-// ── Calendar bridge ──────────────────────────────────────────────
-// Routes calendar creation through the Claude app's native calendar tool
-// by encoding the event and opening a special URL scheme.
-window.__claudeCalendarCreate=function(event){
-  return new Promise((resolve)=>{
-    // Store pending event for the app to pick up
-    try{
-      const pending=JSON.parse(localStorage.getItem('poojas-pending-calendar')||'[]');
-      pending.push({...event,_requestedAt:Date.now()});
-      localStorage.setItem('poojas-pending-calendar',JSON.stringify(pending));
-    }catch(e){}
-    // Try native calendar via data URI + ics fallback
-    const dt=event.startTime.replace(/[-:]/g,'').replace('T','T').slice(0,15)+'Z';
-    const dte=event.endTime.replace(/[-:]/g,'').replace('T','T').slice(0,15)+'Z';
-    const loc=event.location?`LOCATION:${event.location}\r\n`:'';
-    const desc=event.eventDescription?`DESCRIPTION:${event.eventDescription}\r\n`:'';
-    const ics=[
-      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Pooja HQ//EN',
-      'BEGIN:VEVENT',
-      `DTSTART:${dt}`,`DTEND:${dte}`,
-      `SUMMARY:${event.title}`,
-      loc,desc,
-      'BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY',`DESCRIPTION:📅 2 days until: ${event.title} — send a message soon! 💌`,'END:VALARM',
-      'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY',`DESCRIPTION:⏰ Tomorrow: ${event.title} — send your wishes today! 💕`,'END:VALARM',
-      'BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today is ${event.title}! Open Pooja\'s HQ to send a message now 💌`,'END:VALARM',
-      'END:VEVENT','END:VCALENDAR'
-    ].filter(Boolean).join('\r\n');
-    const blob=new Blob([ics],{type:'text/calendar'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download=event.title.replace(/[^a-z0-9]/gi,'_')+'.ics';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),2000);
-    resolve({success:true});
-  });
-};
-// ── End calendar bridge ──────────────────────────────────────────
+// ── End calendar ──────────────────────────────────────────────
 // ============ EVENT PLANNER ============
 const PLAN_EMOJIS=['🎉','🍽','🎂','💃','🥳','🌟','🪔','🎊'];
 
