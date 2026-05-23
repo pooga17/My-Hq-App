@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Pooja's HQ" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#C0E0F5" />
+<meta name="theme-color" content="#FADADD" />
 <title>Pooja's HQ</title>
 <link rel="manifest" id="manifestLink" />
 <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><radialGradient id='g' cx='30%25' cy='30%25'><stop offset='0%25' stop-color='%23fff'/><stop offset='100%25' stop-color='%23F4B6C2'/></radialGradient></defs><rect width='180' height='180' rx='40' fill='url(%23g)'/><text x='90' y='130' font-family='Georgia,serif' font-style='italic' font-size='120' fill='%23C4607A' text-anchor='middle'>P</text></svg>" />
@@ -18,14 +18,13 @@
 <style>
   :root{
     --pink:#F4B6C2;--pink-deep:#C4607A;--peach:#FFD7C2;--peach-deep:#D4845A;
-    --blue:#C9DCEB;--blue-deep:#5A8CAA;--cream:#EAF4FB;--ink:#1A1215;
-    --muted:#4A5A6A;--line:#B8D8EC;--green:#A7D7C5;--green-deep:#2E7A5A;
+    --blue:#C9DCEB;--blue-deep:#5A8CAA;--cream:#FFF8F4;--ink:#1A1215;
+    --muted:#5A4A50;--line:#E8D0CE;--green:#A7D7C5;--green-deep:#2E7A5A;
     --red:#E89797;--red-bg:#FCE4E4;--amber:#F5C97A;--amber-bg:#FFF1DA;
-    --shadow:0 6px 20px rgba(90,140,170,0.18);
-    --sky:#D8EEF8;--sky-mid:#C0E0F5;
+    --shadow:0 6px 20px rgba(196,96,122,0.18);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--sky);color:var(--ink);font-family:'Inter',sans-serif;overscroll-behavior:none;}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;overscroll-behavior:none;}
   body{padding-bottom:calc(80px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top);min-height:100vh;}
   .app{max-width:480px;margin:0 auto;position:relative;}
   h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:-.01em;margin:0;}
@@ -55,7 +54,7 @@
   .tile p{font-size:13px;color:#3A2A30;margin:0;font-weight:600;}
   .home-task-card{background:#fff;border-radius:22px;padding:18px 18px 14px;border:1px solid var(--line);margin-top:22px;box-shadow:0 4px 16px rgba(196,96,122,.10);cursor:pointer;}
   .home-task-row{display:flex;justify-content:space-between;align-items:stretch;gap:10px;margin-bottom:12px;}
-  .home-stat{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:var(--sky-mid);}
+  .home-stat{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:var(--cream);}
   .home-stat.attention{background:var(--red-bg);}
   .home-stat.done-s{background:#EEF8F4;}
   .home-stat .hs-num{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;line-height:1;}
@@ -82,7 +81,7 @@
   .upcoming-banner .ub-action{display:inline-flex;align-items:center;gap:6px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:9px 18px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.06em;margin-top:2px;}
   .upcoming-banner.urgent .ub-action,.upcoming-banner.today-event .ub-action{background:#8B1010;}
   .upcoming-banner .ub-all{background:none;border:none;color:var(--pink-deep);font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;margin-left:10px;letter-spacing:.04em;text-decoration:underline;}
-  nav.tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(208,235,248,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:50;max-width:480px;margin:0 auto;}
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,248,244,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:50;max-width:480px;margin:0 auto;}
   .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;letter-spacing:.12em;color:#3A2A30;cursor:pointer;border:none;background:none;padding:4px 10px;font-family:inherit;font-weight:700;min-width:52px;}
   .tab .icon{font-size:22px;}
   .tab.active{color:var(--pink-deep);}
@@ -97,7 +96,7 @@
   .more-tray.show{display:block;}
   .more-tray-title{font-size:10px;letter-spacing:.22em;color:#5A4A50;font-weight:700;margin-bottom:12px;text-align:center;}
   .more-tray-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-  .more-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;background:var(--sky-mid);border:1px solid var(--line);cursor:pointer;}
+  .more-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;background:var(--cream);border:1px solid var(--line);cursor:pointer;}
   .more-tile .mt-icon{font-size:26px;}
   .more-tile .mt-label{font-size:11px;font-weight:700;color:#1A1215;letter-spacing:.04em;text-align:center;}
   /* Home quick-action row */
@@ -127,7 +126,7 @@
   .focus-actions button{flex:1;padding:11px 14px;border-radius:999px;border:none;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;cursor:pointer;}
   .focus-actions .done-btn{background:var(--green-deep);color:#fff;}
   .focus-actions .snooze-btn{background:#fff;color:var(--pink-deep);border:2px solid var(--pink-deep);}
-  .focus-empty{text-align:center;padding:38px 18px;background:linear-gradient(135deg,#E0F2FB,#E8F1F8);border-radius:22px;margin-bottom:24px;}
+  .focus-empty{text-align:center;padding:38px 18px;background:linear-gradient(135deg,#FFF1ED,#E8F1F8);border-radius:22px;margin-bottom:24px;}
   .focus-empty .icon{font-size:42px;}
   .focus-empty h3{font-size:26px;color:var(--pink-deep);margin:10px 0 6px;}
   .focus-empty p{color:#3A2A30;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;}
@@ -184,7 +183,7 @@
   .qa-btn.snooze-qa{background:var(--peach);color:#5A2A10;border-color:var(--peach-deep);}
   .task-del{background:none;border:none;color:#8B1010;font-size:20px;cursor:pointer;padding:0 4px;font-weight:700;line-height:1;}
   .done-today-wrap{margin-top:18px;}
-  .done-today-toggle{background:var(--sky-mid);border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:var(--green-deep);font-weight:700;width:100%;font-family:inherit;}
+  .done-today-toggle{background:#FAF6F2;border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:var(--green-deep);font-weight:700;width:100%;font-family:inherit;}
   .done-today-toggle .arrow{transition:transform .25s ease;font-size:12px;}
   .done-today-toggle.open .arrow{transform:rotate(180deg);}
   .done-today-list{display:none;margin-top:10px;}
@@ -419,10 +418,7 @@
     </div>
     <div class="notif-prompt" id="notifPrompt" style="display:none">
       <button onclick="requestNotifications()">🔔 Enable Task Reminders</button>
-      <p>Get nudged every 6–7 hrs for pending tasks</p>
-    </div>
-    <div id="notifTestWrap" style="display:none;text-align:center;margin-top:8px">
-      <button onclick="testNudgeNow()" style="background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:999px;padding:8px 18px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.06em;">🔔 Test Nudge Now</button>
+      <p>Get nudged every 6 hrs for pending tasks</p>
     </div>
     <div id="upcomingBanner" class="upcoming-banner">
       <div class="ub-title" id="upcomingTitle"></div>
@@ -434,10 +430,6 @@
       <div class="hq-card" onclick="go('dates')"><span class="hq-icon">💝</span><div><div class="hq-label">Dates</div><div class="hq-sub">birthdays & plans</div></div></div>
       <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
       <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:14px;">
-      <button onclick="exportData()" style="flex:1;background:#fff;border:2px solid var(--pink-deep);color:var(--pink-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;">📤 Export Backup</button>
-      <button onclick="triggerImport()" style="flex:1;background:#fff;border:2px solid var(--blue-deep);color:var(--blue-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;">📥 Import Backup</button>
     </div>
   </section>
 
@@ -457,7 +449,7 @@
     <div id="taskGroups"></div>
     <div class="done-today-wrap" id="doneTodayWrap" style="display:none">
       <button class="done-today-toggle" id="doneTodayToggle" onclick="toggleDoneToday()">
-        <span id="doneTodayLabel">✅ 0 Closed Today</span><span class="arrow">▼</span>
+        <span id="doneTodayLabel">✨ 0 done today</span><span class="arrow">▼</span>
       </button>
       <div class="done-today-list" id="doneTodayList"></div>
     </div>
@@ -474,22 +466,15 @@
 
   <!-- CAPTURE -->
   <section class="screen" id="screen-tasks">
-    <div class="screen-head"><h2>Capture</h2><p>Say anything — I'll figure out where it goes.</p></div>
-    <div style="background:linear-gradient(135deg,#fff,#EAF4FB);border-radius:18px;padding:16px;margin-bottom:16px;border:1px solid var(--line);font-size:12px;color:#3A2A30;font-weight:600;line-height:1.7;">
-      Try saying:<br/>
-      📅 <i>"Kiarra's recital is May 30th"</i> → Dates + Calendar<br/>
-      ✅ <i>"Call doctor tomorrow urgent"</i> → Task<br/>
-      🛒 <i>"Buy milk and eggs"</i> → Grocery<br/>
-      📝 <i>"Remember to check the report"</i> → Note
-    </div>
+    <div class="screen-head"><h2>Capture</h2><p>Speak it or type it. I'll handle the rest.</p></div>
     <div class="mic-wrap">
-      <button class="mic" id="micBtn" onclick="handleMicClick()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
+      <button class="mic" id="micBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
       <div class="mic-label" id="micLabel">tap to speak</div>
     </div>
     <div class="transcript" id="transcript"></div>
     <div class="ai-status" id="aiStatus"></div>
-    <div class="manual-add"><input id="manualInput" placeholder="Or type anything here…" /><button onclick="addManual()">→</button></div>
-    <div id="captureResult" style="margin-top:16px;"></div>
+    <div class="manual-add"><input id="manualInput" placeholder="Or type a task here…" /><button onclick="addManual()">Add</button></div>
+    <p style="text-align:center;font-size:13px;color:#3A2A30;margin-top:20px;font-weight:700;">Captured tasks live in the <b style="color:var(--pink-deep);cursor:pointer" onclick="go('today')">Today</b> tab.</p>
   </section>
 
   <!-- DATES -->
@@ -518,8 +503,12 @@
       <label>For (who)</label><input id="dWho" placeholder="Daughter, husband, friends…"/>
       <label>Remind me in app</label>
       <select id="dNotify"><option value="1">1 day before</option><option value="3" selected>3 days before</option><option value="7">1 week before</option><option value="14">2 weeks before</option></select>
-      <div style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:12px;padding:10px 14px;margin-bottom:12px;border:1px solid #C9DCEB;font-size:12px;color:#1A3A5A;font-weight:700;">
-        📅 This will automatically open iPhone Calendar to add the event with reminders
+      <div id="dCalendarRow" style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:12px;padding:12px 14px;margin-bottom:12px;border:1px solid #C9DCEB;">
+        <div style="font-size:11px;letter-spacing:.16em;color:#1A1215;margin-bottom:6px;text-transform:uppercase;font-weight:700;">📅 Add to iPhone Calendar</div>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;font-weight:700;color:#1A3A5A;cursor:pointer;margin-bottom:0;">
+          <input type="checkbox" id="dAddCalendar" checked style="width:16px;height:16px;accent-color:var(--pink-deep);margin-bottom:0;flex-shrink:0;"/>
+          Auto-add to calendar + notify 1 day &amp; 2 days before
+        </label>
       </div>
       <div class="btn-row"><button class="btn block" onclick="saveDate()">Save ✨</button><button class="btn ghost" onclick="toggleDateForm()">Cancel</button></div>
     </div>
@@ -707,11 +696,8 @@
     <div class="more-tile" onclick="closeMoreTray();go('gifts')"><span class="mt-icon">🎁</span><span class="mt-label">Send Gift</span></div>
     <div class="more-tile" onclick="closeMoreTray();go('photos')"><span class="mt-icon">📸</span><span class="mt-label">Photos</span></div>
     <div class="more-tile" onclick="closeMoreTray();go('guide')"><span class="mt-icon">📖</span><span class="mt-label">Guide</span></div>
-    <div class="more-tile" onclick="closeMoreTray();exportData()" style="border-color:var(--pink-deep)"><span class="mt-icon">📤</span><span class="mt-label">Export Data</span></div>
-    <div class="more-tile" onclick="closeMoreTray();triggerImport()" style="border-color:var(--blue-deep)"><span class="mt-icon">📥</span><span class="mt-label">Import Data</span></div>
   </div>
 </div>
-<input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)"/>
 
 <div class="toast" id="toast"></div>
 <div class="snooze-backdrop" id="snoozeBackdrop" onclick="closeSnooze()"></div>
@@ -750,38 +736,6 @@ function loadState(){
 function saveState(){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
   catch(e){if(state.photos.length>0){state.photos.pop();try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(_){}toast('Storage full — oldest photo removed');}}
-}
-
-function exportData(){
-  try{
-    const dataStr=JSON.stringify(state,null,2);
-    const blob=new Blob([dataStr],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    const date=new Date().toISOString().slice(0,10);
-    a.href=url;a.download='poojas-hq-backup-'+date+'.json';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),2000);
-    toast('✅ Backup saved! Keep that file safe 💖');
-  }catch(e){toast('Export failed — try again');}
-}
-function triggerImport(){
-  document.getElementById('importFileInput').value='';
-  document.getElementById('importFileInput').click();
-}
-function importData(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    try{
-      const imported=JSON.parse(ev.target.result);
-      // Merge: keep existing photos (large), overlay everything else
-      state={...state,...imported};
-      saveState();render();
-      toast('🎉 All your data is back, Pooja!');
-    }catch(err){toast('Hmm, that file didn\'t work — try exporting again');}
-  };
-  reader.readAsText(file);
 }
 function go(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -831,224 +785,38 @@ const micBtn=document.getElementById('micBtn');
 const micLabel=document.getElementById('micLabel');
 const transcriptEl=document.getElementById('transcript');
 const aiStatus=document.getElementById('aiStatus');
-let recognition=null,isRecording=false,finalTranscript='',interimTranscript='';
+let recognition=null,isRecording=false,finalTranscript='';
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(!SR){micLabel.textContent='type below ↓';}
+if(SR){
+  recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
+  recognition.onresult=(e)=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalTranscript+=t+' ';else interim+=t;}transcriptEl.textContent=finalTranscript+interim;};
+  recognition.onerror=(e)=>{micLabel.textContent=e.error==='not-allowed'?'mic permission needed':'try again';stopRecording();};
+  recognition.onend=()=>{if(isRecording){try{recognition.start();}catch(e){}}};
+}else{micLabel.textContent='voice not supported — type below';}
+micBtn.addEventListener('click',()=>{if(!recognition){toast('Voice not supported — type below');return;}if(isRecording)stopRecording();else startRecording();});
+function startRecording(){finalTranscript='';transcriptEl.textContent='';aiStatus.textContent='';isRecording=true;micBtn.classList.add('recording');micLabel.textContent='listening… tap to stop';try{recognition.start();}catch(e){}}
+function stopRecording(){isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';try{recognition.stop();}catch(e){}const text=transcriptEl.textContent.trim();if(!text){aiStatus.textContent='nothing heard, try again';return;}parseAndCreateTask(text);}
+function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';parseAndCreateTask(text);}
 
-function handleMicClick(){
-  if(!SR){toast('Voice not supported — please type below');return;}
-  if(isRecording){
-    // STOP
-    isRecording=false;
-    micBtn.classList.remove('recording');
-    micLabel.textContent='tap to speak';
-    try{recognition.abort();}catch(e){}
-    const text=(finalTranscript+interimTranscript).trim();
-    if(!text){aiStatus.textContent='nothing heard — try again';return;}
-    transcriptEl.textContent=text;
-    smartCapture(text);
-  }else{
-    // START — create fresh each time for Safari reliability
-    try{
-      recognition=new SR();
-      recognition.continuous=false;
-      recognition.interimResults=true;
-      recognition.lang='en-US';
-      recognition.onstart=()=>{
-        isRecording=true;
-        micBtn.classList.add('recording');
-        micLabel.textContent='🔴 listening… tap to stop';
-      };
-      recognition.onresult=(e)=>{
-        let fin='',interim='';
-        for(let i=0;i<e.results.length;i++){
-          if(e.results[i].isFinal)fin+=e.results[i][0].transcript+' ';
-          else interim+=e.results[i][0].transcript;
-        }
-        finalTranscript=fin;
-        interimTranscript=interim;
-        transcriptEl.textContent=(fin+interim).trim();
-      };
-      recognition.onend=()=>{
-        if(isRecording){
-          // auto-stopped by Safari — submit what we have
-          isRecording=false;
-          micBtn.classList.remove('recording');
-          micLabel.textContent='tap to speak';
-          const text=(finalTranscript+interimTranscript).trim();
-          if(text){transcriptEl.textContent=text;smartCapture(text);}
-          else{aiStatus.textContent='nothing heard — try again';}
-        }
-      };
-      recognition.onerror=(e)=>{
-        isRecording=false;
-        micBtn.classList.remove('recording');
-        if(e.error==='not-allowed'){
-          micLabel.textContent='allow mic in Settings';
-          toast('Please allow microphone in iPhone Settings → Safari');
-        }else{
-          micLabel.textContent='tap to speak';
-        }
-      };
-      finalTranscript='';interimTranscript='';
-      transcriptEl.textContent='';aiStatus.textContent='';
-      recognition.start();
-    }catch(e){
-      toast('Mic error — please type below');
-    }
-  }
-}
-function addManual(){
-  const input=document.getElementById('manualInput');
-  const text=input.value.trim();
-  if(!text)return;
-  input.value='';
-  smartCapture(text);
-}
-
-async function smartCapture(text){
-  aiStatus.textContent='✨ figuring out where this goes…';
-  const resultEl=document.getElementById('captureResult');
-  resultEl.innerHTML='';
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:400,
-        system:`You are Pooja's smart personal assistant. Classify any input and extract structured data.
-Return ONLY valid JSON, no markdown, no explanation.
-
-Categories:
-- "date": any event, birthday, anniversary, dinner, party, plan, recital, appointment WITH a specific date mentioned
-- "task": to-do, action item, call, reminder to DO something
-- "grocery": food, drink, household items, shopping items to buy
-- "note": general info to remember, no date, no action
-
-IMPORTANT RULES:
-- grocery items ALWAYS go to section "personal"
-- home/personal events ALWAYS go to section "personal"  
-- only work/office topics go to section "office"
-- if date is mentioned, ALWAYS classify as "date" not "note"
-
-For "date":
-{"type":"date","dateType":"birthday|anniversary|party|dinner|weekend|other","name":"event name","date":"YYYY-MM-DD","time":"HH:MM or null","who":"person or null","location":"place or null"}
-
-For "task":
-{"type":"task","title":"short title","details":"","priority":"high|medium|low","dueHint":"today|tomorrow|this week|next week|none"}
-
-For "grocery":
-{"type":"grocery","items":["item1","item2"]}
-
-For "note":
-{"type":"note","text":"the note","section":"personal"}
-
-Today is ${new Date().toISOString().slice(0,10)}. Year is ${new Date().getFullYear()}.
-For dates like "May 30th" with no year, use ${new Date().getFullYear()} if that date hasn't passed, otherwise ${new Date().getFullYear()+1}.`,
-        messages:[{role:'user',content:text}]
-      })
-    });
-    const data=await resp.json();
-    const raw=data.content&&data.content[0]&&data.content[0].text;
-    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
-    await routeCaptured(parsed,text);
-  }catch(e){
-    aiStatus.textContent='';
-    routeFallbackTask(text);
-  }
-}
-
-async function routeCaptured(parsed,originalText){
-  const resultEl=document.getElementById('captureResult');
-  aiStatus.textContent='';
-  transcriptEl.textContent='';
-
-  if(parsed.type==='date'){
-    const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[parsed.dateType]||'📅';
-    if(!state.dates)state.dates=[];
-    const d={
-      id:Date.now(),
-      type:parsed.dateType||'other',
-      name:parsed.name||originalText,
-      date:parsed.date||new Date().toISOString().slice(0,10),
-      time:parsed.time||null,
-      location:parsed.location||null,
-      who:parsed.who||'',
-      notify:3,
-      calendarAdded:false
-    };
-    state.dates.push(d);
-    state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    saveState();renderDates();
-    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:16px;padding:16px;border:1px solid var(--blue);margin-top:8px;">
-      <div style="font-size:11px;letter-spacing:.16em;color:var(--blue-deep);font-weight:700;margin-bottom:6px;">📅 ADDED TO DATES</div>
-      <div style="font-size:16px;font-weight:700;color:#1A1215;">${emoji} ${escapeHtml(d.name)}</div>
-      <div style="font-size:13px;color:#3A2A30;margin-top:4px;font-weight:600;">${d.date}${d.time?' at '+d.time:''}${d.who?' · for '+d.who:''}</div>
-      <button onclick="addDateToCalendarById(${d.id})" style="margin-top:12px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📲 Add to iPhone Calendar</button>
-      <button onclick="go('dates')" style="margin-top:8px;background:#fff;border:2px solid var(--blue-deep);color:var(--blue-deep);border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Dates →</button>
-    </div>`;
-    toast(`${emoji} Saved to Dates!`);
-
-  }else if(parsed.type==='task'){
-    if(!state.tasks)state.tasks=[];
-    state.tasks.unshift({id:Date.now(),title:parsed.title||originalText,details:parsed.details||'',priority:parsed.priority||'medium',dueHint:parsed.dueHint||'none',done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
-    saveState();
-    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE9F0);border-radius:16px;padding:16px;border:1px solid var(--pink);margin-top:8px;">
-      <div style="font-size:11px;letter-spacing:.16em;color:var(--pink-deep);font-weight:700;margin-bottom:6px;">✅ ADDED TO TASKS</div>
-      <div style="font-size:16px;font-weight:700;color:#1A1215;">${escapeHtml(parsed.title||originalText)}</div>
-      ${parsed.dueHint&&parsed.dueHint!=='none'?`<div style="font-size:13px;color:#3A2A30;margin-top:4px;font-weight:600;">Due: ${parsed.dueHint}</div>`:''}
-      <button onclick="go('today')" style="margin-top:12px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Today →</button>
-    </div>`;
-    toast('✅ Task added!');
-
-  }else if(parsed.type==='grocery'){
-    if(!state.notes)state.notes=[];
-    const items=parsed.items||[originalText];
-    items.forEach(item=>{
-      if(!item.trim())return;
-      state.notes.push({id:Date.now()+Math.random(),text:item.trim(),section:'personal',createdAt:Date.now()});
-    });
-    saveState();renderNotes();
-    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#F0FBF5,#EAF4FB);border-radius:16px;padding:16px;border:1px solid var(--green);margin-top:8px;">
-      <div style="font-size:11px;letter-spacing:.16em;color:var(--green-deep);font-weight:700;margin-bottom:6px;">🛒 ADDED TO GROCERY</div>
-      ${items.map(i=>`<div style="font-size:15px;font-weight:700;color:#1A1215;">• ${escapeHtml(i)}</div>`).join('')}
-      <button onclick="go('notes')" style="margin-top:12px;background:var(--green-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Notes →</button>
-    </div>`;
-    toast('🛒 Added to Grocery!');
-
-  }else{
-    if(!state.notes)state.notes=[];
-    // always personal unless clearly office
-    const section=parsed.section==='office'?'office':'personal';
-    state.notes.push({id:Date.now(),text:parsed.text||originalText,section,createdAt:Date.now()});
-    saveState();renderNotes();
-    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#FFF8F0,#FFF1ED);border-radius:16px;padding:16px;border:1px solid var(--peach);margin-top:8px;">
-      <div style="font-size:11px;letter-spacing:.16em;color:var(--peach-deep);font-weight:700;margin-bottom:6px;">📝 ADDED TO ${section.toUpperCase()} NOTES</div>
-      <div style="font-size:15px;font-weight:700;color:#1A1215;">${escapeHtml(parsed.text||originalText)}</div>
-      <button onclick="go('notes')" style="margin-top:12px;background:var(--peach-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Notes →</button>
-    </div>`;
-    toast('📝 Note saved!');
-  }
-  setTimeout(()=>{resultEl.innerHTML='';},10000);
-}
-
-function addDateToCalendarById(id){
-  const d=state.dates.find(x=>x.id===id);
-  if(d)addDateToCalendar(d);
-}
-
-function routeFallbackTask(text){
+function parseAndCreateTask(text){
+  aiStatus.textContent='✨ organizing…';
   const lower=text.toLowerCase();
   let priority='medium';
-  if(/\b(urgent|asap|critical|emergency)\b/.test(lower))priority='high';
+  if(/\b(urgent|asap|critical|right now|emergency)\b/.test(lower))priority='high';
+  else if(/\b(sometime|eventually|whenever|low priority|no rush|someday)\b/.test(lower))priority='low';
+  else if(/\b(important|need to|must|have to|deadline|today)\b/.test(lower))priority='high';
   let dueHint='none';
   if(/\btoday\b/.test(lower))dueHint='today';
   else if(/\btomorrow\b/.test(lower))dueHint='tomorrow';
-  let title=text.split(/[.!?]/)[0].trim().slice(0,60);
+  else if(/\bthis week\b/.test(lower))dueHint='this week';
+  else if(/\bnext week\b/.test(lower))dueHint='next week';
+  let title=text.split(/[.!?]/)[0].trim();
+  if(title.length>60){title=title.slice(0,60);const ls=title.lastIndexOf(' ');if(ls>30)title=title.slice(0,ls);title+='…';}
   title=title.charAt(0).toUpperCase()+title.slice(1);
-  state.tasks.unshift({id:Date.now(),title,details:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
-  saveState();toast('✅ Added as task!');
+  const rest=text.slice(title.replace('…','').length).trim();
+  state.tasks.unshift({id:Date.now(),title,details:rest.length>3?rest:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+  saveState();aiStatus.textContent='✓ added to Today';toast('Added — tap TODAY to act on it');
+  setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},1800);
 }
 
 function ageInDays(ts){return(Date.now()-ts)/86400000;}
@@ -1114,11 +882,8 @@ function renderToday(){
   const doneWrap=document.getElementById('doneTodayWrap');
   if(doneToday.length>0){
     doneWrap.style.display='block';
-    document.getElementById('doneTodayLabel').textContent=`✅ ${doneToday.length} Closed Today — good job!`;
-    // Auto-expand the section
-    document.getElementById('doneTodayToggle').classList.add('open');
-    document.getElementById('doneTodayList').classList.add('open');
-    document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">closed ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
+    document.getElementById('doneTodayLabel').textContent=`✨ ${doneToday.length} done today — good job!`;
+    document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
   }else{doneWrap.style.display='none';}
   const homeOpenEl=document.getElementById('homeOpenCount');if(homeOpenEl)homeOpenEl.textContent=totalOpen>0?`${totalOpen} open · act now`:'nothing pending ✨';
   updateHomeCard(totalOpen,overdue.length,doneToday.length);
@@ -1146,18 +911,8 @@ function dayClosingLine(n){if(n>=5)return"You're a force of nature, Pooja.";if(n
 function setTaskStatus(id,status){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   t.status=status;
-  if(status==='done'){
-    t.done=true;t.completedAt=Date.now();
-    confettiBurst();toast('Awesome job! Moved to Closed Today ✨');
-    setTimeout(()=>{
-      const doneWrap=document.getElementById('doneTodayWrap');
-      if(doneWrap)doneWrap.style.display='block';
-      const doneList=document.getElementById('doneTodayList');
-      if(doneList)doneList.classList.add('open');
-      const doneToggle=document.getElementById('doneTodayToggle');
-      if(doneToggle)doneToggle.classList.add('open');
-    },300);
-  }else{t.done=false;t.completedAt=null;}
+  if(status==='done'){t.done=true;t.completedAt=Date.now();confettiBurst();toast('Awesome job! ✨');}
+  else{t.done=false;t.completedAt=null;}
   saveState();renderToday();
 }
 function completeTask(id,makeDone){
@@ -1244,77 +999,58 @@ async function saveDate(){
     calendarAdded:false
   };
   if(!d.name||!d.date){toast('Name and date please');return;}
+  const addToCalendar=document.getElementById('dAddCalendar').checked;
   state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));saveState();
   ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   toggleDateForm();renderDates();
-  await addDateToCalendar(d);
+  if(addToCalendar){
+    await addDateToCalendar(d);
+  } else {
+    toast('Saved ✨');
+  }
 }
 async function addDateToCalendar(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
   const title=`${emoji} ${d.name}${d.who?' ('+d.who+')':''}`;
-  const isRecurring=['birthday','anniversary'].includes(d.type);
+  // build start datetime
+  let startISO,endISO;
   const isAllDay=!d.time;
-
-  // Format date parts
-  const [yr,mo,day]=d.date.split('-');
-
-  // Build ICS lines
-  let lines=[
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'CALSCALE:GREGORIAN',
-    'PRODID:-//PoojaHQ//EN',
-    'BEGIN:VEVENT',
-    `UID:${d.id}@poojas-hq`,
-    `SUMMARY:${title}`,
-  ];
-
   if(isAllDay){
-    lines.push(`DTSTART;VALUE=DATE:${yr}${mo}${day}`);
-    lines.push(`DTEND;VALUE=DATE:${yr}${mo}${day}`);
+    startISO=d.date+'T00:00:00';endISO=d.date+'T23:59:00';
   }else{
-    const [hh,mm]=d.time.split(':');
-    const endHH=String((parseInt(hh)+2)%24).padStart(2,'0');
-    lines.push(`DTSTART:${yr}${mo}${day}T${hh}${mm}00`);
-    lines.push(`DTEND:${yr}${mo}${day}T${endHH}${mm}00`);
+    startISO=d.date+'T'+d.time+':00';
+    const [hh,mm]=d.time.split(':').map(Number);
+    const endH=String(hh+2).padStart(2,'0');
+    endISO=d.date+'T'+endH+':'+String(mm).padStart(2,'0')+':00';
   }
-
-  if(d.location) lines.push(`LOCATION:${d.location}`);
-  if(d.who) lines.push(`DESCRIPTION:For ${d.who}`);
-
-  // Yearly repeat for birthdays & anniversaries
-  if(isRecurring){
-    lines.push('RRULE:FREQ=YEARLY');
+  // 2-day and 1-day before notifications (in minutes)
+  const nudges=[
+    {minutesBefore:2880,method:'notification'}, // 2 days before
+    {minutesBefore:1440,method:'notification'}  // 1 day before
+  ];
+  try{
+    const result=await window.__claudeCalendarCreate({
+      title,
+      startTime:startISO,
+      endTime:endISO,
+      allDay:isAllDay,
+      location:d.location||undefined,
+      eventDescription:d.who?`For ${d.who}`:'',
+      calendarId:'1634C0E6-9B19-41B0-A721-657421EE66E6',
+      nudges,
+      status:'confirmed'
+    });
+    if(result&&result.success!==false){
+      const idx=state.dates.findIndex(x=>x.id===d.id);
+      if(idx>=0)state.dates[idx].calendarAdded=true;
+      saveState();renderDates();
+      toast('Added to iPhone Calendar 📅 + reminders set!');
+    }else{
+      toast('Saved in app ✨ (calendar not connected)');
+    }
+  }catch(e){
+    toast('Saved in app ✨');
   }
-
-  // Reminders
-  if(isRecurring){
-    // 2 days before + on the day
-    lines.push('BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY',`DESCRIPTION:💕 ${title} is in 2 days — send a message! 🌸`,'END:VALARM');
-    lines.push('BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today is ${title}! Open Pooja\'s HQ 💌`,'END:VALARM');
-  }else{
-    // Events: 1 week, 1 day, day-of
-    lines.push('BEGIN:VALARM','TRIGGER:-P7D','ACTION:DISPLAY',`DESCRIPTION:📅 1 week until: ${title}`,'END:VALARM');
-    lines.push('BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY',`DESCRIPTION:⏰ Tomorrow: ${title}${d.location?' at '+d.location:''}! Get ready 💃`,'END:VALARM');
-    lines.push('BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today: ${title}! Have the best time 🌟`,'END:VALARM');
-  }
-
-  lines.push('END:VEVENT','END:VCALENDAR');
-
-  const ics=lines.join('\r\n');
-  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=title.replace(/[^a-z0-9]/gi,'_')+'.ics';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),3000);
-
-  // Mark as added
-  const idx=state.dates.findIndex(x=>x.id===d.id);
-  if(idx>=0)state.dates[idx].calendarAdded=true;
-  saveState();renderDates();
-  toast('📅 Tap the downloaded file to add to iPhone Calendar!');
 }
 function deleteDate(id){state.dates=state.dates.filter(x=>x.id!==id);saveState();renderDates();}
 function renderDates(){
@@ -1336,6 +1072,7 @@ function checkUpcomingDates(){
   const banner=document.getElementById('upcomingBanner');
   const now=new Date();now.setHours(0,0,0,0);
 
+  // Find all dates within 2 days or today, sorted by urgency
   const urgent=state.dates.filter(d=>{
     const dt=new Date(d.date+'T00:00:00');
     const diff=Math.round((dt-now)/86400000);
@@ -1344,23 +1081,24 @@ function checkUpcomingDates(){
 
   if(!urgent.length){banner.classList.remove('show','urgent','today-event');return;}
 
-  const d=urgent[0];
+  const d=urgent[0]; // most urgent first
   const dt=new Date(d.date+'T00:00:00');
   const diff=Math.round((dt-now)/86400000);
   const emoji=DATE_TYPE_EMOJI[d.type]||'💝';
 
+  // Title
   let title='',countText='',urgencyClass='';
   if(diff===0){
-    title=`${emoji} TODAY — ${d.name}${d.who?' for '+d.who:''}! 🎉`;
-    countText='It\'s the day! Don\'t forget to send your wishes 💌';
+    title=`${emoji} Today — ${d.name}${d.who?' for '+d.who:''}!`;
+    countText='Right now! Don\'t forget to send your wishes 💌';
     urgencyClass='today-event';
   }else if(diff===1){
     title=`${emoji} Tomorrow — ${d.name}${d.who?' for '+d.who:''}`;
     countText='Send a message today so it\'s ready! 💕';
     urgencyClass='urgent';
-  }else if(diff===2){
+  }else{
     title=`${emoji} In 2 days — ${d.name}${d.who?' for '+d.who:''}`;
-    countText='Coming up soon — start planning ahead ✨';
+    countText='Coming up soon — plan ahead ✨';
     urgencyClass='';
   }
   if(urgent.length>1)countText+=` · +${urgent.length-1} more coming up`;
@@ -1369,6 +1107,7 @@ function checkUpcomingDates(){
   document.getElementById('upcomingText').textContent=countText;
   banner.className='upcoming-banner show'+(urgencyClass?' '+urgencyClass:'');
 
+  // Action button — only for personal events (birthday, anniversary, etc.)
   const isSendable=['birthday','anniversary','other'].includes(d.type);
   const isSocial=['party','dinner','weekend'].includes(d.type);
   const actionsEl=document.getElementById('upcomingActions');
@@ -1461,15 +1200,19 @@ function renderPhotos(){
 
 const NOTIF_ICON='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="40" fill="%23F4B6C2"/><text x="90" y="130" font-size="120" text-anchor="middle" fill="%23C4607A">P</text></svg>';
 
-// ── Service Worker ──
-if('serviceWorker' in navigator && location.protocol === 'https:'){
+// ── Service Worker registration ──
+if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').then(reg=>{
+    console.log('SW registered');
+    // Request periodic sync if supported (Chrome/Android)
     if('periodicSync' in reg){
-      navigator.permissions.query({name:'periodic-background-sync'}).then(s=>{
-        if(s.state==='granted')reg.periodicSync.register('nudge-check',{minInterval:6*60*60*1000}).catch(()=>{});
+      navigator.permissions.query({name:'periodic-background-sync'}).then(status=>{
+        if(status.state==='granted'){
+          reg.periodicSync.register('nudge-check',{minInterval:60*60*1000}).catch(()=>{});
+        }
       }).catch(()=>{});
     }
-  }).catch(()=>{}); // silently ignore all SW errors
+  }).catch(e=>console.log('SW error',e));
 }
 
 // ── Write open counts to IndexedDB so SW can read them ──
@@ -1482,7 +1225,7 @@ function saveNudgeDataToIDB(){
   req.onsuccess=ev=>{
     const db=ev.target.result;
     const tx=db.transaction('kv','readwrite');
-    tx.objectStore('kv').put({total,overdue,notifEnabled:state.notificationsEnabled},'nudge-data');
+    tx.objectStore('kv').put({total,overdue},'nudge-data');
   };
 }
 
@@ -1492,53 +1235,14 @@ async function requestNotifications(){
   if(perm==='granted'){
     state.notificationsEnabled=true;saveState();
     document.getElementById('notifPrompt').style.display='none';
-    document.getElementById('notifTestWrap').style.display='block';
     saveNudgeDataToIDB();
+    // Tell SW to start watching
     if(navigator.serviceWorker.controller){
       navigator.serviceWorker.controller.postMessage({type:'SCHEDULE_NUDGES'});
     }
     scheduleDailyNudges();
-    toast('Reminders on! You\'ll get nudges every 6–7 hrs for pending tasks ✨');
-  }else{toast('Permission denied — enable in Settings → Notifications');}
-}
-
-function testNudgeNow(){
-  if(!('Notification' in window)||Notification.permission!=='granted'){
-    toast('Enable notifications first');return;
-  }
-  fireNudgeInterval();
-  toast('Test nudge sent! Check your notifications 🔔');
-}
-
-const NUDGE_MSGS_PENDING=[
-  {t:'Psst, Pooja… 👀',b:'Your to-do list is giving you the look. A little love goes a long way!'},
-  {t:'Hey superwoman! 🦸‍♀️',b:'A few things are still waiting on you — you\'ve totally got this. Let\'s knock \'em out!'},
-  {t:'Quick check-in 💅',b:'Some tasks are sitting there like, "Pooja? Helloooo?" 😄 Go show \'em who\'s boss!'},
-  {t:'Not to be that friend… 😂',b:'But your list misses you. Just a few things left — you\'ll feel SO good after!'},
-  {t:'Pooja, babe! 🌸',b:'Don\'t let those tasks pile up — a quick peek at your list and you\'re golden ✨'},
-  {t:'Your list is calling 📲',b:'It\'s giving "please notice me" energy 😄 Hop in and clear a few — you\'re on fire!'},
-];
-const NUDGE_MSGS_OVERDUE=[
-  {t:'Okay okay okay, Pooja! 😅',b:'Some things are getting a liiittle overdue. Nothing you can\'t handle — let\'s go! 💪'},
-  {t:'Girl, your tasks are drama 🎭',b:'They\'ve been waiting. You know what to do — go be the legend you are!'},
-  {t:'SOS from your to-do list 🚨',b:'A couple things really want your attention. You\'ve handled harder stuff — easy win!'},
-  {t:'Pooja! The tasks texted. 😂',b:'They said "still here bestie" — go handle it like the queen you are 👑'},
-];
-const NUDGE_MSGS_CLEAR=[
-  {t:'You cleared it ALL, Pooja!! 🎉',b:'Zero pending. Zero drama. Just you, thriving. Take a moment and soak it in 💖'},
-  {t:'Empty list = full heart 💗',b:'Nothing pending! You\'re an absolute force. Go enjoy your day!'},
-  {t:'Inbox zero achieved ✨',b:'Honestly? Not everyone could do this. You did. Treat yourself!'},
-];
-function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function fireNudgeInterval(){
-  if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
-  const total=getTotalOpen();
-  const overdue=(state.tasks||[]).filter(isOverdue).length;
-  let msg;
-  if(total===0){msg=pickRandom(NUDGE_MSGS_CLEAR);}
-  else if(overdue>0){msg=pickRandom(NUDGE_MSGS_OVERDUE);}
-  else{msg=pickRandom(NUDGE_MSGS_PENDING);}
-  new Notification(msg.t,{body:msg.b,icon:NOTIF_ICON,tag:'poojas-hq-interval',renotify:true});
+    toast('Reminders on! Morning, midday & evening nudges set ✨');
+  }else{toast('Permission denied — enable in iPhone Settings → Notifications');}
 }
 
 function getTotalOpen(){
@@ -1555,64 +1259,42 @@ function fireNudge(type){
   const overdue=(state.tasks||[]).filter(isOverdue).length;
   let title,body;
   if(type==='morning'){
-    if(total===0){title="Rise & shine, Pooja! ☀️";body="You've got nothing pending — today is yours to own! 🌟";}
-    else if(overdue>0){title="Good morning queen! ☀️👑";body=`${overdue} thing${overdue>1?'s':''} got a little impatient overnight 😄 You know you'll crush it!`;}
-    else{title="Morning, Pooja! 🌸";body=`${total} thing${total>1?'s':''} on your list today. Sip your chai and go get it! ☕✨`;}
+    if(total===0){title="Good morning, Pooja! ☀️";body="You're all clear — enjoy your day!";}
+    else if(overdue>0){title="Good morning, Pooja! ☀️";body=`${overdue} overdue + ${total} total open. Let's tackle them! 💪`;}
+    else{title="Good morning, Pooja! ☀️";body=`${total} item${total>1?'s':''} waiting today. You've got this!`;}
   }else if(type==='midday'){
-    if(total===0){title="Midday check — all clear! 🎉";body="Nothing pending! You're literally unstoppable, Pooja. Keep shining 💖";}
-    else if(overdue>0){title="Lunchtime nudge! 🍽️",body=`Hey — ${overdue} item${overdue>1?'s are':' is'} waiting a lil too long. Quick power move? Go handle it! 💪`;}
-    else{title="Hey Pooja, it's midday! 🌺";body=`${total} open — afternoon you is about to crush them all 😄 Let's gooo!`;}
+    if(total===0){title="Midday check-in 🌸";body="Inbox zero! You're unstoppable, Pooja.";}
+    else if(overdue>0){title="Midday check-in ⚠️";body=`${overdue} overdue — quick, you can knock these out!`;}
+    else{title="Midday check-in 🌸";body=`${total} still open. How's your afternoon looking?`;}
   }else{
-    if(total===0){title="Evening wrap-up — you did it! 🎊";body="All done today! Seriously, Pooja. Take a bow 👏 You earned your rest!";}
-    else{title="Evening check-in 🌙✨";body=`${total} thing${total>1?'s':''} still hanging. No pressure — but future-you will be SO grateful 😊`;}
+    if(total===0){title="Evening wrap-up ✨";body="Everything done today! Amazing, Pooja. 🎉";}
+    else{title="Evening wrap-up 🌙";body=`${total} item${total>1?'s':''} still open. You need to finish up! 💪`;}
   }
   new Notification(title,{body,icon:NOTIF_ICON,tag:'poojas-hq-'+type,renotify:true});
 }
 
-// Foreground scheduler — fires every 6–7 hours when app is open
+// Foreground scheduler (runs when app is open)
 function scheduleDailyNudges(){
   if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
   saveNudgeDataToIDB();
   if(window._nudgeInterval)clearInterval(window._nudgeInterval);
-  // Also keep morning/midday/evening named nudges
   window._nudgeInterval=setInterval(()=>{
     if(!state.notificationsEnabled)return;
     saveNudgeDataToIDB();
     const now=new Date();const h=now.getHours();const m=now.getMinutes();
     const key='nudge-'+now.toDateString();
     let fired={};try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
-    if(h===8&&m<2&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
-    if(h===13&&m<2&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
-    if(h===20&&m<2&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
+    if(h===8&&m===0&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
+    if(h===13&&m===0&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
+    if(h===20&&m===0&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
   },60000);
-  // Interval nudge every 6.5 hours — only between 7am and 10pm
-  if(window._intervalNudge)clearInterval(window._intervalNudge);
-  const SIX_HALF_HRS=6.5*60*60*1000;
-  const lastNudge=parseInt(localStorage.getItem('lastIntervalNudge')||'0');
-  const now=Date.now();
-  const h=new Date().getHours();
-  // Fire now if 6.5+ hours since last AND it's between 7am-10pm
-  if(now-lastNudge>SIX_HALF_HRS&&h>=7&&h<22){
-    fireNudgeInterval();
-    localStorage.setItem('lastIntervalNudge',String(now));
-  }
-  window._intervalNudge=setInterval(()=>{
-    if(!state.notificationsEnabled)return;
-    const h2=new Date().getHours();
-    if(h2<7||h2>=22)return; // quiet hours
-    const last=parseInt(localStorage.getItem('lastIntervalNudge')||'0');
-    if(Date.now()-last>SIX_HALF_HRS){
-      fireNudgeInterval();
-      localStorage.setItem('lastIntervalNudge',String(Date.now()));
-    }
-  },5*60*1000); // check every 5 min
-  // Fire named nudges if in window
-  const now2=new Date();const hh=now2.getHours();const mm=now2.getMinutes();
-  const key='nudge-'+now2.toDateString();
+  // Fire immediately if within the window and not yet fired today
+  const now=new Date();const h=now.getHours();const m=now.getMinutes();
+  const key='nudge-'+now.toDateString();
   let fired={};try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
-  if(hh===8&&mm<5&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
-  if(hh===13&&mm<5&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
-  if(hh===20&&mm<5&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
+  if(h===8&&m<5&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
+  if(h===13&&m<5&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
+  if(h===20&&m<5&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
 }
 
 // Refresh IDB data hourly so SW always has fresh counts
@@ -1620,7 +1302,42 @@ setInterval(()=>{if(state.notificationsEnabled){saveNudgeDataToIDB();scheduleDai
 
 function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-// ── End calendar ──────────────────────────────────────────────
+// ── Calendar bridge ──────────────────────────────────────────────
+// Routes calendar creation through the Claude app's native calendar tool
+// by encoding the event and opening a special URL scheme.
+window.__claudeCalendarCreate=function(event){
+  return new Promise((resolve)=>{
+    // Store pending event for the app to pick up
+    try{
+      const pending=JSON.parse(localStorage.getItem('poojas-pending-calendar')||'[]');
+      pending.push({...event,_requestedAt:Date.now()});
+      localStorage.setItem('poojas-pending-calendar',JSON.stringify(pending));
+    }catch(e){}
+    // Try native calendar via data URI + ics fallback
+    const dt=event.startTime.replace(/[-:]/g,'').replace('T','T').slice(0,15)+'Z';
+    const dte=event.endTime.replace(/[-:]/g,'').replace('T','T').slice(0,15)+'Z';
+    const loc=event.location?`LOCATION:${event.location}\r\n`:'';
+    const desc=event.eventDescription?`DESCRIPTION:${event.eventDescription}\r\n`:'';
+    const ics=[
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Pooja HQ//EN',
+      'BEGIN:VEVENT',
+      `DTSTART:${dt}`,`DTEND:${dte}`,
+      `SUMMARY:${event.title}`,
+      loc,desc,
+      'BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY',`DESCRIPTION:📅 2 days until: ${event.title} — send a message soon! 💌`,'END:VALARM',
+      'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY',`DESCRIPTION:⏰ Tomorrow: ${event.title} — send your wishes today! 💕`,'END:VALARM',
+      'BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY',`DESCRIPTION:🎉 Today is ${event.title}! Open Pooja\'s HQ to send a message now 💌`,'END:VALARM',
+      'END:VEVENT','END:VCALENDAR'
+    ].filter(Boolean).join('\r\n');
+    const blob=new Blob([ics],{type:'text/calendar'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=event.title.replace(/[^a-z0-9]/gi,'_')+'.ics';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    resolve({success:true});
+  });
+};
+// ── End calendar bridge ──────────────────────────────────────────
 // ============ EVENT PLANNER ============
 const PLAN_EMOJIS=['🎉','🍽','🎂','💃','🥳','🌟','🪔','🎊'];
 
@@ -1893,7 +1610,7 @@ function renderPQN(){
 const GROCERY_KEYWORDS=/\b(groceries?|grocery|groc|costco|walmart|wholefoods|whole foods|safeway|trader joe|kroger|aldi|meal|meals|dinner|lunch|breakfast|snack|food|foods|drinks?|beverages?|milk|eggs?|bread|butter|cheese|meat|chicken|beef|pork|fish|fruits?|veggies?|vegetables?|produce|pantry|amazon fresh|amazon|target|cvs|walgreens|pharmacy|shampoo|soap|toothpaste|cleaning|laundry|detergent|paper towels?|toilet paper|diapers?|cocktail|cocktails?|wine|beer|alcohol|vodka|juice|coffee|tea|snacks?|chips|pasta|rice|cereal|yogurt|ice cream|frozen|canned)\b/i;
 
 let activeNotesTab='office';
-let noteMicRecognitions={};let noteMicRecording={};let noteMicTranscripts={};let noteMicInterim={};
+let noteMicRecognitions={};let noteMicRecording={};let noteMicTranscripts={};
 
 function switchNotesTab(tab){
   activeNotesTab=tab;
@@ -1957,72 +1674,39 @@ function renderNotes(){
 }
 
 function toggleNoteMic(section){
-  if(!SR){toast('Voice not supported — type below');return;}
-  if(noteMicRecording[section]){
-    // STOP
-    noteMicRecording[section]=false;
-    const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
-    if(btn)btn.classList.remove('recording');
-    try{noteMicRecognitions[section]&&noteMicRecognitions[section].abort();}catch(e){}
-    const interim=(noteMicInterim&&noteMicInterim[section])||'';
-    const text=((noteMicTranscripts[section]||'')+interim).trim();
-    const statusEl=document.getElementById('noteMicStatus-'+section);
-    if(!text){if(statusEl)statusEl.textContent='';return;}
-    const input=document.getElementById('noteInput-'+section);
-    if(input)input.value=text;
-    if(statusEl)statusEl.textContent='✓ ready — tap Add';
-    return;
-  }
-  // START — fresh recognition each time
-  try{
-    const r=new SR();
-    r.continuous=false;
-    r.interimResults=true;
-    r.lang='en-US';
-    if(!noteMicInterim)noteMicInterim={};
-    noteMicTranscripts[section]='';
-    noteMicInterim[section]='';
-    r.onstart=()=>{
-      noteMicRecording[section]=true;
-      const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
-      if(btn)btn.classList.add('recording');
-      const statusEl=document.getElementById('noteMicStatus-'+section);
-      if(statusEl)statusEl.textContent='🔴 listening…';
-    };
-    r.onresult=(e)=>{
-      let fin='',interim='';
-      for(let i=0;i<e.results.length;i++){
-        if(e.results[i].isFinal)fin+=e.results[i][0].transcript+' ';
-        else interim+=e.results[i][0].transcript;
-      }
-      noteMicTranscripts[section]=fin;
-      noteMicInterim[section]=interim;
-      const statusEl=document.getElementById('noteMicStatus-'+section);
-      if(statusEl)statusEl.textContent=(fin+interim).trim();
-    };
-    r.onend=()=>{
-      if(noteMicRecording[section]){
-        noteMicRecording[section]=false;
-        const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
-        if(btn)btn.classList.remove('recording');
-        const interim=(noteMicInterim&&noteMicInterim[section])||'';
-        const text=((noteMicTranscripts[section]||'')+interim).trim();
-        const statusEl=document.getElementById('noteMicStatus-'+section);
-        if(!text){if(statusEl)statusEl.textContent='';return;}
-        const input=document.getElementById('noteInput-'+section);
-        if(input)input.value=text;
-        if(statusEl)statusEl.textContent='✓ ready — tap Add';
-      }
-    };
-    r.onerror=(e)=>{
-      noteMicRecording[section]=false;
-      const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
-      if(btn)btn.classList.remove('recording');
-      if(e.error==='not-allowed')toast('Allow mic in iPhone Settings → Safari');
-    };
+  if(!SR){toast('Voice not supported — try Safari');return;}
+  if(noteMicRecording[section]){stopNoteMic(section);return;}
+  if(!noteMicRecognitions[section]){
+    const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';
+    r.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)noteMicTranscripts[section]=(noteMicTranscripts[section]||'')+t+' ';else interim+=t;}const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent=(noteMicTranscripts[section]||'')+interim;};
+    r.onerror=()=>stopNoteMic(section);
+    r.onend=()=>{if(noteMicRecording[section]){try{r.start();}catch(e){}}};
     noteMicRecognitions[section]=r;
-    r.start();
-  }catch(e){toast('Mic error — type instead');}
+  }
+  noteMicTranscripts[section]='';
+  const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent='listening…';
+  noteMicRecording[section]=true;
+  const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+  if(btn)btn.classList.add('recording');
+  try{noteMicRecognitions[section].start();}catch(e){}
+}
+
+function stopNoteMic(section){
+  noteMicRecording[section]=false;
+  const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+  if(btn)btn.classList.remove('recording');
+  try{noteMicRecognitions[section]&&noteMicRecognitions[section].stop();}catch(e){}
+  const text=(noteMicTranscripts[section]||'').trim();
+  const statusEl=document.getElementById('noteMicStatus-'+section);
+  if(!text){if(statusEl)statusEl.textContent='';return;}
+  // put spoken text into the textarea so user can review/edit before adding
+  const input=document.getElementById('noteInput-'+section);
+  if(input)input.value=text;
+  if(statusEl)statusEl.textContent='✓ ready — tap Add';
+  // auto-detect grocery and give a hint
+  if(GROCERY_KEYWORDS.test(text)&&section!=='personal'){
+    if(statusEl)statusEl.textContent='🛒 grocery detected — tap Add to route to Personal';
+  }
 }
 // ============ END NOTES ============
 
@@ -2049,10 +1733,7 @@ function render(){
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);const doneToday=state.tasks.filter(isDoneToday);
   updateHomeCard(totalOpen,overdue.length,doneToday.length);
   if(!state.notificationsEnabled&&'Notification' in window&&Notification.permission!=='granted'){document.getElementById('notifPrompt').style.display='block';}
-  if(state.notificationsEnabled){
-    document.getElementById('notifTestWrap').style.display='block';
-    scheduleDailyNudges();
-  }
+  if(state.notificationsEnabled)scheduleDailyNudges();
 }
 loadState();maybeShowInstallBanner();
 setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
