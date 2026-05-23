@@ -474,15 +474,22 @@
 
   <!-- CAPTURE -->
   <section class="screen" id="screen-tasks">
-    <div class="screen-head"><h2>Capture</h2><p>Speak it or type it. I'll handle the rest.</p></div>
+    <div class="screen-head"><h2>Capture</h2><p>Say anything — I'll figure out where it goes.</p></div>
+    <div style="background:linear-gradient(135deg,#fff,#EAF4FB);border-radius:18px;padding:16px;margin-bottom:16px;border:1px solid var(--line);font-size:12px;color:#3A2A30;font-weight:600;line-height:1.7;">
+      Try saying:<br/>
+      📅 <i>"Kiarra's recital is May 30th"</i> → Dates + Calendar<br/>
+      ✅ <i>"Call doctor tomorrow urgent"</i> → Task<br/>
+      🛒 <i>"Buy milk and eggs"</i> → Grocery<br/>
+      📝 <i>"Remember to check the report"</i> → Note
+    </div>
     <div class="mic-wrap">
       <button class="mic" id="micBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11z"/></svg></button>
       <div class="mic-label" id="micLabel">tap to speak</div>
     </div>
     <div class="transcript" id="transcript"></div>
     <div class="ai-status" id="aiStatus"></div>
-    <div class="manual-add"><input id="manualInput" placeholder="Or type a task here…" /><button onclick="addManual()">Add</button></div>
-    <p style="text-align:center;font-size:13px;color:#3A2A30;margin-top:20px;font-weight:700;">Captured tasks live in the <b style="color:var(--pink-deep);cursor:pointer" onclick="go('today')">Today</b> tab.</p>
+    <div class="manual-add"><input id="manualInput" placeholder="Or type anything here…" /><button onclick="addManual()">→</button></div>
+    <div id="captureResult" style="margin-top:16px;"></div>
   </section>
 
   <!-- DATES -->
@@ -834,28 +841,151 @@ if(SR){
 }else{micLabel.textContent='voice not supported — type below';}
 micBtn.addEventListener('click',()=>{if(!recognition){toast('Voice not supported — type below');return;}if(isRecording)stopRecording();else startRecording();});
 function startRecording(){finalTranscript='';transcriptEl.textContent='';aiStatus.textContent='';isRecording=true;micBtn.classList.add('recording');micLabel.textContent='listening… tap to stop';try{recognition.start();}catch(e){}}
-function stopRecording(){isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';try{recognition.stop();}catch(e){}const text=transcriptEl.textContent.trim();if(!text){aiStatus.textContent='nothing heard, try again';return;}parseAndCreateTask(text);}
-function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';parseAndCreateTask(text);}
+function stopRecording(){isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';try{recognition.stop();}catch(e){}const text=transcriptEl.textContent.trim();if(!text){aiStatus.textContent='nothing heard, try again';return;}smartCapture(text);}
+function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';smartCapture(text);}
 
-function parseAndCreateTask(text){
-  aiStatus.textContent='✨ organizing…';
+async function smartCapture(text){
+  aiStatus.textContent='✨ figuring out where this goes…';
+  const resultEl=document.getElementById('captureResult');
+  resultEl.innerHTML='';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        system:`You are Pooja's smart personal assistant. Given any input, classify it and extract structured data.
+Return ONLY valid JSON, no markdown, no explanation.
+
+Categories:
+- "date": any event, birthday, anniversary, dinner, party, plan, recital, appointment with a specific date
+- "task": to-do, action item, reminder to do something
+- "grocery": food, drink, shopping items to buy
+- "note": general info, something to remember without a date or action
+
+For "date" type, extract:
+{
+  "type": "date",
+  "dateType": "birthday|anniversary|party|dinner|weekend|other",
+  "name": "event name",
+  "date": "YYYY-MM-DD or null if unclear",
+  "time": "HH:MM or null",
+  "who": "person name or null",
+  "location": null
+}
+
+For "task":
+{"type":"task","title":"short title","details":"extra details or empty","priority":"high|medium|low","dueHint":"today|tomorrow|this week|next week|none"}
+
+For "grocery":
+{"type":"grocery","items":["item1","item2"]}
+
+For "note":
+{"type":"note","text":"the note","section":"office|personal|home"}
+
+Today's date is ${new Date().toISOString().slice(0,10)}. Current year is ${new Date().getFullYear()}.
+If someone says "May 30th" without a year, use the next upcoming occurrence.`,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content&&data.content[0]&&data.content[0].text;
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    await routeCaptured(parsed,text);
+  }catch(e){
+    // fallback to task
+    aiStatus.textContent='';
+    routeFallbackTask(text);
+  }
+}
+
+async function routeCaptured(parsed,originalText){
+  const resultEl=document.getElementById('captureResult');
+  aiStatus.textContent='';
+  transcriptEl.textContent='';
+
+  if(parsed.type==='date'){
+    const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[parsed.dateType]||'📅';
+    const d={
+      id:Date.now(),
+      type:parsed.dateType||'other',
+      name:parsed.name||originalText,
+      date:parsed.date||new Date().toISOString().slice(0,10),
+      time:parsed.time||null,
+      location:parsed.location||null,
+      who:parsed.who||'',
+      notify:3,
+      calendarAdded:false
+    };
+    state.dates.push(d);
+    state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveState();renderDates();
+    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#EEF8F4,#E8F4FF);border-radius:16px;padding:16px;border:1px solid var(--blue);margin-top:8px;">
+      <div style="font-size:11px;letter-spacing:.16em;color:var(--blue-deep);font-weight:700;margin-bottom:6px;">📅 ADDED TO DATES</div>
+      <div style="font-size:16px;font-weight:700;color:#1A1215;">${emoji} ${escapeHtml(d.name)}</div>
+      <div style="font-size:13px;color:#3A2A30;margin-top:4px;font-weight:600;">${d.date}${d.time?' at '+d.time:''}${d.who?' · for '+d.who:''}</div>
+      <button onclick="addDateToCalendarById(${d.id})" style="margin-top:12px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📲 Tap to Add to iPhone Calendar</button>
+    </div>`;
+    toast(`${emoji} Saved to Dates!`);
+
+  }else if(parsed.type==='task'){
+    state.tasks.unshift({id:Date.now(),title:parsed.title||originalText,details:parsed.details||'',priority:parsed.priority||'medium',dueHint:parsed.dueHint||'none',done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+    saveState();
+    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE9F0);border-radius:16px;padding:16px;border:1px solid var(--pink);margin-top:8px;">
+      <div style="font-size:11px;letter-spacing:.16em;color:var(--pink-deep);font-weight:700;margin-bottom:6px;">✅ ADDED TO TASKS</div>
+      <div style="font-size:16px;font-weight:700;color:#1A1215;">${escapeHtml(parsed.title||originalText)}</div>
+      ${parsed.dueHint&&parsed.dueHint!=='none'?`<div style="font-size:13px;color:#3A2A30;margin-top:4px;font-weight:600;">Due: ${parsed.dueHint}</div>`:''}
+      <button onclick="go('today')" style="margin-top:12px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Today →</button>
+    </div>`;
+    toast('✅ Task added!');
+
+  }else if(parsed.type==='grocery'){
+    const items=parsed.items||[originalText];
+    items.forEach(item=>{
+      if(!item.trim())return;
+      state.notes=state.notes||[];
+      state.notes.push({id:Date.now()+Math.random(),text:item.trim(),section:'personal',createdAt:Date.now()});
+    });
+    saveState();renderNotes();
+    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#F0FBF5,#EAF4FB);border-radius:16px;padding:16px;border:1px solid var(--green);margin-top:8px;">
+      <div style="font-size:11px;letter-spacing:.16em;color:var(--green-deep);font-weight:700;margin-bottom:6px;">🛒 ADDED TO GROCERY</div>
+      ${items.map(i=>`<div style="font-size:15px;font-weight:700;color:#1A1215;">• ${escapeHtml(i)}</div>`).join('')}
+      <button onclick="go('notes')" style="margin-top:12px;background:var(--green-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Notes →</button>
+    </div>`;
+    toast('🛒 Added to Grocery!');
+
+  }else{
+    // note
+    state.notes=state.notes||[];
+    state.notes.push({id:Date.now(),text:parsed.text||originalText,section:parsed.section||'personal',createdAt:Date.now()});
+    saveState();renderNotes();
+    resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#FFF8F0,#FFF1ED);border-radius:16px;padding:16px;border:1px solid var(--peach);margin-top:8px;">
+      <div style="font-size:11px;letter-spacing:.16em;color:var(--peach-deep);font-weight:700;margin-bottom:6px;">📝 ADDED TO NOTES</div>
+      <div style="font-size:15px;font-weight:700;color:#1A1215;">${escapeHtml(parsed.text||originalText)}</div>
+      <button onclick="go('notes')" style="margin-top:12px;background:var(--peach-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Notes →</button>
+    </div>`;
+    toast('📝 Note saved!');
+  }
+  setTimeout(()=>{resultEl.innerHTML='';},8000);
+}
+
+function addDateToCalendarById(id){
+  const d=state.dates.find(x=>x.id===id);
+  if(d)addDateToCalendar(d);
+}
+
+function routeFallbackTask(text){
   const lower=text.toLowerCase();
   let priority='medium';
-  if(/\b(urgent|asap|critical|right now|emergency)\b/.test(lower))priority='high';
-  else if(/\b(sometime|eventually|whenever|low priority|no rush|someday)\b/.test(lower))priority='low';
-  else if(/\b(important|need to|must|have to|deadline|today)\b/.test(lower))priority='high';
+  if(/\b(urgent|asap|critical|emergency)\b/.test(lower))priority='high';
   let dueHint='none';
   if(/\btoday\b/.test(lower))dueHint='today';
   else if(/\btomorrow\b/.test(lower))dueHint='tomorrow';
-  else if(/\bthis week\b/.test(lower))dueHint='this week';
-  else if(/\bnext week\b/.test(lower))dueHint='next week';
-  let title=text.split(/[.!?]/)[0].trim();
-  if(title.length>60){title=title.slice(0,60);const ls=title.lastIndexOf(' ');if(ls>30)title=title.slice(0,ls);title+='…';}
+  let title=text.split(/[.!?]/)[0].trim().slice(0,60);
   title=title.charAt(0).toUpperCase()+title.slice(1);
-  const rest=text.slice(title.replace('…','').length).trim();
-  state.tasks.unshift({id:Date.now(),title,details:rest.length>3?rest:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
-  saveState();aiStatus.textContent='✓ added to Today';toast('Added — tap TODAY to act on it');
-  setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},1800);
+  state.tasks.unshift({id:Date.now(),title,details:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+  saveState();toast('✅ Added as task!');
 }
 
 function ageInDays(ts){return(Date.now()-ts)/86400000;}
