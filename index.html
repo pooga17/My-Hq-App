@@ -831,17 +831,38 @@ const micBtn=document.getElementById('micBtn');
 const micLabel=document.getElementById('micLabel');
 const transcriptEl=document.getElementById('transcript');
 const aiStatus=document.getElementById('aiStatus');
-let recognition=null,isRecording=false,finalTranscript='';
+let recognition=null,isRecording=false,finalTranscript='',interimTranscript='';
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(SR){
   recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
-  recognition.onresult=(e)=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalTranscript+=t+' ';else interim+=t;}transcriptEl.textContent=finalTranscript+interim;};
+  recognition.onresult=(e)=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal)finalTranscript+=t+' ';
+      else interim+=t;
+    }
+    interimTranscript=interim;
+    transcriptEl.textContent=(finalTranscript+interim).trim();
+  };
   recognition.onerror=(e)=>{micLabel.textContent=e.error==='not-allowed'?'mic permission needed':'try again';stopRecording();};
   recognition.onend=()=>{if(isRecording){try{recognition.start();}catch(e){}}};
 }else{micLabel.textContent='voice not supported — type below';}
 micBtn.addEventListener('click',()=>{if(!recognition){toast('Voice not supported — type below');return;}if(isRecording)stopRecording();else startRecording();});
-function startRecording(){finalTranscript='';transcriptEl.textContent='';aiStatus.textContent='';isRecording=true;micBtn.classList.add('recording');micLabel.textContent='listening… tap to stop';try{recognition.start();}catch(e){}}
-function stopRecording(){isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';try{recognition.stop();}catch(e){}const text=transcriptEl.textContent.trim();if(!text){aiStatus.textContent='nothing heard, try again';return;}smartCapture(text);}
+function startRecording(){
+  finalTranscript='';interimTranscript='';transcriptEl.textContent='';aiStatus.textContent='';
+  isRecording=true;micBtn.classList.add('recording');
+  micLabel.textContent='🎤 listening… tap to stop';
+  try{recognition.start();}catch(e){}
+}
+function stopRecording(){
+  isRecording=false;micBtn.classList.remove('recording');micLabel.textContent='tap to speak';
+  try{recognition.stop();}catch(e){}
+  const text=(finalTranscript+interimTranscript).trim();
+  if(!text){aiStatus.textContent='nothing heard — try again';return;}
+  transcriptEl.textContent=text;
+  smartCapture(text);
+}
 function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';smartCapture(text);}
 
 async function smartCapture(text){
@@ -855,37 +876,35 @@ async function smartCapture(text){
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:400,
-        system:`You are Pooja's smart personal assistant. Given any input, classify it and extract structured data.
+        system:`You are Pooja's smart personal assistant. Classify any input and extract structured data.
 Return ONLY valid JSON, no markdown, no explanation.
 
 Categories:
-- "date": any event, birthday, anniversary, dinner, party, plan, recital, appointment with a specific date
-- "task": to-do, action item, reminder to do something
-- "grocery": food, drink, shopping items to buy
-- "note": general info, something to remember without a date or action
+- "date": any event, birthday, anniversary, dinner, party, plan, recital, appointment WITH a specific date mentioned
+- "task": to-do, action item, call, reminder to DO something
+- "grocery": food, drink, household items, shopping items to buy
+- "note": general info to remember, no date, no action
 
-For "date" type, extract:
-{
-  "type": "date",
-  "dateType": "birthday|anniversary|party|dinner|weekend|other",
-  "name": "event name",
-  "date": "YYYY-MM-DD or null if unclear",
-  "time": "HH:MM or null",
-  "who": "person name or null",
-  "location": null
-}
+IMPORTANT RULES:
+- grocery items ALWAYS go to section "personal"
+- home/personal events ALWAYS go to section "personal"  
+- only work/office topics go to section "office"
+- if date is mentioned, ALWAYS classify as "date" not "note"
+
+For "date":
+{"type":"date","dateType":"birthday|anniversary|party|dinner|weekend|other","name":"event name","date":"YYYY-MM-DD","time":"HH:MM or null","who":"person or null","location":"place or null"}
 
 For "task":
-{"type":"task","title":"short title","details":"extra details or empty","priority":"high|medium|low","dueHint":"today|tomorrow|this week|next week|none"}
+{"type":"task","title":"short title","details":"","priority":"high|medium|low","dueHint":"today|tomorrow|this week|next week|none"}
 
 For "grocery":
 {"type":"grocery","items":["item1","item2"]}
 
 For "note":
-{"type":"note","text":"the note","section":"office|personal|home"}
+{"type":"note","text":"the note","section":"personal"}
 
-Today's date is ${new Date().toISOString().slice(0,10)}. Current year is ${new Date().getFullYear()}.
-If someone says "May 30th" without a year, use the next upcoming occurrence.`,
+Today is ${new Date().toISOString().slice(0,10)}. Year is ${new Date().getFullYear()}.
+For dates like "May 30th" with no year, use ${new Date().getFullYear()} if that date hasn't passed, otherwise ${new Date().getFullYear()+1}.`,
         messages:[{role:'user',content:text}]
       })
     });
@@ -894,7 +913,6 @@ If someone says "May 30th" without a year, use the next upcoming occurrence.`,
     const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
     await routeCaptured(parsed,text);
   }catch(e){
-    // fallback to task
     aiStatus.textContent='';
     routeFallbackTask(text);
   }
@@ -907,6 +925,7 @@ async function routeCaptured(parsed,originalText){
 
   if(parsed.type==='date'){
     const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[parsed.dateType]||'📅';
+    if(!state.dates)state.dates=[];
     const d={
       id:Date.now(),
       type:parsed.dateType||'other',
@@ -925,11 +944,13 @@ async function routeCaptured(parsed,originalText){
       <div style="font-size:11px;letter-spacing:.16em;color:var(--blue-deep);font-weight:700;margin-bottom:6px;">📅 ADDED TO DATES</div>
       <div style="font-size:16px;font-weight:700;color:#1A1215;">${emoji} ${escapeHtml(d.name)}</div>
       <div style="font-size:13px;color:#3A2A30;margin-top:4px;font-weight:600;">${d.date}${d.time?' at '+d.time:''}${d.who?' · for '+d.who:''}</div>
-      <button onclick="addDateToCalendarById(${d.id})" style="margin-top:12px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📲 Tap to Add to iPhone Calendar</button>
+      <button onclick="addDateToCalendarById(${d.id})" style="margin-top:12px;background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📲 Add to iPhone Calendar</button>
+      <button onclick="go('dates')" style="margin-top:8px;background:#fff;border:2px solid var(--blue-deep);color:var(--blue-deep);border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Dates →</button>
     </div>`;
     toast(`${emoji} Saved to Dates!`);
 
   }else if(parsed.type==='task'){
+    if(!state.tasks)state.tasks=[];
     state.tasks.unshift({id:Date.now(),title:parsed.title||originalText,details:parsed.details||'',priority:parsed.priority||'medium',dueHint:parsed.dueHint||'none',done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
     saveState();
     resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE9F0);border-radius:16px;padding:16px;border:1px solid var(--pink);margin-top:8px;">
@@ -941,10 +962,10 @@ async function routeCaptured(parsed,originalText){
     toast('✅ Task added!');
 
   }else if(parsed.type==='grocery'){
+    if(!state.notes)state.notes=[];
     const items=parsed.items||[originalText];
     items.forEach(item=>{
       if(!item.trim())return;
-      state.notes=state.notes||[];
       state.notes.push({id:Date.now()+Math.random(),text:item.trim(),section:'personal',createdAt:Date.now()});
     });
     saveState();renderNotes();
@@ -956,18 +977,19 @@ async function routeCaptured(parsed,originalText){
     toast('🛒 Added to Grocery!');
 
   }else{
-    // note
-    state.notes=state.notes||[];
-    state.notes.push({id:Date.now(),text:parsed.text||originalText,section:parsed.section||'personal',createdAt:Date.now()});
+    if(!state.notes)state.notes=[];
+    // always personal unless clearly office
+    const section=parsed.section==='office'?'office':'personal';
+    state.notes.push({id:Date.now(),text:parsed.text||originalText,section,createdAt:Date.now()});
     saveState();renderNotes();
     resultEl.innerHTML=`<div style="background:linear-gradient(135deg,#FFF8F0,#FFF1ED);border-radius:16px;padding:16px;border:1px solid var(--peach);margin-top:8px;">
-      <div style="font-size:11px;letter-spacing:.16em;color:var(--peach-deep);font-weight:700;margin-bottom:6px;">📝 ADDED TO NOTES</div>
+      <div style="font-size:11px;letter-spacing:.16em;color:var(--peach-deep);font-weight:700;margin-bottom:6px;">📝 ADDED TO ${section.toUpperCase()} NOTES</div>
       <div style="font-size:15px;font-weight:700;color:#1A1215;">${escapeHtml(parsed.text||originalText)}</div>
       <button onclick="go('notes')" style="margin-top:12px;background:var(--peach-deep);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;width:100%;">View in Notes →</button>
     </div>`;
     toast('📝 Note saved!');
   }
-  setTimeout(()=>{resultEl.innerHTML='';},8000);
+  setTimeout(()=>{resultEl.innerHTML='';},10000);
 }
 
 function addDateToCalendarById(id){
@@ -1904,13 +1926,30 @@ function toggleNoteMic(section){
   if(noteMicRecording[section]){stopNoteMic(section);return;}
   if(!noteMicRecognitions[section]){
     const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';
-    r.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)noteMicTranscripts[section]=(noteMicTranscripts[section]||'')+t+' ';else interim+=t;}const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent=(noteMicTranscripts[section]||'')+interim;};
+    r.onresult=e=>{
+      let interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t=e.results[i][0].transcript;
+        if(e.results[i].isFinal)noteMicTranscripts[section]=(noteMicTranscripts[section]||'')+t+' ';
+        else interim+=t;
+      }
+      noteMicInterim=noteMicInterim||{};
+      noteMicInterim[section]=interim;
+      const statusEl=document.getElementById('noteMicStatus-'+section);
+      if(statusEl)statusEl.textContent=(noteMicTranscripts[section]||'')+interim;
+      // Auto-stop after 1.5s silence
+      if(!noteMicSilenceTimers)noteMicSilenceTimers={};
+      if(noteMicSilenceTimers[section])clearTimeout(noteMicSilenceTimers[section]);
+      noteMicSilenceTimers[section]=setTimeout(()=>{if(noteMicRecording[section])stopNoteMic(section);},1500);
+    };
     r.onerror=()=>stopNoteMic(section);
     r.onend=()=>{if(noteMicRecording[section]){try{r.start();}catch(e){}}};
     noteMicRecognitions[section]=r;
   }
   noteMicTranscripts[section]='';
-  const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent='listening…';
+  if(!noteMicInterim)noteMicInterim={};
+  noteMicInterim[section]='';
+  const statusEl=document.getElementById('noteMicStatus-'+section);if(statusEl)statusEl.textContent='🎤 listening…';
   noteMicRecording[section]=true;
   const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
   if(btn)btn.classList.add('recording');
@@ -1918,18 +1957,20 @@ function toggleNoteMic(section){
 }
 
 function stopNoteMic(section){
+  if(!noteMicSilenceTimers)noteMicSilenceTimers={};
+  if(noteMicSilenceTimers[section])clearTimeout(noteMicSilenceTimers[section]);
   noteMicRecording[section]=false;
   const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
   if(btn)btn.classList.remove('recording');
   try{noteMicRecognitions[section]&&noteMicRecognitions[section].stop();}catch(e){}
-  const text=(noteMicTranscripts[section]||'').trim();
+  // Capture both final + any remaining interim
+  const interim=(noteMicInterim&&noteMicInterim[section])||'';
+  const text=((noteMicTranscripts[section]||'')+interim).trim();
   const statusEl=document.getElementById('noteMicStatus-'+section);
   if(!text){if(statusEl)statusEl.textContent='';return;}
-  // put spoken text into the textarea so user can review/edit before adding
   const input=document.getElementById('noteInput-'+section);
   if(input)input.value=text;
   if(statusEl)statusEl.textContent='✓ ready — tap Add';
-  // auto-detect grocery and give a hint
   if(GROCERY_KEYWORDS.test(text)&&section!=='personal'){
     if(statusEl)statusEl.textContent='🛒 grocery detected — tap Add to route to Personal';
   }
