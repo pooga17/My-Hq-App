@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Pooja's HQ" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#FADADD" />
+<meta name="theme-color" content="#C0E0F5" />
 <title>Pooja's HQ</title>
 <link rel="manifest" id="manifestLink" />
 <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><radialGradient id='g' cx='30%25' cy='30%25'><stop offset='0%25' stop-color='%23fff'/><stop offset='100%25' stop-color='%23F4B6C2'/></radialGradient></defs><rect width='180' height='180' rx='40' fill='url(%23g)'/><text x='90' y='130' font-family='Georgia,serif' font-style='italic' font-size='120' fill='%23C4607A' text-anchor='middle'>P</text></svg>" />
@@ -18,13 +18,13 @@
 <style>
   :root{
     --pink:#F4B6C2;--pink-deep:#C4607A;--peach:#FFD7C2;--peach-deep:#D4845A;
-    --blue:#C9DCEB;--blue-deep:#5A8CAA;--cream:#FFF8F4;--ink:#1A1215;
+    --blue:#C9DCEB;--blue-deep:#5A8CAA;--cream:#EAF4FB;--ink:#1A1215;
     --muted:#5A4A50;--line:#E8D0CE;--green:#A7D7C5;--green-deep:#2E7A5A;
     --red:#E89797;--red-bg:#FCE4E4;--amber:#F5C97A;--amber-bg:#FFF1DA;
     --shadow:0 6px 20px rgba(196,96,122,0.18);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;overscroll-behavior:none;}
+  html,body{margin:0;padding:0;background:#D8EEF8;color:var(--ink);font-family:'Inter',sans-serif;overscroll-behavior:none;}
   body{padding-bottom:calc(80px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top);min-height:100vh;}
   .app{max-width:480px;margin:0 auto;position:relative;}
   h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:-.01em;margin:0;}
@@ -420,6 +420,9 @@
       <button onclick="requestNotifications()">🔔 Enable Task Reminders</button>
       <p>Get nudged every 6 hrs for pending tasks</p>
     </div>
+    <div id="notifTestWrap" style="display:none;text-align:center;margin-top:8px">
+      <button onclick="testNudgeNow()" style="background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:999px;padding:8px 18px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔔 Test Nudge Now</button>
+    </div>
     <div id="upcomingBanner" class="upcoming-banner">
       <div class="ub-title" id="upcomingTitle"></div>
       <div class="ub-count" id="upcomingText"></div>
@@ -431,6 +434,11 @@
       <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
       <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
     </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button onclick="exportData()" style="flex:1;background:#fff;border:2px solid var(--pink-deep);color:var(--pink-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📤 Export Backup</button>
+      <button onclick="triggerImport()" style="flex:1;background:#fff;border:2px solid var(--blue-deep);color:var(--blue-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📥 Import Backup</button>
+    </div>
+    <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)"/>
   </section>
 
   <!-- TODAY -->
@@ -449,7 +457,7 @@
     <div id="taskGroups"></div>
     <div class="done-today-wrap" id="doneTodayWrap" style="display:none">
       <button class="done-today-toggle" id="doneTodayToggle" onclick="toggleDoneToday()">
-        <span id="doneTodayLabel">✨ 0 done today</span><span class="arrow">▼</span>
+        <span id="doneTodayLabel">✅ 0 Closed Today</span><span class="arrow">▼</span>
       </button>
       <div class="done-today-list" id="doneTodayList"></div>
     </div>
@@ -737,6 +745,58 @@ function saveState(){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
   catch(e){if(state.photos.length>0){state.photos.pop();try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(_){}toast('Storage full — oldest photo removed');}}
 }
+function exportData(){
+  try{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='poojas-hq-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    toast('✅ Backup saved! 💖');
+  }catch(e){toast('Export failed');}
+}
+function triggerImport(){document.getElementById('importFileInput').value='';document.getElementById('importFileInput').click();}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{state={...state,...JSON.parse(ev.target.result)};saveState();render();toast('🎉 All your data is back, Pooja!');}
+    catch(err){toast('That file did not work — try again');}
+  };
+  reader.readAsText(file);
+}
+function testNudgeNow(){
+  if(!('Notification' in window)||Notification.permission!=='granted'){toast('Enable notifications first');return;}
+  fireNudgeInterval();toast('Test nudge sent! 🔔');
+}
+const NUDGE_MSGS_PENDING=[
+  {t:'Psst, Pooja… 👀',b:"Your to-do list is giving you the look. A little love goes a long way!"},
+  {t:'Hey superwoman! 🦸\u200d♀️',b:"A few things are still waiting on you — you've totally got this!"},
+  {t:'Quick check-in 💅',b:"Some tasks are like 'Pooja? Helloooo?' 😄 Go show 'em who's boss!"},
+  {t:'Not to be that friend… 😂',b:"But your list misses you. Just a few things left — you'll feel SO good after!"},
+  {t:'Your list is calling 📲',b:"It's giving 'please notice me' energy 😄 Hop in and clear a few!"},
+];
+const NUDGE_MSGS_OVERDUE=[
+  {t:'Okay okay okay, Pooja! 😅',b:"Some things are getting a liiittle overdue. You've got this! 💪"},
+  {t:'Girl, your tasks are drama 🎭',b:"They've been waiting. Go be the legend you are!"},
+  {t:'Pooja! The tasks texted. 😂',b:"They said 'still here bestie' — handle it like the queen you are 👑"},
+];
+const NUDGE_MSGS_CLEAR=[
+  {t:'You cleared it ALL, Pooja!! 🎉',b:'Zero pending. Zero drama. Just you, thriving 💖'},
+  {t:'Empty list = full heart 💗',b:"Nothing pending! You're an absolute force. Go enjoy your day!"},
+];
+function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function fireNudgeInterval(){
+  if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
+  const total=getTotalOpen();
+  const overdue=(state.tasks||[]).filter(isOverdue).length;
+  let msg;
+  if(total===0)msg=pickRandom(NUDGE_MSGS_CLEAR);
+  else if(overdue>0)msg=pickRandom(NUDGE_MSGS_OVERDUE);
+  else msg=pickRandom(NUDGE_MSGS_PENDING);
+  new Notification(msg.t,{body:msg.b,icon:NOTIF_ICON,tag:'poojas-hq-interval',renotify:true});
+}
 function go(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
@@ -799,23 +859,85 @@ function stopRecording(){isRecording=false;micBtn.classList.remove('recording');
 function addManual(){const input=document.getElementById('manualInput');const text=input.value.trim();if(!text)return;input.value='';parseAndCreateTask(text);}
 
 function parseAndCreateTask(text){
-  aiStatus.textContent='✨ organizing…';
+  aiStatus.textContent='✨ figuring out where this goes…';
+  // Try AI routing first, fall back to task if it fails
+  smartRoute(text).catch(()=>addAsTask(text));
+}
+
+async function smartRoute(text){
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:300,
+      system:`Classify this input into one of: date, task, grocery, note.
+Return ONLY JSON, no markdown.
+- date: any event/birthday/anniversary/dinner/party/plan WITH a date
+- task: something to do, call, reminder
+- grocery: food/shopping items
+- note: general info
+
+For date: {"type":"date","dateType":"birthday|anniversary|party|dinner|weekend|other","name":"event name","date":"YYYY-MM-DD or null","time":"HH:MM or null","who":"person or null"}
+For task: {"type":"task","title":"title","priority":"high|medium|low","dueHint":"today|tomorrow|this week|none"}
+For grocery: {"type":"grocery","items":["item1"]}
+For note: {"type":"note","text":"text","section":"office|personal|home"}
+
+Today is ${new Date().toISOString().slice(0,10)}. Year is ${new Date().getFullYear()}.`,
+      messages:[{role:'user',content:text}]
+    })
+  });
+  if(!resp.ok)throw new Error('api');
+  const data=await resp.json();
+  const raw=data.content&&data.content[0]&&data.content[0].text;
+  if(!raw)throw new Error('empty');
+  const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+  if(p.type==='date'){
+    if(!state.dates)state.dates=[];
+    const d={id:Date.now(),type:p.dateType||'other',name:p.name||text,date:p.date||new Date().toISOString().slice(0,10),time:p.time||null,location:null,who:p.who||'',notify:3,calendarAdded:false};
+    state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveState();renderDates();checkUpcomingDates();
+    aiStatus.textContent='📅 Added to Dates!';
+    toast('📅 Saved to Dates — check your Dates tab!');
+    setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},3000);
+  }else if(p.type==='grocery'){
+    if(!state.notes)state.notes=[];
+    (p.items||[text]).forEach(item=>{
+      state.notes.unshift({id:Date.now()+Math.random(),text:item.trim(),section:'personal',createdAt:Date.now()});
+    });
+    saveState();renderNotes();
+    aiStatus.textContent='🛒 Added to Grocery!';
+    toast('🛒 Added to Personal Grocery!');
+    setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},2000);
+  }else if(p.type==='note'){
+    if(!state.notes)state.notes=[];
+    const section=['office','personal','home'].includes(p.section)?p.section:'personal';
+    state.notes.unshift({id:Date.now(),text:p.text||text,section,createdAt:Date.now()});
+    saveState();renderNotes();
+    aiStatus.textContent='📝 Added to '+section+' Notes!';
+    toast('📝 Added to '+section.charAt(0).toUpperCase()+section.slice(1)+' Notes!');
+    setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},2000);
+  }else{
+    addAsTask(text);
+  }
+}
+
+function addAsTask(text){
   const lower=text.toLowerCase();
   let priority='medium';
   if(/\b(urgent|asap|critical|right now|emergency)\b/.test(lower))priority='high';
-  else if(/\b(sometime|eventually|whenever|low priority|no rush|someday)\b/.test(lower))priority='low';
   else if(/\b(important|need to|must|have to|deadline|today)\b/.test(lower))priority='high';
+  else if(/\b(sometime|eventually|whenever|low priority|no rush)\b/.test(lower))priority='low';
   let dueHint='none';
   if(/\btoday\b/.test(lower))dueHint='today';
   else if(/\btomorrow\b/.test(lower))dueHint='tomorrow';
   else if(/\bthis week\b/.test(lower))dueHint='this week';
-  else if(/\bnext week\b/.test(lower))dueHint='next week';
   let title=text.split(/[.!?]/)[0].trim();
   if(title.length>60){title=title.slice(0,60);const ls=title.lastIndexOf(' ');if(ls>30)title=title.slice(0,ls);title+='…';}
   title=title.charAt(0).toUpperCase()+title.slice(1);
-  const rest=text.slice(title.replace('…','').length).trim();
-  state.tasks.unshift({id:Date.now(),title,details:rest.length>3?rest:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
-  saveState();aiStatus.textContent='✓ added to Today';toast('Added — tap TODAY to act on it');
+  state.tasks.unshift({id:Date.now(),title,details:'',priority,dueHint,done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
+  saveState();aiStatus.textContent='✓ Added to Tasks!';toast('✅ Added to Tasks!');
   setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},1800);
 }
 
@@ -882,7 +1004,7 @@ function renderToday(){
   const doneWrap=document.getElementById('doneTodayWrap');
   if(doneToday.length>0){
     doneWrap.style.display='block';
-    document.getElementById('doneTodayLabel').textContent=`✨ ${doneToday.length} done today — good job!`;
+    document.getElementById('doneTodayLabel').textContent=`✅ ${doneToday.length} Closed Today — good job!`;
     document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
   }else{doneWrap.style.display='none';}
   const homeOpenEl=document.getElementById('homeOpenCount');if(homeOpenEl)homeOpenEl.textContent=totalOpen>0?`${totalOpen} open · act now`:'nothing pending ✨';
@@ -911,7 +1033,7 @@ function dayClosingLine(n){if(n>=5)return"You're a force of nature, Pooja.";if(n
 function setTaskStatus(id,status){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   t.status=status;
-  if(status==='done'){t.done=true;t.completedAt=Date.now();confettiBurst();toast('Awesome job! ✨');}
+  if(status==='done'){t.done=true;t.completedAt=Date.now();confettiBurst();toast('Awesome job! ✨');setTimeout(()=>{const dw=document.getElementById('doneTodayWrap');if(dw)dw.style.display='block';const dl=document.getElementById('doneTodayList');if(dl)dl.classList.add('open');const dt=document.getElementById('doneTodayToggle');if(dt)dt.classList.add('open');},300);}
   else{t.done=false;t.completedAt=null;}
   saveState();renderToday();
 }
@@ -988,8 +1110,7 @@ const DATE_TYPE_EMOJI={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'�
 async function saveDate(){
   const type=document.getElementById('dType').value;
   const d={
-    id:Date.now(),
-    type,
+    id:Date.now(),type,
     name:document.getElementById('dName').value.trim(),
     date:document.getElementById('dDate').value,
     time:document.getElementById('dTime').value||null,
@@ -999,15 +1120,35 @@ async function saveDate(){
     calendarAdded:false
   };
   if(!d.name||!d.date){toast('Name and date please');return;}
-  const addToCalendar=document.getElementById('dAddCalendar').checked;
   state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));saveState();
   ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   toggleDateForm();renderDates();
-  if(addToCalendar){
-    await addDateToCalendar(d);
-  } else {
-    toast('Saved ✨');
-  }
+  addDateToCalendarICS(d);
+}
+function addDateToCalendarICS(d){
+  const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[d.type]||'📅';
+  const title=emoji+' '+d.name+(d.who?' ('+d.who+')':'');
+  const isRecurring=['birthday','anniversary'].includes(d.type);
+  const parts=d.date.split('-');const yr=parts[0],mo=parts[1],day=parts[2];
+  let lines=['BEGIN:VCALENDAR','VERSION:2.0','CALSCALE:GREGORIAN','PRODID:-//PoojaHQ//EN','BEGIN:VEVENT','UID:'+d.id+'@poojas-hq','SUMMARY:'+title];
+  if(!d.time){lines.push('DTSTART;VALUE=DATE:'+yr+mo+day);lines.push('DTEND;VALUE=DATE:'+yr+mo+day);}
+  else{const tp=d.time.split(':');const hh=tp[0],mm=tp[1];const endHH=String((parseInt(hh)+2)%24).padStart(2,'0');lines.push('DTSTART:'+yr+mo+day+'T'+hh+mm+'00');lines.push('DTEND:'+yr+mo+day+'T'+endHH+mm+'00');}
+  if(d.location)lines.push('LOCATION:'+d.location);
+  if(d.who)lines.push('DESCRIPTION:For '+d.who);
+  if(isRecurring)lines.push('RRULE:FREQ=YEARLY');
+  lines.push('BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY','DESCRIPTION:2 days until: '+title,'END:VALARM');
+  lines.push('BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:Tomorrow: '+title,'END:VALARM');
+  lines.push('BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY','DESCRIPTION:Today: '+title+'!','END:VALARM');
+  lines.push('END:VEVENT','END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=d.name.replace(/[^a-z0-9]/gi,'_')+'.ics';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+  const idx=state.dates.findIndex(x=>x.id===d.id);
+  if(idx>=0)state.dates[idx].calendarAdded=true;
+  saveState();renderDates();
+  toast('📅 Tap the downloaded file to add to iPhone Calendar!');
 }
 async function addDateToCalendar(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
@@ -1259,16 +1400,16 @@ function fireNudge(type){
   const overdue=(state.tasks||[]).filter(isOverdue).length;
   let title,body;
   if(type==='morning'){
-    if(total===0){title="Good morning, Pooja! ☀️";body="You're all clear — enjoy your day!";}
-    else if(overdue>0){title="Good morning, Pooja! ☀️";body=`${overdue} overdue + ${total} total open. Let's tackle them! 💪`;}
-    else{title="Good morning, Pooja! ☀️";body=`${total} item${total>1?'s':''} waiting today. You've got this!`;}
+    if(total===0){title="Rise & shine, Pooja! ☀️";body="Nothing pending — today is yours! 🌟";}
+    else if(overdue>0){title="Good morning queen! ☀️👑";body=`${overdue} thing${overdue>1?'s':''} got impatient overnight 😄 You'll crush it!`;}
+    else{title="Morning, Pooja! 🌸";body=`${total} thing${total>1?'s':''} on your list. Sip your chai and go get it! ☕✨`;}
   }else if(type==='midday'){
-    if(total===0){title="Midday check-in 🌸";body="Inbox zero! You're unstoppable, Pooja.";}
-    else if(overdue>0){title="Midday check-in ⚠️";body=`${overdue} overdue — quick, you can knock these out!`;}
-    else{title="Midday check-in 🌸";body=`${total} still open. How's your afternoon looking?`;}
+    if(total===0){title="Midday — all clear! 🎉";body="Nothing pending! You're unstoppable, Pooja 💖";}
+    else if(overdue>0){title="Lunchtime nudge! 🍽️";body=`${overdue} item${overdue>1?'s are':' is'} waiting too long. Quick power move! 💪`;}
+    else{title="Hey Pooja, it's midday! 🌺";body=`${total} open — afternoon you is about to crush them 😄`;}
   }else{
-    if(total===0){title="Evening wrap-up ✨";body="Everything done today! Amazing, Pooja. 🎉";}
-    else{title="Evening wrap-up 🌙";body=`${total} item${total>1?'s':''} still open. You need to finish up! 💪`;}
+    if(total===0){title="Evening wrap-up — you did it! 🎊";body="All done! Seriously Pooja, take a bow 👏";}
+    else{title="Evening check-in 🌙✨";body=`${total} thing${total>1?'s':''} still hanging. Future-you will be grateful 😊`;}
   }
   new Notification(title,{body,icon:NOTIF_ICON,tag:'poojas-hq-'+type,renotify:true});
 }
@@ -1733,7 +1874,7 @@ function render(){
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);const doneToday=state.tasks.filter(isDoneToday);
   updateHomeCard(totalOpen,overdue.length,doneToday.length);
   if(!state.notificationsEnabled&&'Notification' in window&&Notification.permission!=='granted'){document.getElementById('notifPrompt').style.display='block';}
-  if(state.notificationsEnabled)scheduleDailyNudges();
+  if(state.notificationsEnabled){document.getElementById('notifTestWrap').style.display='block';scheduleDailyNudges();}
 }
 loadState();maybeShowInstallBanner();
 setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
