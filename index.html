@@ -833,52 +833,70 @@ const transcriptEl=document.getElementById('transcript');
 const aiStatus=document.getElementById('aiStatus');
 let recognition=null,isRecording=false,finalTranscript='',interimTranscript='';
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){
-  recognition=new SR();
-  recognition.continuous=true;
-  recognition.interimResults=true;
-  recognition.lang='en-US';
-  recognition.onresult=(e)=>{
-    let interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t=e.results[i][0].transcript;
-      if(e.results[i].isFinal)finalTranscript+=t+' ';
-      else interim+=t;
-    }
-    interimTranscript=interim;
-    transcriptEl.textContent=(finalTranscript+interim).trim();
-  };
-  recognition.onerror=(e)=>{
-    micLabel.textContent=e.error==='not-allowed'?'Allow mic in Settings':'try again';
-    isRecording=false;micBtn.classList.remove('recording');
-  };
-  recognition.onend=()=>{if(isRecording){try{recognition.start();}catch(e){}}};
-}else{
-  micLabel.textContent='type below — voice not supported';
-}
+if(!SR){micLabel.textContent='type below ↓';}
+
 function handleMicClick(){
-  if(!SR){toast('Type your note below');return;}
-  if(isRecording)stopRecording();else startRecording();
-}
-function startRecording(){
-  finalTranscript='';interimTranscript='';
-  transcriptEl.textContent='';aiStatus.textContent='';
-  isRecording=true;
-  micBtn.classList.add('recording');
-  micLabel.textContent='🔴 listening… tap to stop';
-  try{recognition.start();}catch(e){
-    try{recognition.stop();setTimeout(()=>recognition.start(),300);}catch(e2){}
+  if(!SR){toast('Voice not supported — please type below');return;}
+  if(isRecording){
+    // STOP
+    isRecording=false;
+    micBtn.classList.remove('recording');
+    micLabel.textContent='tap to speak';
+    try{recognition.abort();}catch(e){}
+    const text=(finalTranscript+interimTranscript).trim();
+    if(!text){aiStatus.textContent='nothing heard — try again';return;}
+    transcriptEl.textContent=text;
+    smartCapture(text);
+  }else{
+    // START — create fresh each time for Safari reliability
+    try{
+      recognition=new SR();
+      recognition.continuous=false;
+      recognition.interimResults=true;
+      recognition.lang='en-US';
+      recognition.onstart=()=>{
+        isRecording=true;
+        micBtn.classList.add('recording');
+        micLabel.textContent='🔴 listening… tap to stop';
+      };
+      recognition.onresult=(e)=>{
+        let fin='',interim='';
+        for(let i=0;i<e.results.length;i++){
+          if(e.results[i].isFinal)fin+=e.results[i][0].transcript+' ';
+          else interim+=e.results[i][0].transcript;
+        }
+        finalTranscript=fin;
+        interimTranscript=interim;
+        transcriptEl.textContent=(fin+interim).trim();
+      };
+      recognition.onend=()=>{
+        if(isRecording){
+          // auto-stopped by Safari — submit what we have
+          isRecording=false;
+          micBtn.classList.remove('recording');
+          micLabel.textContent='tap to speak';
+          const text=(finalTranscript+interimTranscript).trim();
+          if(text){transcriptEl.textContent=text;smartCapture(text);}
+          else{aiStatus.textContent='nothing heard — try again';}
+        }
+      };
+      recognition.onerror=(e)=>{
+        isRecording=false;
+        micBtn.classList.remove('recording');
+        if(e.error==='not-allowed'){
+          micLabel.textContent='allow mic in Settings';
+          toast('Please allow microphone in iPhone Settings → Safari');
+        }else{
+          micLabel.textContent='tap to speak';
+        }
+      };
+      finalTranscript='';interimTranscript='';
+      transcriptEl.textContent='';aiStatus.textContent='';
+      recognition.start();
+    }catch(e){
+      toast('Mic error — please type below');
+    }
   }
-}
-function stopRecording(){
-  isRecording=false;
-  micBtn.classList.remove('recording');
-  micLabel.textContent='tap to speak';
-  try{recognition.stop();}catch(e){}
-  const text=(finalTranscript+interimTranscript).trim();
-  if(!text){aiStatus.textContent='nothing heard — try again';return;}
-  transcriptEl.textContent=text;
-  smartCapture(text);
 }
 function addManual(){
   const input=document.getElementById('manualInput');
@@ -1318,7 +1336,6 @@ function checkUpcomingDates(){
   const banner=document.getElementById('upcomingBanner');
   const now=new Date();now.setHours(0,0,0,0);
 
-  // Find all dates within 2 days or today, sorted by urgency
   const urgent=state.dates.filter(d=>{
     const dt=new Date(d.date+'T00:00:00');
     const diff=Math.round((dt-now)/86400000);
@@ -1327,24 +1344,23 @@ function checkUpcomingDates(){
 
   if(!urgent.length){banner.classList.remove('show','urgent','today-event');return;}
 
-  const d=urgent[0]; // most urgent first
+  const d=urgent[0];
   const dt=new Date(d.date+'T00:00:00');
   const diff=Math.round((dt-now)/86400000);
   const emoji=DATE_TYPE_EMOJI[d.type]||'💝';
 
-  // Title
   let title='',countText='',urgencyClass='';
   if(diff===0){
-    title=`${emoji} Today — ${d.name}${d.who?' for '+d.who:''}!`;
-    countText='Right now! Don\'t forget to send your wishes 💌';
+    title=`${emoji} TODAY — ${d.name}${d.who?' for '+d.who:''}! 🎉`;
+    countText='It\'s the day! Don\'t forget to send your wishes 💌';
     urgencyClass='today-event';
   }else if(diff===1){
     title=`${emoji} Tomorrow — ${d.name}${d.who?' for '+d.who:''}`;
     countText='Send a message today so it\'s ready! 💕';
     urgencyClass='urgent';
-  }else{
+  }else if(diff===2){
     title=`${emoji} In 2 days — ${d.name}${d.who?' for '+d.who:''}`;
-    countText='Coming up soon — plan ahead ✨';
+    countText='Coming up soon — start planning ahead ✨';
     urgencyClass='';
   }
   if(urgent.length>1)countText+=` · +${urgent.length-1} more coming up`;
@@ -1353,7 +1369,6 @@ function checkUpcomingDates(){
   document.getElementById('upcomingText').textContent=countText;
   banner.className='upcoming-banner show'+(urgencyClass?' '+urgencyClass:'');
 
-  // Action button — only for personal events (birthday, anniversary, etc.)
   const isSendable=['birthday','anniversary','other'].includes(d.type);
   const isSocial=['party','dinner','weekend'].includes(d.type);
   const actionsEl=document.getElementById('upcomingActions');
@@ -1878,7 +1893,7 @@ function renderPQN(){
 const GROCERY_KEYWORDS=/\b(groceries?|grocery|groc|costco|walmart|wholefoods|whole foods|safeway|trader joe|kroger|aldi|meal|meals|dinner|lunch|breakfast|snack|food|foods|drinks?|beverages?|milk|eggs?|bread|butter|cheese|meat|chicken|beef|pork|fish|fruits?|veggies?|vegetables?|produce|pantry|amazon fresh|amazon|target|cvs|walgreens|pharmacy|shampoo|soap|toothpaste|cleaning|laundry|detergent|paper towels?|toilet paper|diapers?|cocktail|cocktails?|wine|beer|alcohol|vodka|juice|coffee|tea|snacks?|chips|pasta|rice|cereal|yogurt|ice cream|frozen|canned)\b/i;
 
 let activeNotesTab='office';
-let noteMicRecognitions={};let noteMicRecording={};let noteMicTranscripts={};
+let noteMicRecognitions={};let noteMicRecording={};let noteMicTranscripts={};let noteMicInterim={};
 
 function switchNotesTab(tab){
   activeNotesTab=tab;
@@ -1942,52 +1957,72 @@ function renderNotes(){
 }
 
 function toggleNoteMic(section){
-  if(!SR){toast('Voice not supported — try Safari');return;}
-  if(noteMicRecording[section]){stopNoteMic(section);return;}
-  if(!noteMicRecognitions[section]){
-    const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';
-    r.onresult=e=>{
-      let interim='';
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        const t=e.results[i][0].transcript;
-        if(e.results[i].isFinal)noteMicTranscripts[section]=(noteMicTranscripts[section]||'')+t+' ';
-        else interim+=t;
+  if(!SR){toast('Voice not supported — type below');return;}
+  if(noteMicRecording[section]){
+    // STOP
+    noteMicRecording[section]=false;
+    const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+    if(btn)btn.classList.remove('recording');
+    try{noteMicRecognitions[section]&&noteMicRecognitions[section].abort();}catch(e){}
+    const interim=(noteMicInterim&&noteMicInterim[section])||'';
+    const text=((noteMicTranscripts[section]||'')+interim).trim();
+    const statusEl=document.getElementById('noteMicStatus-'+section);
+    if(!text){if(statusEl)statusEl.textContent='';return;}
+    const input=document.getElementById('noteInput-'+section);
+    if(input)input.value=text;
+    if(statusEl)statusEl.textContent='✓ ready — tap Add';
+    return;
+  }
+  // START — fresh recognition each time
+  try{
+    const r=new SR();
+    r.continuous=false;
+    r.interimResults=true;
+    r.lang='en-US';
+    if(!noteMicInterim)noteMicInterim={};
+    noteMicTranscripts[section]='';
+    noteMicInterim[section]='';
+    r.onstart=()=>{
+      noteMicRecording[section]=true;
+      const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+      if(btn)btn.classList.add('recording');
+      const statusEl=document.getElementById('noteMicStatus-'+section);
+      if(statusEl)statusEl.textContent='🔴 listening…';
+    };
+    r.onresult=(e)=>{
+      let fin='',interim='';
+      for(let i=0;i<e.results.length;i++){
+        if(e.results[i].isFinal)fin+=e.results[i][0].transcript+' ';
+        else interim+=e.results[i][0].transcript;
       }
-      if(!noteMicInterim)noteMicInterim={};
+      noteMicTranscripts[section]=fin;
       noteMicInterim[section]=interim;
       const statusEl=document.getElementById('noteMicStatus-'+section);
-      if(statusEl)statusEl.textContent=(noteMicTranscripts[section]||'')+interim;
+      if(statusEl)statusEl.textContent=(fin+interim).trim();
     };
-    r.onerror=()=>stopNoteMic(section);
-    r.onend=()=>{if(noteMicRecording[section]){try{r.start();}catch(e){}}};
+    r.onend=()=>{
+      if(noteMicRecording[section]){
+        noteMicRecording[section]=false;
+        const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+        if(btn)btn.classList.remove('recording');
+        const interim=(noteMicInterim&&noteMicInterim[section])||'';
+        const text=((noteMicTranscripts[section]||'')+interim).trim();
+        const statusEl=document.getElementById('noteMicStatus-'+section);
+        if(!text){if(statusEl)statusEl.textContent='';return;}
+        const input=document.getElementById('noteInput-'+section);
+        if(input)input.value=text;
+        if(statusEl)statusEl.textContent='✓ ready — tap Add';
+      }
+    };
+    r.onerror=(e)=>{
+      noteMicRecording[section]=false;
+      const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
+      if(btn)btn.classList.remove('recording');
+      if(e.error==='not-allowed')toast('Allow mic in iPhone Settings → Safari');
+    };
     noteMicRecognitions[section]=r;
-  }
-  noteMicTranscripts[section]='';
-  if(!noteMicInterim)noteMicInterim={};
-  noteMicInterim[section]='';
-  const statusEl=document.getElementById('noteMicStatus-'+section);
-  if(statusEl)statusEl.textContent='🎤 listening…';
-  noteMicRecording[section]=true;
-  const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
-  if(btn)btn.classList.add('recording');
-  try{noteMicRecognitions[section].start();}catch(e){}
-}
-
-function stopNoteMic(section){
-  noteMicRecording[section]=false;
-  const btn=document.getElementById('noteMic'+section.charAt(0).toUpperCase()+section.slice(1));
-  if(btn)btn.classList.remove('recording');
-  try{noteMicRecognitions[section]&&noteMicRecognitions[section].stop();}catch(e){}
-  const interim=(noteMicInterim&&noteMicInterim[section])||'';
-  const text=((noteMicTranscripts[section]||'')+interim).trim();
-  const statusEl=document.getElementById('noteMicStatus-'+section);
-  if(!text){if(statusEl)statusEl.textContent='';return;}
-  const input=document.getElementById('noteInput-'+section);
-  if(input)input.value=text;
-  if(statusEl)statusEl.textContent='✓ ready — tap Add';
-  if(GROCERY_KEYWORDS.test(text)&&section!=='personal'){
-    if(statusEl)statusEl.textContent='🛒 grocery detected — tap Add to route to Personal';
-  }
+    r.start();
+  }catch(e){toast('Mic error — type instead');}
 }
 // ============ END NOTES ============
 
