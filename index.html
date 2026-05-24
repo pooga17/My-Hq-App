@@ -878,15 +878,20 @@ async function smartRoute(text){
       max_tokens:300,
       system:`Classify this input into one of: date, task, grocery, note.
 Return ONLY JSON, no markdown.
-- date: any event/birthday/anniversary/dinner/party/plan WITH a date OR person's name + day (e.g. 'Pooja tomorrow', 'dinner with Priya Friday')
+- date: any event/birthday/anniversary/dinner/party/plan WITH a date OR person's name + day
 - task: something to do, call, reminder
-- grocery: food/shopping items
+- grocery: food/shopping items to buy
 - note: general info
+
+SECTION RULES:
+- "office" ONLY if the word "office" is explicitly mentioned
+- "home" if mentions house, home repair, appliance, fixing something at home
+- "personal" for EVERYTHING else — this is the default
 
 For date: {"type":"date","dateType":"birthday|anniversary|party|dinner|weekend|other","name":"event name","date":"YYYY-MM-DD or null","time":"HH:MM or null","who":"person or null"}
 For task: {"type":"task","title":"title","priority":"high|medium|low","dueHint":"today|tomorrow|this week|none"}
 For grocery: {"type":"grocery","items":["item1"]}
-For note: {"type":"note","text":"text","section":"office|personal|home"}
+For note: {"type":"note","text":"text","section":"personal|office|home"}
 
 Today is ${new Date().toISOString().slice(0,10)}. Year is ${new Date().getFullYear()}.`,
       messages:[{role:'user',content:text}]
@@ -917,7 +922,8 @@ Today is ${new Date().toISOString().slice(0,10)}. Year is ${new Date().getFullYe
     setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},2000);
   }else if(p.type==='note'){
     if(!state.notes)state.notes=[];
-    const section=['office','personal','home'].includes(p.section)?p.section:'personal';
+    // Default to personal unless clearly office
+const section=(p.section==='office'||p.section==='home')?p.section:'personal';
     state.notes.unshift({id:Date.now(),text:p.text||text,section,createdAt:Date.now()});
     saveState();renderNotes();
     aiStatus.textContent='📝 Added to '+section+' Notes!';
@@ -1459,23 +1465,21 @@ function scheduleDailyNudges(){
   if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
   saveNudgeDataToIDB();
   if(window._nudgeInterval)clearInterval(window._nudgeInterval);
-  window._nudgeInterval=setInterval(()=>{
+  function checkAndFire(){
     if(!state.notificationsEnabled)return;
     saveNudgeDataToIDB();
-    const now=new Date();const h=now.getHours();const m=now.getMinutes();
+    const now=new Date();
+    const h=now.getHours();
+    const m=now.getMinutes();
     const key='nudge-'+now.toDateString();
-    let fired={};try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
-    if(h===8&&m===0&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
-    if(h===13&&m===0&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
-    if(h===20&&m===0&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
-  },60000);
-  // Fire immediately if within the window and not yet fired today
-  const now=new Date();const h=now.getHours();const m=now.getMinutes();
-  const key='nudge-'+now.toDateString();
-  let fired={};try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
-  if(h===8&&m<5&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
-  if(h===13&&m<5&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
-  if(h===20&&m<5&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
+    let fired={};
+    try{fired=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
+    if(h===8&&m<=30&&!fired.morning){fired.morning=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('morning');}
+    if(h===13&&m<=30&&!fired.midday){fired.midday=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('midday');}
+    if(h===20&&m<=30&&!fired.evening){fired.evening=true;localStorage.setItem(key,JSON.stringify(fired));fireNudge('evening');}
+  }
+  checkAndFire();
+  window._nudgeInterval=setInterval(checkAndFire,30000);
 }
 
 // Refresh IDB data hourly so SW always has fresh counts
@@ -1717,10 +1721,10 @@ function renderTodayNotes(){
   const wrap=document.getElementById('todayNotesWrap');if(!wrap)return;
   if(!state.notes)state.notes=[];
   const groups=[
-    {key:'office',label:'💼 Office',cls:'tng-office',items:state.notes.filter(n=>n.section==='office')},
-    {key:'personal',label:'🌸 Personal',cls:'tng-personal',items:state.notes.filter(n=>n.section==='personal')},
-    {key:'grocery',label:'🛒 Grocery',cls:'tng-grocery',items:state.notes.filter(n=>n.section==='grocery')},
-    {key:'home',label:'🏡 Home',cls:'tng-home',items:state.notes.filter(n=>n.section==='home')},
+    {key:'office',label:'💼 Office',cls:'tng-office',items:state.notes.filter(n=>n.section==='office'&&!n.checkedInToday&&!n.done)},
+    {key:'personal',label:'🌸 Personal',cls:'tng-personal',items:state.notes.filter(n=>n.section==='personal'&&!n.checkedInToday&&!n.done)},
+    {key:'grocery',label:'🛒 Grocery',cls:'tng-grocery',items:state.notes.filter(n=>n.section==='grocery'&&!n.checkedInToday&&!n.done)},
+    {key:'home',label:'🏡 Home',cls:'tng-home',items:state.notes.filter(n=>n.section==='home'&&!n.checkedInToday&&!n.done)},
   ];
   const pn=state.partyNotes||{groc:[],cook:[]};
   const partyItems=[...(pn.groc||[]).map(i=>({...i,_bucket:'groc'})),...(pn.cook||[]).map(i=>({...i,_bucket:'cook'}))];
