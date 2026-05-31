@@ -309,6 +309,8 @@
   .tn-text{flex:1;font-size:13px;color:#1A1215;font-weight:600;line-height:1.4;}
   .tn-text.done{text-decoration:line-through;color:#5A4A50;}
   .tn-task-btn{background:none;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:999px;padding:3px 9px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;flex-shrink:0;letter-spacing:.04em;white-space:nowrap;}
+  .tn-done-hint{font-size:10px;font-weight:700;color:var(--green-deep);letter-spacing:.04em;cursor:pointer;flex-shrink:0;border:1px solid var(--green-deep);border-radius:999px;padding:3px 9px;white-space:nowrap;}
+  .tn-done-hint:active{background:var(--green-deep);color:#fff;}
   .tn-task-btn:active{background:var(--pink-deep);color:#fff;}
   /* ── PARTY QUICK NOTES ── */
   .pqn-wrap{background:linear-gradient(135deg,#FFF8F0,#F0F4FF);border:2px solid var(--pink);border-radius:20px;padding:14px 16px;margin-bottom:18px;}
@@ -978,7 +980,9 @@ function renderToday(){
   const todayTasks=state.tasks.filter(isToday).sort((a,b)=>a.createdAt-b.createdAt);
   const week=state.tasks.filter(isThisWeek).sort((a,b)=>{const p={high:0,medium:1,low:2};return p[a.priority]-p[b.priority]||a.createdAt-b.createdAt;});
   const doneToday=state.tasks.filter(isDoneToday).sort((a,b)=>b.completedAt-a.completedAt);
-  const doneWeek=state.tasks.filter(isDoneThisWeek);
+  const doneWeekTasks=state.tasks.filter(isDoneThisWeek);
+  const doneWeekNotes=(state.notes||[]).filter(n=>n.done&&isDoneThisWeek(n));
+  const doneWeek=[...doneWeekTasks,...doneWeekNotes];
   const pendingNotes=(state.notes||[]).filter(n=>!n.checkedInToday&&!n.done).length;
   const pn=state.partyNotes||{groc:[],cook:[]};
   const pendingParty=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
@@ -1016,6 +1020,8 @@ function renderToday(){
   const doneWrap=document.getElementById('doneTodayWrap');
   if(doneToday.length>0){
     doneWrap.style.display='block';
+    document.getElementById('doneTodayToggle').classList.add('open');
+    document.getElementById('doneTodayList').classList.add('open');
     document.getElementById('doneTodayLabel').textContent=`✅ ${doneToday.length} Closed Today — good job!`;
     document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
   }else{doneWrap.style.display='none';}
@@ -1413,7 +1419,7 @@ function saveNudgeDataToIDB(){
   req.onsuccess=ev=>{
     const db=ev.target.result;
     const tx=db.transaction('kv','readwrite');
-    tx.objectStore('kv').put({total,overdue},'nudge-data');
+    tx.objectStore('kv').put({total,overdue,notifEnabled:!!state.notificationsEnabled},'nudge-data');
   };
 }
 
@@ -1703,7 +1709,8 @@ function promoteNoteToTask(noteId){
   const note=state.notes.find(n=>n.id===noteId);if(!note)return;
   const title=note.text.length>60?note.text.slice(0,60)+'…':note.text;
   state.tasks.unshift({id:Date.now(),title,details:'',priority:'medium',dueHint:'none',done:false,status:'open',createdAt:Date.now(),completedAt:null,snoozeUntil:null});
-  saveState();renderToday();toast('Added to tasks ✨');
+  state.notes=state.notes.filter(n=>n.id!==noteId);
+  saveState();renderToday();toast('Moved to tasks ✨');
 }
 function promotePQNToTask(bucket,itemId){
   if(!state.partyNotes)return;
@@ -1739,7 +1746,7 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v2</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v6</span></h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
     g.items.forEach(item=>{
@@ -1747,7 +1754,7 @@ function renderTodayNotes(){
       if(g.isParty){
         html+=`<div class="today-note-row${checked?' checked':''}"><div class="tn-check${checked?' done':''}" onclick="togglePQNItem('${item._bucket}',${item.id})">${checked?'✓':''}</div><span class="tn-text${checked?' done':''}">${escapeHtml(item.text)}</span><button class="tn-task-btn" onclick="promotePQNToTask('${item._bucket}',${item.id})">→ Task</button></div>`;
       }else{
-        html+=`<div class="today-note-row${checked?' checked':''}"><div class="tn-check${checked?' done':''}" onclick="toggleTodayNote(${item.id})">${checked?'✓':''}</div><span class="tn-text${checked?' done':''}">${escapeHtml(item.text)}</span><button class="tn-task-btn" onclick="promoteNoteToTask(${item.id})">→ Task</button></div>`;
+        html+=`<div class="today-note-row${checked?' checked':''}"><div class="tn-check${checked?' done':''}" onclick="toggleTodayNote(${item.id})">${checked?'✓':''}</div><span class="tn-text${checked?' done':''}">${escapeHtml(item.text)}</span><span class="tn-done-hint" onclick="toggleTodayNote(${item.id})">Done</span><button class="tn-task-btn" onclick="promoteNoteToTask(${item.id})">→ To-Do</button></div>`;
       }
     });
     html+='</div>';
