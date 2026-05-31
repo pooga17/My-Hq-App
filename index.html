@@ -1031,15 +1031,15 @@ function renderToday(){
     document.getElementById('doneTodayLabel').textContent=`✅ ${doneToday.length} Closed Today — good job!`;
     document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
   }else{doneWrap.style.display='none';}
-  // Closed history — everything closed in the last 7 days except today
+  // Closed history — everything closed in the last 7 days (matches the "Done this wk" count)
   const weekHistory=[
-    ...state.tasks.filter(t=>t.done&&t.completedAt&&!isDoneToday(t)&&ageInDays(t.completedAt)<7).map(t=>({id:t.id,title:t.title,completedAt:t.completedAt,kind:'task'})),
-    ...(state.notes||[]).filter(n=>n.done&&n.completedAt&&!isDoneToday(n)&&ageInDays(n.completedAt)<7).map(n=>({id:n.id,title:n.text,completedAt:n.completedAt,kind:'note'}))
+    ...state.tasks.filter(t=>t.done&&t.completedAt&&ageInDays(t.completedAt)<7).map(t=>({id:t.id,title:t.title,completedAt:t.completedAt,kind:'task'})),
+    ...(state.notes||[]).filter(n=>n.done&&n.completedAt&&ageInDays(n.completedAt)<7).map(n=>({id:n.id,title:n.text,completedAt:n.completedAt,kind:'note'}))
   ].sort((a,b)=>b.completedAt-a.completedAt);
   const weekWrap=document.getElementById('doneWeekWrap');
   if(weekHistory.length>0){
     weekWrap.style.display='block';
-    document.getElementById('doneWeekLabel').textContent=`📁 ${weekHistory.length} closed earlier this week`;
+    document.getElementById('doneWeekLabel').textContent=`📁 ${weekHistory.length} done this week — tap to see`;
     document.getElementById('doneWeekList').innerHTML=weekHistory.map(it=>{
       const reopen=it.kind==='task'?`completeTask(${it.id},false)`:`toggleTodayNote(${it.id})`;
       const del=it.kind==='task'?`deleteTask(${it.id})`:`deleteNote(${it.id})`;
@@ -1769,7 +1769,7 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v7</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v8</span></h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
     g.items.forEach(item=>{
