@@ -456,6 +456,7 @@
       <div class="progress-label"><span>This week's progress</span><span id="progressPct">0%</span></div>
       <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     </div>
+    <div id="weekStats" style="text-align:center;font-size:11px;color:var(--muted);font-weight:700;margin-top:8px;letter-spacing:.03em;"></div>
     <div id="focusCardWrap"></div>
     <div id="taskGroups"></div>
     <div class="done-today-wrap" id="doneTodayWrap" style="display:none">
@@ -996,6 +997,8 @@ function renderToday(){
   document.getElementById('statOpen').textContent=totalOpen;
   document.getElementById('statOverdue').textContent=overdue.length;
   document.getElementById('statDoneWeek').textContent=doneWeek.length;
+  const createdWeek=[...state.tasks,...(state.notes||[])].filter(x=>x.createdAt&&ageInDays(x.createdAt)<7).length;
+  const ws=document.getElementById('weekStats');if(ws)ws.textContent=`📊 ${createdWeek} created · ${doneWeek.length} closed this week`;
   const pct=totalOpen+doneWeek.length>0?Math.round((doneWeek.length/(totalOpen+doneWeek.length))*100):0;
   document.getElementById('progressFill').style.width=pct+'%';document.getElementById('progressPct').textContent=pct+'%';
   const sub=document.getElementById('todaySubtitle');
@@ -1024,12 +1027,21 @@ function renderToday(){
   }
   groupsEl.innerHTML=html;attachSwipeHandlers();renderTodayNotes();
   const doneWrap=document.getElementById('doneTodayWrap');
-  if(doneToday.length>0){
+  const doneTodayAll=[
+    ...state.tasks.filter(isDoneToday).map(t=>({id:t.id,title:t.title,completedAt:t.completedAt,createdAt:t.createdAt,kind:'task'})),
+    ...(state.notes||[]).filter(n=>n.done&&isDoneToday(n)).map(n=>({id:n.id,title:n.text,completedAt:n.completedAt,createdAt:n.createdAt,kind:'note'}))
+  ].sort((a,b)=>b.completedAt-a.completedAt);
+  if(doneTodayAll.length>0){
     doneWrap.style.display='block';
     document.getElementById('doneTodayToggle').classList.add('open');
     document.getElementById('doneTodayList').classList.add('open');
-    document.getElementById('doneTodayLabel').textContent=`✅ ${doneToday.length} Closed Today — good job!`;
-    document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
+    document.getElementById('doneTodayLabel').textContent=`✅ ${doneTodayAll.length} Closed Today — good job!`;
+    document.getElementById('doneTodayList').innerHTML=doneTodayAll.map(it=>{
+      const reopen=it.kind==='task'?`completeTask(${it.id},false)`:`toggleTodayNote(${it.id})`;
+      const del=it.kind==='task'?`deleteTask(${it.id})`:`deleteNote(${it.id})`;
+      const dur=(it.completedAt&&it.createdAt)?`<span class="pill due">in ${humanDuration(it.completedAt-it.createdAt)}</span>`:'';
+      return `<div class="swipe-card done"><div class="check done" onclick="${reopen}"></div><div class="task-body"><div class="task-title">${escapeHtml(it.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(it.completedAt)}</span>${dur}</div></div><button class="task-del" onclick="${del}">×</button></div>`;
+    }).join('');
   }else{doneWrap.style.display='none';}
   // Closed history — everything closed in the last 7 days (matches the "Done this wk" count)
   const weekHistory=[
@@ -1048,9 +1060,9 @@ function renderToday(){
     }).join('');
   }else{weekWrap.style.display='none';}
   const homeOpenEl=document.getElementById('homeOpenCount');if(homeOpenEl)homeOpenEl.textContent=totalOpen>0?`${totalOpen} open · act now`:'nothing pending ✨';
-  updateHomeCard(totalOpen,overdue.length,doneToday.length);
+  updateHomeCard(totalOpen,overdue.length,doneTodayAll.length);
   const hr=new Date().getHours();const wrapEl=document.getElementById('wrapUpWrap');
-  if(hr>=18&&(doneToday.length>0||totalOpen>0)){wrapEl.innerHTML=`<div class="wrap-card"><h3>Wrap up your day</h3><p><b>${doneToday.length}</b> finished today${doneToday.length>=3?" — that's a great day":''}.</p>${totalOpen>0?`<p><b>${totalOpen}</b> rolls into tomorrow.</p>`:''}<div class="quote">${dayClosingLine(doneToday.length)}</div></div>`;}else{wrapEl.innerHTML='';}
+  if(hr>=18&&(doneTodayAll.length>0||totalOpen>0)){wrapEl.innerHTML=`<div class="wrap-card"><h3>Wrap up your day</h3><p><b>${doneTodayAll.length}</b> finished today${doneTodayAll.length>=3?" — that's a great day":''}.</p>${totalOpen>0?`<p><b>${totalOpen}</b> rolls into tomorrow.</p>`:''}<div class="quote">${dayClosingLine(doneTodayAll.length)}</div></div>`;}else{wrapEl.innerHTML='';}
 }
 
 function sectionHTML(title,cssClass,tasks){
@@ -1077,7 +1089,7 @@ function setTaskStatus(id,status){
     t.done=true;t.completedAt=Date.now();
     confettiBurst();toast('Closed! ✨');
   }else{t.done=false;t.completedAt=null;t.status=status;}
-  saveState();renderToday();updateHomeCard(getTotalOpen(),(state.tasks||[]).filter(isOverdue).length,state.tasks.filter(isDoneToday).length);
+  saveState();renderToday();updateHomeCard(getTotalOpen(),(state.tasks||[]).filter(isOverdue).length,getDoneTodayCount());
 }
 function completeTask(id,makeDone){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
@@ -1469,6 +1481,13 @@ function getTotalOpen(){
   const partyOpen=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
   return taskOpen+noteOpen+partyOpen;
 }
+// Single source of truth for "closed" counts (tasks + notes), so every screen agrees
+function getDoneTodayCount(){
+  return (state.tasks||[]).filter(isDoneToday).length+(state.notes||[]).filter(n=>n.done&&isDoneToday(n)).length;
+}
+function getDoneWeekCount(){
+  return (state.tasks||[]).filter(isDoneThisWeek).length+(state.notes||[]).filter(n=>n.done&&isDoneThisWeek(n)).length;
+}
 
 function fireNudge(type){
   if(!state.notificationsEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
@@ -1769,7 +1788,7 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v8</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v10</span></h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
     g.items.forEach(item=>{
@@ -1960,8 +1979,8 @@ function updateHomeCard(remaining,overdue,doneToday){
 function render(){
   if(state.avatar){document.getElementById('avatarImg').src=state.avatar;document.getElementById('avatar').classList.add('has-photo');}
   renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();
-  const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);const doneToday=state.tasks.filter(isDoneToday);
-  updateHomeCard(totalOpen,overdue.length,doneToday.length);
+  const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);
+  updateHomeCard(totalOpen,overdue.length,getDoneTodayCount());
   // Show notification button or test button
   if('Notification' in window){
     if(!state.notificationsEnabled||Notification.permission!=='granted'){
