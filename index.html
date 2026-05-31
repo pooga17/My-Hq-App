@@ -450,7 +450,7 @@
     <div class="summary-strip">
       <div><div class="stat-num" id="statOpen">0</div><div class="stat-label">Open</div></div>
       <div><div class="stat-num warn" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
-      <div><div class="stat-num win" id="statDoneWeek">0</div><div class="stat-label">Done this wk</div></div>
+      <div onclick="toggleDoneWeek()" style="cursor:pointer"><div class="stat-num win" id="statDoneWeek">0</div><div class="stat-label">Done this wk</div></div>
     </div>
     <div class="progress-wrap">
       <div class="progress-label"><span>This week's progress</span><span id="progressPct">0%</span></div>
@@ -463,6 +463,12 @@
         <span id="doneTodayLabel">✅ 0 Closed Today</span><span class="arrow">▼</span>
       </button>
       <div class="done-today-list" id="doneTodayList"></div>
+    </div>
+    <div class="done-today-wrap" id="doneWeekWrap" style="display:none;margin-top:10px;">
+      <button class="done-today-toggle" id="doneWeekToggle" onclick="toggleDoneWeek()">
+        <span id="doneWeekLabel">📁 Closed history</span><span class="arrow">▼</span>
+      </button>
+      <div class="done-today-list" id="doneWeekList"></div>
     </div>
     <!-- Notes in Today -->
     <div id="todayNotesWrap"></div>
@@ -1025,6 +1031,22 @@ function renderToday(){
     document.getElementById('doneTodayLabel').textContent=`✅ ${doneToday.length} Closed Today — good job!`;
     document.getElementById('doneTodayList').innerHTML=doneToday.map(t=>`<div class="swipe-card done"><div class="check done" onclick="completeTask(${t.id},false)"></div><div class="task-body"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-meta"><span class="pill age">finished ${relativeTime(t.completedAt)}</span>${t.completedAt&&t.createdAt?`<span class="pill due">in ${humanDuration(t.completedAt-t.createdAt)}</span>`:''}</div></div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div>`).join('');
   }else{doneWrap.style.display='none';}
+  // Closed history — everything closed in the last 7 days except today
+  const weekHistory=[
+    ...state.tasks.filter(t=>t.done&&t.completedAt&&!isDoneToday(t)&&ageInDays(t.completedAt)<7).map(t=>({id:t.id,title:t.title,completedAt:t.completedAt,kind:'task'})),
+    ...(state.notes||[]).filter(n=>n.done&&n.completedAt&&!isDoneToday(n)&&ageInDays(n.completedAt)<7).map(n=>({id:n.id,title:n.text,completedAt:n.completedAt,kind:'note'}))
+  ].sort((a,b)=>b.completedAt-a.completedAt);
+  const weekWrap=document.getElementById('doneWeekWrap');
+  if(weekHistory.length>0){
+    weekWrap.style.display='block';
+    document.getElementById('doneWeekLabel').textContent=`📁 ${weekHistory.length} closed earlier this week`;
+    document.getElementById('doneWeekList').innerHTML=weekHistory.map(it=>{
+      const reopen=it.kind==='task'?`completeTask(${it.id},false)`:`toggleTodayNote(${it.id})`;
+      const del=it.kind==='task'?`deleteTask(${it.id})`:`deleteNote(${it.id})`;
+      const tag=it.kind==='task'?'Task':'Note';
+      return `<div class="swipe-card done"><div class="check done" onclick="${reopen}"></div><div class="task-body"><div class="task-title">${escapeHtml(it.title)}</div><div class="task-meta"><span class="pill age">closed ${relativeTime(it.completedAt)}</span><span class="pill due">${tag}</span></div></div><button class="task-del" onclick="${del}">×</button></div>`;
+    }).join('');
+  }else{weekWrap.style.display='none';}
   const homeOpenEl=document.getElementById('homeOpenCount');if(homeOpenEl)homeOpenEl.textContent=totalOpen>0?`${totalOpen} open · act now`:'nothing pending ✨';
   updateHomeCard(totalOpen,overdue.length,doneToday.length);
   const hr=new Date().getHours();const wrapEl=document.getElementById('wrapUpWrap');
@@ -1088,6 +1110,7 @@ function confettiBurst(){
   document.body.appendChild(el);setTimeout(()=>el.remove(),1500);
 }
 function toggleDoneToday(){document.getElementById('doneTodayToggle').classList.toggle('open');document.getElementById('doneTodayList').classList.toggle('open');}
+function toggleDoneWeek(){const w=document.getElementById('doneWeekWrap');if(w&&w.style.display==='none')return;document.getElementById('doneWeekToggle').classList.toggle('open');document.getElementById('doneWeekList').classList.toggle('open');}
 
 let vfRecognition=null,vfRecording=false,vfTranscript='';
 const vfBtn=document.getElementById('voiceFinishBtn');const vfTrans=document.getElementById('voiceFinishTranscript');
@@ -1746,7 +1769,7 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v6</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v7</span></h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
     g.items.forEach(item=>{
