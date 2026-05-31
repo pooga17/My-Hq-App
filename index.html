@@ -1089,13 +1089,13 @@ function setTaskStatus(id,status){
     t.done=true;t.completedAt=Date.now();
     confettiBurst();toast('Closed! ✨');
   }else{t.done=false;t.completedAt=null;t.status=status;}
-  saveState();renderToday();updateHomeCard(getTotalOpen(),(state.tasks||[]).filter(isOverdue).length,getDoneTodayCount());
+  saveState();render();
 }
 function completeTask(id,makeDone){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   t.done=makeDone;t.completedAt=makeDone?Date.now():null;t.status=makeDone?'done':'open';
   if(makeDone){confettiBurst();toast('Awesome job! ✨');}
-  saveState();renderToday();
+  saveState();render();
 }
 function deleteTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);saveState();renderToday();}
 
@@ -1169,8 +1169,12 @@ function toggleDateMic(){
     document.getElementById('dateMicBtn').textContent='🎤 Speak';
     try{dateMicRec&&dateMicRec.stop();}catch(e){}
     const text=dateMicTranscript.trim();
-    if(text){document.getElementById('dName').value=text;}
-    document.getElementById('dateMicStatus').textContent='';
+    if(text){
+      document.getElementById('dateMicStatus').textContent='✨ understanding…';
+      parseAndSaveDate(text);
+    }else{
+      document.getElementById('dateMicStatus').textContent='';
+    }
     return;
   }
   dateMicRec=new SR();
@@ -1183,8 +1187,7 @@ function toggleDateMic(){
       else interim+=t;
     }
     const full=(dateMicTranscript+interim).trim();
-    document.getElementById('dateMicStatus').textContent=full;
-    document.getElementById('dName').value=full;
+    document.getElementById('dateMicStatus').textContent='🔴 '+full;
   };
   dateMicRec.onerror=()=>{dateMicRecording=false;document.getElementById('dateMicBtn').textContent='🎤 Speak';};
   dateMicRec.onend=()=>{if(dateMicRecording){try{dateMicRec.start();}catch(e){}}};
@@ -1194,7 +1197,47 @@ function toggleDateMic(){
   dateMicRecording=true;
   try{dateMicRec.start();}catch(e){}
 }
-const DATE_TYPE_EMOJI={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'};
+async function parseAndSaveDate(text){
+  const statusEl=document.getElementById('dateMicStatus');
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        system:`Extract a calendar event from the user's spoken text. Return ONLY JSON, no markdown.
+{"dateType":"birthday|anniversary|party|dinner|weekend|other","name":"short event name","date":"YYYY-MM-DD","time":"HH:MM or null","who":"person name or null"}
+Rules:
+- "name" is a short title (e.g. "Kiara's recital"), NOT the whole sentence.
+- Infer dateType from context (recital/show/game -> other; bday -> birthday; etc).
+- Resolve relative dates. Today is ${new Date().toISOString().slice(0,10)}. Current year is ${new Date().getFullYear()}. If a month/day is given with no year, use the next future occurrence.
+- If no date can be determined, set "date" to null.`,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    if(!resp.ok)throw new Error('api');
+    const data=await resp.json();
+    const raw=data.content&&data.content[0]&&data.content[0].text;
+    if(!raw)throw new Error('empty');
+    const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(!p.date){throw new Error('nodate');}
+    if(!state.dates)state.dates=[];
+    const d={id:Date.now(),type:p.dateType||'other',name:p.name||text,date:p.date,time:p.time||null,location:null,who:p.who||'',notify:3,calendarAdded:false};
+    state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveState();renderDates();checkUpcomingDates();
+    statusEl.textContent='';
+    const niceDate=new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    toast(`📅 Saved: ${d.name} · ${niceDate}`);
+    if(typeof toggleDateForm==='function'){const form=document.getElementById('dateForm');if(form&&form.style.display!=='none')toggleDateForm();}
+    addDateToCalendarICS(d);
+  }catch(err){
+    // Fallback: put the words in the name field so nothing is lost
+    const nameEl=document.getElementById('dName');if(nameEl)nameEl.value=text;
+    statusEl.textContent='Couldn\u2019t auto-read the date — I filled the name, just pick the day & save.';
+    setTimeout(()=>{statusEl.textContent='';},5000);
+  }
+}
 async function saveDate(){
   const type=document.getElementById('dType').value;
   const d={
@@ -1771,7 +1814,7 @@ function toggleTodayNote(noteId){
     note.done=true;note.completedAt=Date.now();note.checkedInToday=false;
     confettiBurst();toast('Closed! ✨');
   }
-  saveState();renderToday();
+  saveState();render();
 }
 function renderTodayNotes(){
   const wrap=document.getElementById('todayNotesWrap');if(!wrap)return;
@@ -1788,7 +1831,7 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v10</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v11</span></h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
     g.items.forEach(item=>{
