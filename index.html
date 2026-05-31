@@ -301,6 +301,7 @@
   .tng-home{background:#E8F4FF;color:#1A3A5A;}
   .tng-grocery{background:#DFF2EA;color:#1A5038;}
   .tng-party{background:#FFF1DA;color:#7A4A10;}
+  .tng-done{background:#DFF2EA;color:#1A5038;}
   .today-note-row{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:#fff;border-radius:12px;margin-bottom:6px;border:1px solid var(--line);box-shadow:0 1px 4px rgba(196,96,122,.05);}
   .today-note-row.checked{opacity:.55;background:#FAF6F2;}
   .tn-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--pink-deep);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;margin-top:1px;}
@@ -978,7 +979,7 @@ function renderToday(){
   const week=state.tasks.filter(isThisWeek).sort((a,b)=>{const p={high:0,medium:1,low:2};return p[a.priority]-p[b.priority]||a.createdAt-b.createdAt;});
   const doneToday=state.tasks.filter(isDoneToday).sort((a,b)=>b.completedAt-a.completedAt);
   const doneWeek=state.tasks.filter(isDoneThisWeek);
-  const pendingNotes=(state.notes||[]).filter(n=>!n.checkedInToday).length;
+  const pendingNotes=(state.notes||[]).filter(n=>!n.checkedInToday&&!n.done).length;
   const pn=state.partyNotes||{groc:[],cook:[]};
   const pendingParty=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
   const totalOpen=open.length+pendingNotes+pendingParty;
@@ -1434,7 +1435,7 @@ async function requestNotifications(){
 
 function getTotalOpen(){
   const taskOpen=(state.tasks||[]).filter(t=>!t.done&&!isSnoozed(t)).length;
-  const noteOpen=(state.notes||[]).filter(n=>!n.checkedInToday).length;
+  const noteOpen=(state.notes||[]).filter(n=>!n.checkedInToday&&!n.done).length;
   const pn=state.partyNotes||{groc:[],cook:[]};
   const partyOpen=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
   return taskOpen+noteOpen+partyOpen;
@@ -1715,7 +1716,13 @@ function promotePQNToTask(bucket,itemId){
 function toggleTodayNote(noteId){
   if(!state.notes)return;
   const note=state.notes.find(n=>n.id===noteId);if(!note)return;
-  note.checkedInToday=!note.checkedInToday;saveState();renderTodayNotes();
+  if(note.done){
+    note.done=false;note.completedAt=null;
+  }else{
+    note.done=true;note.completedAt=Date.now();note.checkedInToday=false;
+    confettiBurst();toast('Closed! ✨');
+  }
+  saveState();renderToday();
 }
 function renderTodayNotes(){
   const wrap=document.getElementById('todayNotesWrap');if(!wrap)return;
@@ -1730,7 +1737,8 @@ function renderTodayNotes(){
   const partyItems=[...(pn.groc||[]).map(i=>({...i,_bucket:'groc'})),...(pn.cook||[]).map(i=>({...i,_bucket:'cook'}))];
   if(partyItems.length)groups.push({key:'party',label:'🎉 Party Notes',cls:'tng-party',items:partyItems,isParty:true});
   const nonEmpty=groups.filter(g=>g.items.length>0);
-  if(!nonEmpty.length){wrap.innerHTML='';return;}
+  const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
+  if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
   let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog</h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
@@ -1744,6 +1752,13 @@ function renderTodayNotes(){
     });
     html+='</div>';
   });
+  if(doneNotes.length){
+    html+=`<div class="today-note-group"><span class="today-note-group-label tng-done">✓ Closed · ${doneNotes.length}</span>`;
+    doneNotes.forEach(item=>{
+      html+=`<div class="today-note-row checked"><div class="tn-check done" onclick="toggleTodayNote(${item.id})">✓</div><span class="tn-text done">${escapeHtml(item.text)}</span></div>`;
+    });
+    html+='</div>';
+  }
   html+='</div>';
   wrap.innerHTML=html;
 }
