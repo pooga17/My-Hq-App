@@ -295,6 +295,10 @@
   .note-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
   .note-card-text{font-size:14px;color:#1A1215;font-weight:600;line-height:1.5;flex:1;}
   .note-card-del{background:none;border:none;color:#C4607A;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;}
+  .note-card-done{background:none;border:1px solid var(--green-deep);color:var(--green-deep);font-size:10px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+  .note-card-done:active{background:var(--green-deep);color:#fff;}
+  .note-card.done-card{background:#FAF6F2;opacity:.78;}
+  .note-card.done-card .note-card-text{text-decoration:line-through;color:#5A4A50;}
   .note-card-footer{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;}
   .note-badge{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em;}
   .note-badge.grocery-tag{background:#DFF2EA;color:#1A5038;}
@@ -697,6 +701,7 @@
       </div>
       <div id="noteList-home"></div>
     </div>
+    <div id="notesClosedWrap"></div>
   </section>
 
   <!-- GUIDE -->
@@ -1328,7 +1333,14 @@ function localParseDate(text){
   else if(/party/i.test(lc))type='party';
   else if(/dinner|lunch|brunch/i.test(lc))type='dinner';
   else if(/weekend|getaway|trip/i.test(lc))type='weekend';
-  return {name,date:found,type};
+  // Extract WHO the event is for: possessive ("Siara's recital") or "for Siara"
+  let who='';
+  const possessive=raw.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)['\u2019]s\b/);
+  if(possessive){who=possessive[1];}
+  if(!who){const forMatch=raw.match(/\bfor\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/);if(forMatch)who=forMatch[1];}
+  // also try lower-case possessive after speech-to-text (e.g. "siara's")
+  if(!who){const lcPoss=raw.match(/\b([a-z][a-z]+)['\u2019]s\b/);if(lcPoss&&!/^(it|that|today|tomorrow|this|next)$/i.test(lcPoss[1]))who=lcPoss[1].charAt(0).toUpperCase()+lcPoss[1].slice(1);}
+  return {name,date:found,type,who};
   function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   function monthDayToDate(mo,da,today,yr){let dt=new Date(yr,mo,da);if(dt<today)dt=new Date(yr+1,mo,da);return fmt(dt);}
 }
@@ -2092,16 +2104,17 @@ function renderNoteList(containerId,items,isGrocery){
   el.innerHTML=items.map(n=>{
     const ago=relativeTime(n.createdAt);
     const grocTag=isGrocery?'<span class="note-badge grocery-tag">🛒 grocery</span>':'';
-    return`<div class="note-card${isGrocery?' grocery':''}"><div class="note-card-top"><span class="note-card-text">${escapeHtml(n.text)}</span><button class="note-card-del" onclick="deleteNote(${n.id})">×</button></div><div class="note-card-footer">${grocTag}<span class="note-badge time">${ago}</span></div></div>`;
+    const doneBtn=`<button class="note-card-done" onclick="toggleTodayNote(${n.id})">Done</button>`;
+    return`<div class="note-card${isGrocery?' grocery':''}"><div class="note-card-top"><span class="note-card-text">${escapeHtml(n.text)}</span><button class="note-card-del" onclick="deleteNote(${n.id})">×</button></div><div class="note-card-footer">${grocTag}<span class="note-badge time">${ago}</span>${doneBtn}</div></div>`;
   }).join('');
 }
 
 function renderNotes(){
   if(!state.notes)state.notes=[];
-  const office=state.notes.filter(n=>n.section==='office');
-  const personal=state.notes.filter(n=>n.section==='personal');
-  const grocery=state.notes.filter(n=>n.section==='grocery');
-  const home=state.notes.filter(n=>n.section==='home');
+  const office=state.notes.filter(n=>n.section==='office'&&!n.done);
+  const personal=state.notes.filter(n=>n.section==='personal'&&!n.done);
+  const grocery=state.notes.filter(n=>n.section==='grocery'&&!n.done);
+  const home=state.notes.filter(n=>n.section==='home'&&!n.done);
   renderNoteList('noteList-office',office,false);
   renderNoteList('noteList-personal',personal,false);
   renderNoteList('noteList-grocery',grocery,true);
@@ -2109,6 +2122,14 @@ function renderNotes(){
   document.getElementById('nc-office').textContent=office.length||'';
   document.getElementById('nc-personal').textContent=(personal.length+grocery.length)||'';
   document.getElementById('nc-home').textContent=home.length||'';
+  // Closed section — recently completed notes, all sections together
+  const closedWrap=document.getElementById('notesClosedWrap');
+  if(closedWrap){
+    const doneNotes=state.notes.filter(n=>n.done&&n.completedAt&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
+    if(!doneNotes.length){closedWrap.innerHTML='';return;}
+    const sectionEmoji={office:'💼',personal:'🌸',grocery:'🛒',home:'🏡'};
+    closedWrap.innerHTML=`<div style="margin-top:22px;"><div style="font-size:11px;letter-spacing:.18em;color:var(--green-deep);font-weight:700;margin-bottom:10px;">✓ CLOSED · ${doneNotes.length}</div>${doneNotes.map(n=>`<div class="note-card done-card"><div class="note-card-top"><span class="note-card-text">${sectionEmoji[n.section]||''} ${escapeHtml(n.text)}</span><button class="note-card-del" onclick="deleteNote(${n.id})">×</button></div><div class="note-card-footer"><span class="note-badge time">closed ${relativeTime(n.completedAt)}</span><button class="note-card-done" onclick="toggleTodayNote(${n.id})">Reopen</button></div></div>`).join('')}</div>`;
+  }
 }
 
 function toggleNoteMic(section){
