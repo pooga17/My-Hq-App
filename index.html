@@ -1257,15 +1257,26 @@ async function parseAndSaveDate(text){
   setTimeout(()=>{statusEl.textContent='';},6000);
 }
 function saveDateObject(o,statusEl){
-  if(!state.dates)state.dates=[];
-  const d={id:Date.now(),type:o.type||'other',name:o.name||'Event',date:o.date,time:o.time||null,location:null,who:o.who||'',notify:3,calendarAdded:false};
-  state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  saveState();renderDates();checkUpcomingDates();
-  if(statusEl)statusEl.textContent='';
-  const niceDate=new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
-  toast(`📅 Saved: ${d.name} · ${niceDate}`);
-  const form=document.getElementById('dateForm');if(form&&form.style.display!=='none'&&typeof toggleDateForm==='function')toggleDateForm();
-  addDateToCalendarICS(d);
+  try{
+    if(!state.dates)state.dates=[];
+    const d={id:Date.now(),type:o.type||'other',name:o.name||'Event',date:o.date,time:o.time||null,location:null,who:o.who||'',notify:3,calendarAdded:false};
+    state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveState();
+    // Clear status and close form FIRST so user sees it worked even if extras fail
+    if(statusEl)statusEl.textContent='';
+    const niceDate=new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    toast(`📅 Saved: ${d.name} · ${niceDate}`);
+    const form=document.getElementById('dateForm');if(form&&form.style.display!=='none'&&typeof toggleDateForm==='function')toggleDateForm();
+    // Clear form fields so next entry starts fresh
+    ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    // Optional extras — wrapped so they can't break the save
+    try{renderDates();}catch(e){}
+    try{checkUpcomingDates();}catch(e){}
+    try{addDateToCalendarICS(d);}catch(e){toast('Saved! (calendar download failed)');}
+  }catch(e){
+    if(statusEl)statusEl.textContent='Save failed — try again';
+    toast('Save failed: '+(e.message||'unknown'));
+  }
 }
 // Local natural-language date parser (backup for the AI). Handles "June 7th", "June seventh",
 // "6/7", "next Friday", "tomorrow", "this Saturday", etc. Returns {name,date,type} or null.
@@ -1329,22 +1340,31 @@ function localParseDate(text){
   function monthDayToDate(mo,da,today,yr){let dt=new Date(yr,mo,da);if(dt<today)dt=new Date(yr+1,mo,da);return fmt(dt);}
 }
 async function saveDate(){
-  const type=document.getElementById('dType').value;
-  const d={
-    id:Date.now(),type,
-    name:document.getElementById('dName').value.trim(),
-    date:document.getElementById('dDate').value,
-    time:document.getElementById('dTime').value||null,
-    location:document.getElementById('dLocation').value.trim()||null,
-    who:document.getElementById('dWho').value.trim(),
-    notify:parseInt(document.getElementById('dNotify').value),
-    calendarAdded:false
-  };
-  if(!d.name||!d.date){toast('Name and date please');return;}
-  state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));saveState();
-  ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  toggleDateForm();renderDates();
-  addDateToCalendarICS(d);
+  try{
+    const type=document.getElementById('dType').value;
+    const d={
+      id:Date.now(),type,
+      name:document.getElementById('dName').value.trim(),
+      date:document.getElementById('dDate').value,
+      time:document.getElementById('dTime').value||null,
+      location:document.getElementById('dLocation').value.trim()||null,
+      who:document.getElementById('dWho').value.trim(),
+      notify:parseInt(document.getElementById('dNotify').value),
+      calendarAdded:false
+    };
+    if(!d.name||!d.date){toast('Name and date please');return;}
+    if(!state.dates)state.dates=[];
+    state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveState();
+    toast(`📅 Saved: ${d.name}`);
+    ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    try{toggleDateForm();}catch(e){}
+    try{renderDates();}catch(e){}
+    try{checkUpcomingDates();}catch(e){}
+    try{addDateToCalendarICS(d);}catch(e){}
+  }catch(e){
+    toast('Save failed: '+(e.message||'try again'));
+  }
 }
 function addDateToCalendarICS(d){
   const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[d.type]||'📅';
@@ -2054,7 +2074,18 @@ function switchNotesTab(tab){
 }
 
 function detectNoteCategory(text){
+  const t=(text||'').toLowerCase();
+  // Grocery first (most specific)
   if(GROCERY_KEYWORDS.test(text))return'grocery';
+  // PERSONAL: returns, daughter stuff, family, parties, cooking, errands
+  const PERSONAL_RE=/\b(amazon|target|costco|walmart|return|returns|returning|refund|exchange|cook|cooking|recipe|meal prep|bake|baking|recital|class|school|teacher|daughter|kid|kids|child|son|family|husband|mom|dad|parent|party|birthday|anniversary|dinner party|brunch|playdate|errand|errands|pickup|drop off|drop-off|appointment|doctor|dentist|haircut|salon|nail|spa|shopping|mall|gift|present|wrap|babysitter|nanny|laundry|cleaner|cleaning|housekeeper)\b/;
+  if(PERSONAL_RE.test(t))return'personal';
+  // HOME: repairs, maintenance, household
+  const HOME_RE=/\b(repair|fix|broken|plumber|electrician|handyman|hvac|furnace|ac|air conditioning|leak|clog|drain|garage|yard|lawn|garden|mow|trim|trash|recycle|paint|painting|install|replace|light bulb|filter|battery|smoke detector|thermostat|wifi|router|tv mount)\b/;
+  if(HOME_RE.test(t))return'home';
+  // OFFICE: only if work words are explicit (and not overridden above)
+  const OFFICE_RE=/\b(meeting|standup|stand-up|deck|slide|slides|presentation|review|ELT|leadership|stakeholder|domain|portfolio|intake|FPO|FBO|POR|2H|1H|TPO|TPM|JJJR|sprint|jira|asana|email draft|client|vendor|budget|forecast|roadmap|RACI|prd|brd|spec|sync|1:1|one on one|kickoff|kick-off|all hands|all-hands|quarterly|qbr|okr|kpi)\b/i;
+  if(OFFICE_RE.test(t))return'office';
   return null; // stays in whichever section was active
 }
 
@@ -2065,15 +2096,19 @@ function addNote(section){
   input.value='';
   const autoCategory=detectNoteCategory(text);
   const finalSection=autoCategory||section;
-  if(autoCategory&&autoCategory==='grocery'&&section!=='personal'){
-    // if spoken from office or home but it's a grocery item, route to personal grocery
-    toast('Grocery item → moved to Personal 🛒');
+  // Friendly notice when we re-route away from the active tab
+  if(autoCategory&&finalSection!==section){
+    if(autoCategory==='grocery')toast('Grocery item → Personal 🛒');
+    else if(autoCategory==='personal')toast('Sounds personal → Personal 🌸');
+    else if(autoCategory==='home')toast('Home item → Home 🏡');
+    else if(autoCategory==='office')toast('Work item → Office 💼');
   }
   if(!state.notes)state.notes=[];
   state.notes.unshift({id:Date.now(),text,section:finalSection,createdAt:Date.now()});
   saveState();renderNotes();
-  if(autoCategory==='grocery'&&section!=='personal'){
-    switchNotesTab('personal');
+  if(autoCategory&&finalSection!==section){
+    const tabFor=finalSection==='grocery'?'personal':finalSection;
+    switchNotesTab(tabFor);
   }
 }
 
@@ -2146,9 +2181,11 @@ function stopNoteMic(section){
   const input=document.getElementById('noteInput-'+section);
   if(input)input.value=text;
   if(statusEl)statusEl.textContent='✓ ready — tap Add';
-  // auto-detect grocery and give a hint
-  if(GROCERY_KEYWORDS.test(text)&&section!=='personal'){
-    if(statusEl)statusEl.textContent='🛒 grocery detected — tap Add to route to Personal';
+  // auto-detect category and give a hint about where it will go
+  const detected=detectNoteCategory(text);
+  if(detected&&detected!==section){
+    const labels={grocery:'🛒 grocery → Personal',personal:'🌸 sounds personal → Personal',home:'🏡 sounds like home → Home',office:'💼 sounds like work → Office'};
+    if(statusEl&&labels[detected])statusEl.textContent=labels[detected]+' — tap Add';
   }
 }
 // ============ END NOTES ============
