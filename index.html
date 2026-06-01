@@ -231,6 +231,25 @@
   .manual-add button{background:var(--pink-deep);color:#fff;border:none;border-radius:999px;padding:0 18px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;letter-spacing:.04em;}
   .empty{text-align:center;color:#3A2A30;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:18px;padding:30px 0;font-weight:600;}
   .date-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid var(--line);display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  /* In-app calendar view */
+  .hq-cal{background:#fff;border-radius:18px;padding:14px 12px;margin-bottom:14px;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .hq-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px;}
+  .hq-cal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--pink-deep);letter-spacing:.01em;}
+  .hq-cal-nav{display:flex;gap:6px;align-items:center;}
+  .hq-cal-btn{background:#FFF1ED;border:1px solid var(--line);color:var(--pink-deep);border-radius:999px;padding:5px 12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+  .hq-cal-btn:active{background:var(--pink-deep);color:#fff;}
+  .hq-cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;}
+  .hq-cal-dow div{text-align:center;font-size:10px;letter-spacing:.12em;color:#7A6A6E;font-weight:700;padding:4px 0;}
+  .hq-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .hq-cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:13px;color:#3A2A30;font-weight:600;cursor:pointer;position:relative;background:#FAF6F2;border:1px solid transparent;}
+  .hq-cal-day.other-month{color:#C8B8BC;background:transparent;}
+  .hq-cal-day.today{background:var(--pink);color:#fff;border-color:var(--pink-deep);font-weight:800;}
+  .hq-cal-day.selected{border-color:var(--pink-deep);background:#FFE0E8;}
+  .hq-cal-day.has-event::after{content:'';position:absolute;bottom:4px;width:5px;height:5px;border-radius:50%;background:var(--pink-deep);}
+  .hq-cal-day.today.has-event::after{background:#fff;}
+  .hq-cal-selected-info{margin-top:12px;padding:10px 12px;background:#FFF8F4;border-radius:10px;font-size:13px;color:#3A2A30;line-height:1.5;border:1px dashed var(--pink);}
+  .hq-cal-selected-info .ev-title{font-weight:700;color:var(--pink-deep);font-family:'Cormorant Garamond',serif;font-size:16px;}
+  .hq-cal-selected-info .ev-empty{color:#7A6A6E;font-style:italic;}
   .date-badge{width:54px;height:54px;border-radius:14px;background:linear-gradient(145deg,var(--peach-deep),var(--pink-deep));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-family:'Cormorant Garamond',serif;}
   .date-badge .day{font-size:22px;line-height:1;font-weight:700;}
   .date-badge .mo{font-size:10px;letter-spacing:.16em;margin-top:2px;text-transform:uppercase;font-weight:700;}
@@ -526,6 +545,19 @@
   <!-- DATES -->
   <section class="screen" id="screen-dates">
     <div class="screen-head"><h2>Important Dates</h2><p>The moments that matter.</p></div>
+    <div class="hq-cal" id="hqCal">
+      <div class="hq-cal-head">
+        <button class="hq-cal-btn" onclick="hqCalPrev()">‹</button>
+        <div class="hq-cal-title" id="hqCalTitle">June 2026</div>
+        <div class="hq-cal-nav">
+          <button class="hq-cal-btn" onclick="hqCalToday()">Today</button>
+          <button class="hq-cal-btn" onclick="hqCalNext()">›</button>
+        </div>
+      </div>
+      <div class="hq-cal-dow"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+      <div class="hq-cal-grid" id="hqCalGrid"></div>
+      <div class="hq-cal-selected-info" id="hqCalSelected" style="display:none"></div>
+    </div>
     <div class="form" id="dateForm" style="display:none">
       <label>Type</label>
       <select id="dType" onchange="onDateTypeChange()">
@@ -714,6 +746,22 @@
     <div class="step"><h4>🔔 Notifications</h4><p>Enable reminders on the home screen. You'll get nudged every 6 hours for pending tasks.</p></div>
     <div class="step"><h4>🎁 Send a Gift</h4><p>Pick an occasion, generate a heartfelt AI message, send via SMS, or open Amazon to send a gift card directly.</p></div>
     <div class="step"><h4>💝 Important Dates</h4><p>Add birthdays, anniversaries, plans. A banner appears on your home screen when a date is coming up soon.</p></div>
+    <div class="step"><h4>👨‍👩‍👧 Share with Family</h4><p>Save phone numbers for Piyush and Kiara in the Family screen. Then tap "📤 Share" on any date to send them a text with a one-tap link to add it to their calendar.</p></div>
+  </section>
+
+  <!-- FAMILY / SHARING -->
+  <section class="screen" id="screen-family">
+    <div class="screen-head"><h2>Family</h2><p>Share events with the people who matter.</p></div>
+    <div class="form">
+      <div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);padding:12px 14px;border-radius:12px;margin-bottom:14px;font-size:13px;color:#3A2A30;line-height:1.5;">
+        💡 Save phone numbers here once. Then tap <strong>📤 Share</strong> on any event to text it with a one-tap "Add to Calendar" link.
+      </div>
+      <label>💑 Piyush's phone</label>
+      <input id="contactPiyush" type="tel" placeholder="(201) 936-0416" autocomplete="tel"/>
+      <label>👧 Kiara's phone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#5A4A50">(optional)</span></label>
+      <input id="contactKiara" type="tel" placeholder="(555) 123-4567" autocomplete="tel"/>
+      <button class="btn block" onclick="saveContacts()">Save Family ✨</button>
+    </div>
   </section>
 
 <!-- Plan Name Modal -->
@@ -747,6 +795,7 @@
     <div class="more-tile" onclick="closeMoreTray();go('tasks')"><span class="mt-icon">🎤</span><span class="mt-label">Add Task</span></div>
     <div class="more-tile" onclick="closeMoreTray();go('gifts')"><span class="mt-icon">🎁</span><span class="mt-label">Send Gift</span></div>
     <div class="more-tile" onclick="closeMoreTray();go('photos')"><span class="mt-icon">📸</span><span class="mt-label">Photos</span></div>
+    <div class="more-tile" onclick="closeMoreTray();go('family')"><span class="mt-icon">👨‍👩‍👧</span><span class="mt-label">Family</span></div>
     <div class="more-tile" onclick="closeMoreTray();go('guide')"><span class="mt-icon">📖</span><span class="mt-label">Guide</span></div>
   </div>
 </div>
@@ -783,6 +832,9 @@ function loadState(){
       if(old){state={...state,...JSON.parse(old)};saveState();}
     }
   }catch(e){}
+  // Seed Piyush's number once if no contacts exist yet
+  if(!state.contacts)state.contacts={};
+  if(!state.contacts.piyush){state.contacts.piyush='2019360416';saveState();}
   render();
 }
 function saveState(){
@@ -847,6 +899,7 @@ function go(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.screen===name));
   window.scrollTo(0,0);
   if(name==='today')renderToday();
+  if(name==='family')loadContactsUI();
   // Show FAB mic only on Today screen
   const fab=document.getElementById('fabMic');
   if(fab)fab.classList.toggle('visible',name==='today');
@@ -863,7 +916,7 @@ function closeMoreTray(){
   document.getElementById('moreBackdrop').classList.remove('show');
   // Keep moreTab active only if we're on one of its sub-screens
   const active=document.querySelector('.screen.active');
-  const moreScreens=['tasks','gifts','photos','guide'];
+  const moreScreens=['tasks','gifts','photos','family','guide'];
   const onMore=active&&moreScreens.includes(active.id.replace('screen-',''));
   document.getElementById('moreTab').classList.toggle('active',onMore);
 }
@@ -1262,17 +1315,20 @@ function saveDateObject(o,statusEl){
     const d={id:Date.now(),type:o.type||'other',name:o.name||'Event',date:o.date,time:o.time||null,location:null,who:o.who||'',notify:3,calendarAdded:false};
     state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveState();
-    // Clear status and close form FIRST so user sees it worked even if extras fail
     if(statusEl)statusEl.textContent='';
     const niceDate=new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
-    toast(`📅 Saved: ${d.name} · ${niceDate}`);
+    toast(`✨ Saved: ${d.name} · ${niceDate}`);
     const form=document.getElementById('dateForm');if(form&&form.style.display!=='none'&&typeof toggleDateForm==='function')toggleDateForm();
-    // Clear form fields so next entry starts fresh
     ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-    // Optional extras — wrapped so they can't break the save
+    // Jump calendar to the saved month and highlight the day so user SEES it land
+    try{
+      const parts=d.date.split('-');
+      hqCalDate=new Date(parseInt(parts[0]),parseInt(parts[1])-1,1);
+      hqCalSelectedKey=d.date;
+    }catch(e){}
     try{renderDates();}catch(e){}
     try{checkUpcomingDates();}catch(e){}
-    try{addDateToCalendarICS(d);}catch(e){toast('Saved! (calendar download failed)');}
+    // .ics export is now manual - user taps "Export to iPhone Calendar" button on each card
   }catch(e){
     if(statusEl)statusEl.textContent='Save failed — try again';
     toast('Save failed: '+(e.message||'unknown'));
@@ -1349,19 +1405,24 @@ async function saveDate(){
       time:document.getElementById('dTime').value||null,
       location:document.getElementById('dLocation').value.trim()||null,
       who:document.getElementById('dWho').value.trim(),
-      notify:parseInt(document.getElementById('dNotify').value),
+      notify:parseInt(document.getElementById('dNotify').value)||3,
       calendarAdded:false
     };
     if(!d.name||!d.date){toast('Name and date please');return;}
     if(!state.dates)state.dates=[];
     state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveState();
-    toast(`📅 Saved: ${d.name}`);
+    toast(`✨ Saved: ${d.name}`);
     ['dName','dDate','dTime','dLocation','dWho'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
     try{toggleDateForm();}catch(e){}
+    // Jump calendar to the saved month
+    try{
+      const parts=d.date.split('-');
+      hqCalDate=new Date(parseInt(parts[0]),parseInt(parts[1])-1,1);
+      hqCalSelectedKey=d.date;
+    }catch(e){}
     try{renderDates();}catch(e){}
     try{checkUpcomingDates();}catch(e){}
-    try{addDateToCalendarICS(d);}catch(e){}
   }catch(e){
     toast('Save failed: '+(e.message||'try again'));
   }
@@ -1436,6 +1497,8 @@ async function addDateToCalendar(d){
 }
 function deleteDate(id){state.dates=state.dates.filter(x=>x.id!==id);saveState();renderDates();}
 function renderDates(){
+  // Always re-render the calendar grid alongside the list
+  try{renderHqCalendar();}catch(e){}
   const el=document.getElementById('dateList');
   if(!state.dates.length){el.innerHTML='<div class="empty">No dates yet.</div>';return;}
   const now=new Date();now.setHours(0,0,0,0);
@@ -1446,8 +1509,135 @@ function renderDates(){
     const calTag=d.calendarAdded?'<span style="font-size:10px;background:#DFF2EA;color:#1A5038;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:4px;">📅 in calendar</span>':'';
     const locLine=d.location?`<div class="date-sub" style="color:#5A8CAA">📍 ${escapeHtml(d.location)}</div>`:'';
     const timeLine=d.time?` · ${d.time}`:'';
-    return`<div class="date-card"><div class="date-badge"><div class="day">${dt.getDate()}</div><div class="mo">${dt.toLocaleString('en-US',{month:'short'})}</div></div><div class="date-info"><div class="date-name">${emoji} ${escapeHtml(d.name)}${calTag}</div>${d.who?`<div class="date-sub">for ${escapeHtml(d.who)}${timeLine} · remind ${d.notify}d before</div>`:`<div class="date-sub">remind ${d.notify}d before${timeLine}</div>`}${locLine}<div class="countdown">${cd}</div></div><button class="task-del" onclick="deleteDate(${d.id})">×</button></div>`;
+    // Family share label depends on who's saved
+    const c=state.contacts||{};
+    const hasP=!!digitsOnly(c.piyush),hasK=!!digitsOnly(c.kiara);
+    let shareLabel='📤 Share';
+    if(hasP&&hasK)shareLabel='📤 Share with Piyush & Kiara';
+    else if(hasP)shareLabel='📤 Share with Piyush';
+    else if(hasK)shareLabel='📤 Share with Kiara';
+    else shareLabel='📤 Set up sharing';
+    const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:8px;margin-right:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit;">${shareLabel}</button>`;
+    return`<div class="date-card"><div class="date-badge"><div class="day">${dt.getDate()}</div><div class="mo">${dt.toLocaleString('en-US',{month:'short'})}</div></div><div class="date-info"><div class="date-name">${emoji} ${escapeHtml(d.name)}${calTag}</div>${d.who?`<div class="date-sub">for ${escapeHtml(d.who)}${timeLine} · remind ${d.notify}d before</div>`:`<div class="date-sub">remind ${d.notify}d before${timeLine}</div>`}${locLine}<div class="countdown">${cd}</div>${shareBtn}<button onclick="exportSingleDateICS(${d.id})" style="margin-top:8px;background:#FFF1ED;border:1px solid var(--pink);color:var(--pink-deep);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;font-family:inherit;">📅 Add to my Calendar</button></div><button class="task-del" onclick="deleteDate(${d.id})">×</button></div>`;
   }).join('');
+}
+
+// ===== In-app calendar (Pooja's HQ) =====
+let hqCalDate=new Date();hqCalDate.setHours(0,0,0,0);
+let hqCalSelectedKey=null;
+function hqCalKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function renderHqCalendar(){
+  const grid=document.getElementById('hqCalGrid');const title=document.getElementById('hqCalTitle');
+  if(!grid||!title)return;
+  const year=hqCalDate.getFullYear(),month=hqCalDate.getMonth();
+  title.textContent=hqCalDate.toLocaleString('en-US',{month:'long',year:'numeric'});
+  const first=new Date(year,month,1);
+  const startDow=first.getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const daysInPrev=new Date(year,month,0).getDate();
+  const today=new Date();today.setHours(0,0,0,0);const todayKey=hqCalKey(today);
+  // Build event-by-day map
+  const evMap={};
+  (state.dates||[]).forEach(d=>{if(!evMap[d.date])evMap[d.date]=[];evMap[d.date].push(d);});
+  let cells=[];
+  // prev month tail
+  for(let i=startDow-1;i>=0;i--){const day=daysInPrev-i;cells.push({day,key:hqCalKey(new Date(year,month-1,day)),other:true});}
+  for(let day=1;day<=daysInMonth;day++){cells.push({day,key:hqCalKey(new Date(year,month,day)),other:false});}
+  while(cells.length%7!==0){const day=cells.length-startDow-daysInMonth+1;cells.push({day,key:hqCalKey(new Date(year,month+1,day)),other:true});}
+  grid.innerHTML=cells.map(c=>{
+    const classes=['hq-cal-day'];
+    if(c.other)classes.push('other-month');
+    if(c.key===todayKey)classes.push('today');
+    if(c.key===hqCalSelectedKey)classes.push('selected');
+    if(evMap[c.key])classes.push('has-event');
+    return`<div class="${classes.join(' ')}" onclick="hqCalSelect('${c.key}')">${c.day}</div>`;
+  }).join('');
+  // Selected day info
+  const info=document.getElementById('hqCalSelected');
+  if(!info)return;
+  if(!hqCalSelectedKey){info.style.display='none';return;}
+  const evs=evMap[hqCalSelectedKey]||[];
+  const niceDate=new Date(hqCalSelectedKey+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  if(!evs.length){
+    info.style.display='block';
+    info.innerHTML=`<div class="ev-title">${niceDate}</div><div class="ev-empty">Nothing planned. ✨</div>`;
+  }else{
+    info.style.display='block';
+    info.innerHTML=`<div class="ev-title">${niceDate}</div>`+evs.map(d=>{
+      const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+      return`<div style="margin-top:6px;">${emoji} <strong>${escapeHtml(d.name)}</strong>${d.who?` · for ${escapeHtml(d.who)}`:''}${d.time?` · ${d.time}`:''}</div>`;
+    }).join('');
+  }
+}
+function hqCalSelect(key){hqCalSelectedKey=(hqCalSelectedKey===key?null:key);renderHqCalendar();}
+function hqCalPrev(){hqCalDate=new Date(hqCalDate.getFullYear(),hqCalDate.getMonth()-1,1);renderHqCalendar();}
+function hqCalNext(){hqCalDate=new Date(hqCalDate.getFullYear(),hqCalDate.getMonth()+1,1);renderHqCalendar();}
+function hqCalToday(){const t=new Date();hqCalDate=new Date(t.getFullYear(),t.getMonth(),1);hqCalSelectedKey=hqCalKey(new Date(t.getFullYear(),t.getMonth(),t.getDate()));renderHqCalendar();}
+// Export a single saved date to iPhone Calendar (.ics) — only fires when user taps button
+function exportSingleDateICS(id){
+  const d=(state.dates||[]).find(x=>x.id===id);
+  if(!d){toast('Date not found');return;}
+  try{addDateToCalendarICS(d);}catch(e){toast('Export failed — try again');}
+}
+
+// ===== Family contacts & sharing =====
+function saveContacts(){
+  if(!state.contacts)state.contacts={};
+  state.contacts.piyush=(document.getElementById('contactPiyush').value||'').trim();
+  state.contacts.kiara=(document.getElementById('contactKiara').value||'').trim();
+  saveState();renderDates();
+  toast('💕 Family saved!');
+}
+function loadContactsUI(){
+  if(!state.contacts)return;
+  const p=document.getElementById('contactPiyush');if(p&&state.contacts.piyush)p.value=state.contacts.piyush;
+  const k=document.getElementById('contactKiara');if(k&&state.contacts.kiara)k.value=state.contacts.kiara;
+}
+function digitsOnly(s){return(s||'').replace(/\D/g,'');}
+function buildShareText(d,name){
+  const dt=new Date(d.date+'T00:00:00');
+  const dateStr=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[d.type]||'📅';
+  let body=`Hey ${name||''} — Pooja added: ${emoji} ${d.name} · ${dateStr}`;
+  if(d.time)body+=` at ${d.time}`;
+  if(d.location)body+=` · ${d.location}`;
+  body+=`. Tap to add to your calendar with reminders 1 & 2 days before: `;
+  // Build a data: URL for the .ics file so the recipient can tap and add it
+  const icsUrl=buildIcsDataUrl(d);
+  body+=icsUrl;
+  return body;
+}
+function buildIcsDataUrl(d){
+  const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[d.type]||'📅';
+  const title=emoji+' '+d.name+(d.who?' ('+d.who+')':'');
+  const parts=d.date.split('-');const yr=parts[0],mo=parts[1],day=parts[2];
+  let lines=['BEGIN:VCALENDAR','VERSION:2.0','CALSCALE:GREGORIAN','PRODID:-//PoojaHQ//EN','BEGIN:VEVENT','UID:'+d.id+'@poojas-hq','SUMMARY:'+title];
+  if(!d.time){lines.push('DTSTART;VALUE=DATE:'+yr+mo+day);lines.push('DTEND;VALUE=DATE:'+yr+mo+day);}
+  else{const tp=d.time.split(':');const hh=tp[0],mm=tp[1];const endHH=String((parseInt(hh)+2)%24).padStart(2,'0');lines.push('DTSTART:'+yr+mo+day+'T'+hh+mm+'00');lines.push('DTEND:'+yr+mo+day+'T'+endHH+mm+'00');}
+  if(d.location)lines.push('LOCATION:'+d.location);
+  lines.push('DESCRIPTION:Shared by Pooja'+(d.who?' · For '+d.who:''));
+  if(['birthday','anniversary'].includes(d.type))lines.push('RRULE:FREQ=YEARLY');
+  lines.push('BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY','DESCRIPTION:2 days until: '+title,'END:VALARM');
+  lines.push('BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:Tomorrow: '+title,'END:VALARM');
+  lines.push('END:VEVENT','END:VCALENDAR');
+  return'data:text/calendar;charset=utf-8,'+encodeURIComponent(lines.join('\r\n'));
+}
+function shareDateWithFamily(id){
+  const d=(state.dates||[]).find(x=>x.id===id);
+  if(!d){toast('Date not found');return;}
+  const contacts=state.contacts||{};
+  const piyush=digitsOnly(contacts.piyush);
+  const kiara=digitsOnly(contacts.kiara);
+  if(!piyush&&!kiara){toast('Add a phone number in Family first');go('family');return;}
+  // Build recipients & body
+  const recipients=[];
+  if(piyush)recipients.push(piyush);
+  if(kiara)recipients.push(kiara);
+  // SMS pre-fill — iPhone supports group SMS with comma-separated numbers
+  const body=buildShareText(d,piyush&&kiara?'Piyush & Kiara':(piyush?'Piyush':'Kiara'));
+  const smsUrl=`sms:${recipients.join(',')}&body=${encodeURIComponent(body)}`;
+  window.location.href=smsUrl;
+  toast('📤 Opening Messages…');
 }
 
 function checkUpcomingDates(){
