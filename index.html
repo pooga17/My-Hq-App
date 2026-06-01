@@ -597,6 +597,7 @@
     </div>
     <button class="btn block" onclick="toggleDateForm()" id="addDateBtn">+ Add a Date or Event</button>
     <div style="height:14px"></div>
+    <div id="dailySummaryBanner"></div>
     <div id="dateDiagnostic" style="font-size:12px;color:#7A2E3E;background:#FFF1ED;border-radius:10px;padding:8px 12px;margin-bottom:10px;text-align:center;font-weight:700;"></div>
     <div id="dateList"></div>
   </section>
@@ -1314,7 +1315,8 @@ async function parseAndSaveDate(text){
 function saveDateObject(o,statusEl){
   try{
     if(!state.dates)state.dates=[];
-    const d={id:Date.now(),type:o.type||'other',name:o.name||'Event',date:o.date,time:o.time||null,location:null,who:o.who||'',notify:3,calendarAdded:false};
+    const isUrgent=/\burgent\b/i.test(o.name||'');
+    const d={id:Date.now(),type:o.type||'other',name:o.name||'Event',date:o.date,time:o.time||null,location:null,who:o.who||'',notify:3,calendarAdded:false,shareable:true,urgent:isUrgent,shared:false};
     state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveState();
     if(statusEl)statusEl.textContent='';
@@ -1408,9 +1410,12 @@ async function saveDate(){
       location:document.getElementById('dLocation').value.trim()||null,
       who:document.getElementById('dWho').value.trim(),
       notify:parseInt(document.getElementById('dNotify').value)||3,
-      calendarAdded:false
+      calendarAdded:false,
+      shareable:true,
+      shared:false
     };
     if(!d.name||!d.date){toast('Name and date please');return;}
+    d.urgent=/\burgent\b/i.test(d.name);
     if(!state.dates)state.dates=[];
     state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveState();
@@ -1664,7 +1669,111 @@ function shareDateWithFamily(id){
   const body=buildShareText(d,piyush&&kiara?'Piyush & Kiara':(piyush?'Piyush':'Kiara'));
   const smsUrl=`sms:${recipients.join(',')}&body=${encodeURIComponent(body)}`;
   window.location.href=smsUrl;
+  // Mark this item as shared
+  d.shared=true;saveState();renderDates();
   toast('📤 Opening Messages…');
+}
+
+// ===== Daily 8PM Summary to Piyush =====
+function isShareableNote(n){return n&&n.shareable&&!n.shared&&n.section!=='office';}
+function isShareableDate(d){return d&&d.shareable&&!d.shared;}
+function pendingShareItems(){
+  const notes=(state.notes||[]).filter(isShareableNote);
+  const dates=(state.dates||[]).filter(isShareableDate);
+  return{notes,dates,total:notes.length+dates.length};
+}
+function urgentItems(){
+  const notes=(state.notes||[]).filter(n=>isShareableNote(n)&&n.urgent);
+  const dates=(state.dates||[]).filter(d=>isShareableDate(d)&&d.urgent);
+  return{notes,dates,total:notes.length+dates.length};
+}
+function buildDailySummaryText(){
+  const{notes,dates}=pendingShareItems();
+  if(!notes.length&&!dates.length)return null;
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  let body=`Hey Piyush 💕 Pooja's update — ${today}:\n`;
+  // Events first
+  dates.forEach(d=>{
+    const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+    try{
+      const p=d.date.split('-');const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+      const ds=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      body+=`\n${emoji} ${d.name} · ${ds}`;
+      if(d.time)body+=` at ${d.time}`;
+    }catch(e){body+=`\n${emoji} ${d.name}`;}
+  });
+  // Then notes by section
+  const personal=notes.filter(n=>n.section==='personal');
+  const home=notes.filter(n=>n.section==='home');
+  const grocery=notes.filter(n=>n.section==='grocery');
+  personal.forEach(n=>body+=`\n🌸 ${n.text}`);
+  home.forEach(n=>body+=`\n🏡 ${n.text}`);
+  grocery.forEach(n=>body+=`\n🛒 ${n.text}`);
+  body+=`\n\nThanks for being on the team 💕`;
+  return body;
+}
+function sendDailySummary(){
+  const contacts=state.contacts||{};
+  const piyush=digitsOnly(contacts.piyush);
+  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  const body=buildDailySummaryText();
+  if(!body){toast('Nothing to share today ✨');return;}
+  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  window.location.href=smsUrl;
+  // Mark all currently-pending items as shared so they aren't re-sent tomorrow
+  (state.notes||[]).forEach(n=>{if(isShareableNote(n))n.shared=true;});
+  (state.dates||[]).forEach(d=>{if(isShareableDate(d))d.shared=true;});
+  state.lastSummaryAt=Date.now();
+  saveState();renderDates();renderNotes();renderDailySummaryBanner();
+  toast('📤 Summary sent to Piyush 💕');
+}
+function sendUrgentNow(){
+  const contacts=state.contacts||{};
+  const piyush=digitsOnly(contacts.piyush);
+  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  const{notes,dates}=urgentItems();
+  if(!notes.length&&!dates.length){toast('No urgent items 💛');return;}
+  let body=`⚡ Urgent from Pooja:\n`;
+  dates.forEach(d=>{
+    const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+    try{const p=d.date.split('-');const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));body+=`\n${emoji} ${d.name} · ${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;}catch(e){body+=`\n${emoji} ${d.name}`;}
+  });
+  notes.forEach(n=>{
+    const e=n.section==='home'?'🏡':n.section==='grocery'?'🛒':'🌸';
+    body+=`\n${e} ${n.text}`;
+  });
+  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  window.location.href=smsUrl;
+  notes.forEach(n=>n.shared=true);
+  dates.forEach(d=>d.shared=true);
+  saveState();renderDates();renderNotes();renderDailySummaryBanner();
+  toast('⚡ Urgent sent!');
+}
+function renderDailySummaryBanner(){
+  const banner=document.getElementById('dailySummaryBanner');
+  if(!banner)return;
+  const{total}=pendingShareItems();
+  const urg=urgentItems();
+  if(!total){banner.style.display='none';return;}
+  banner.style.display='block';
+  const now=new Date();const eightPM=new Date();eightPM.setHours(20,0,0,0);
+  const isAfter8=now.getTime()>=eightPM.getTime();
+  let urgentBtn=urg.total>0?`<button onclick="sendUrgentNow()" style="background:#E89AAA;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;">⚡ Send ${urg.total} urgent now</button>`:'';
+  const sendNowLabel=isAfter8?'📤 Send summary now':'📤 Send summary early';
+  banner.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-radius:14px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--pink);"><div style="font-size:12px;color:#7A2E3E;font-weight:700;margin-bottom:6px;">📤 ${total} item${total===1?'':'s'} queued for Piyush · auto-sends at 8 PM</div>${urgentBtn}<button onclick="sendDailySummary()" style="background:#fff;color:var(--pink-deep);border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">${sendNowLabel}</button></div>`;
+}
+// Auto-prompt at 8 PM if there are pending items
+function checkAutoSummary(){
+  const now=new Date();
+  if(now.getHours()<20)return;
+  const{total}=pendingShareItems();
+  if(!total)return;
+  // Only nudge once per day
+  const lastNudge=state.lastSummaryNudgeAt||0;
+  const today=new Date();today.setHours(0,0,0,0);
+  if(lastNudge>=today.getTime())return;
+  state.lastSummaryNudgeAt=Date.now();saveState();
+  toast(`📤 ${total} update${total===1?'':'s'} ready for Piyush — tap banner on Dates`,4000);
 }
 
 function checkUpcomingDates(){
@@ -2321,8 +2430,13 @@ function addNote(section){
     else if(autoCategory==='office')toast('Work item → Office 💼');
   }
   if(!state.notes)state.notes=[];
-  state.notes.unshift({id:Date.now(),text,section:finalSection,createdAt:Date.now()});
+  // Shareable: Personal, Home, Grocery — NOT Office. Urgent if text contains 'urgent'
+  const isShareable=['personal','home','grocery'].includes(finalSection);
+  const isUrgent=/\burgent\b/i.test(text);
+  const newNote={id:Date.now(),text,section:finalSection,createdAt:Date.now(),shareable:isShareable,urgent:isUrgent,shared:false};
+  state.notes.unshift(newNote);
   saveState();renderNotes();
+  if(isShareable&&isUrgent){toast('⚡ Urgent — tap Share button on the note',2800);}
   if(autoCategory&&finalSection!==section){
     const tabFor=finalSection==='grocery'?'personal':finalSection;
     switchNotesTab(tabFor);
@@ -2426,7 +2540,7 @@ function updateHomeCard(remaining,overdue,doneToday){
 
 function render(){
   if(state.avatar){document.getElementById('avatarImg').src=state.avatar;document.getElementById('avatar').classList.add('has-photo');}
-  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();
+  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();try{renderDailySummaryBanner();checkAutoSummary();}catch(e){}
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);
   updateHomeCard(totalOpen,overdue.length,getDoneTodayCount());
   // Show notification button or test button
