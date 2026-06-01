@@ -46,6 +46,14 @@
   .title{font-size:clamp(28px,8vw,42px);color:var(--pink-deep);margin-top:18px;font-weight:700;white-space:nowrap;}
   .tagline{font-style:italic;color:#3A2A30;font-family:'Cormorant Garamond',serif;font-size:18px;margin-top:4px;font-weight:600;}
   .today-label{text-align:center;margin-top:34px;font-size:11px;letter-spacing:.28em;color:var(--pink-deep);font-weight:700;}
+  .affirm-card{position:relative;margin:22px 0 6px;border-radius:22px;overflow:hidden;cursor:pointer;min-height:172px;box-shadow:0 8px 26px rgba(196,96,122,.16);-webkit-tap-highlight-color:transparent;}
+  .affirm-art{position:absolute;inset:0;z-index:0;}
+  .affirm-inner{position:relative;z-index:1;padding:24px 26px;display:flex;flex-direction:column;min-height:172px;justify-content:center;box-sizing:border-box;}
+  .affirm-label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;font-weight:800;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.3);margin-bottom:12px;opacity:.95;}
+  .affirm-text{font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1.18;font-weight:700;font-style:italic;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.36);}
+  .affirm-tap{margin-top:16px;font-size:11px;font-weight:700;color:#fff;opacity:.88;letter-spacing:.04em;text-shadow:0 1px 6px rgba(0,0,0,.3);}
+  .affirm-card:active{transform:scale(.985);transition:transform .1s;}
+  .home-section-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pink-deep);font-weight:800;margin:24px 2px 10px;}
   .today-msg{text-align:center;font-family:'Cormorant Garamond',serif;font-size:22px;margin-top:6px;color:#1A1215;font-weight:700;}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:26px 18px;margin-top:36px;}
   .tile{cursor:pointer;}
@@ -408,8 +416,15 @@
       <h1 class="title">Pooja's HQ</h1>
       <p class="tagline">all heart, all hustle, all Pooja</p>
     </div>
-    <div class="today-label">TODAY</div>
-    <div class="today-msg" id="todayMsg">Take a breath. You've got this.</div>
+    <div class="affirm-card" id="affirmCard" onclick="newAffirmation()">
+      <div class="affirm-art" id="affirmArt"></div>
+      <div class="affirm-inner">
+        <div class="affirm-label">✨ Today's affirmation</div>
+        <div class="affirm-text" id="affirmText">Today doesn't stand a chance.</div>
+        <div class="affirm-tap">tap for another 💫</div>
+      </div>
+    </div>
+    <div class="home-section-label">Today's snapshot</div>
     <div class="home-task-card" onclick="go('today')">
       <div class="home-task-row">
         <div class="home-stat"><div class="hs-num r" id="hStatRemaining">0</div><div class="hs-label">Remaining</div></div>
@@ -431,15 +446,17 @@
       <div class="ub-count" id="upcomingText"></div>
       <div id="upcomingActions"></div>
     </div>
+    <div class="home-section-label">Explore</div>
     <div class="home-quick">
       <div class="hq-card" onclick="go('notes')"><span class="hq-icon">📝</span><div><div class="hq-label">Notes</div><div class="hq-sub">office · personal · home</div></div></div>
       <div class="hq-card" onclick="go('dates')"><span class="hq-icon">💝</span><div><div class="hq-label">Dates</div><div class="hq-sub">birthdays & plans</div></div></div>
       <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
       <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:14px;">
-      <button onclick="exportData()" style="flex:1;background:#fff;border:2px solid var(--pink-deep);color:var(--pink-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📤 Export Backup</button>
-      <button onclick="triggerImport()" style="flex:1;background:#fff;border:2px solid var(--blue-deep);color:var(--blue-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📥 Import Backup</button>
+    <div class="home-section-label">Your data</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="exportData()" style="flex:1;background:#fff;border:1.5px solid var(--pink-deep);color:var(--pink-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📤 Export Backup</button>
+      <button onclick="triggerImport()" style="flex:1;background:#fff;border:1.5px solid var(--blue-deep);color:var(--blue-deep);border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📥 Import Backup</button>
     </div>
     <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)"/>
   </section>
@@ -1222,21 +1239,77 @@ Rules:
     if(!raw)throw new Error('empty');
     const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
     if(!p.date){throw new Error('nodate');}
-    if(!state.dates)state.dates=[];
-    const d={id:Date.now(),type:p.dateType||'other',name:p.name||text,date:p.date,time:p.time||null,location:null,who:p.who||'',notify:3,calendarAdded:false};
-    state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    saveState();renderDates();checkUpcomingDates();
-    statusEl.textContent='';
-    const niceDate=new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
-    toast(`📅 Saved: ${d.name} · ${niceDate}`);
-    if(typeof toggleDateForm==='function'){const form=document.getElementById('dateForm');if(form&&form.style.display!=='none')toggleDateForm();}
-    addDateToCalendarICS(d);
+    saveDateObject({type:p.dateType||'other',name:p.name||text,date:p.date,time:p.time||null,who:p.who||''},statusEl);
   }catch(err){
-    // Fallback: put the words in the name field so nothing is lost
-    const nameEl=document.getElementById('dName');if(nameEl)nameEl.value=text;
-    statusEl.textContent='Couldn\u2019t auto-read the date — I filled the name, just pick the day & save.';
-    setTimeout(()=>{statusEl.textContent='';},5000);
+    // Backup: parse the date locally so it still auto-saves (works offline too)
+    const local=localParseDate(text);
+    if(local&&local.date){
+      saveDateObject(local,statusEl);
+    }else{
+      const nameEl=document.getElementById('dName');if(nameEl)nameEl.value=text;
+      statusEl.textContent='Got the name — just tap the date field & save 💛';
+      setTimeout(()=>{statusEl.textContent='';},5000);
+    }
   }
+}
+function saveDateObject(o,statusEl){
+  if(!state.dates)state.dates=[];
+  const d={id:Date.now(),type:o.type||'other',name:o.name||'Event',date:o.date,time:o.time||null,location:null,who:o.who||'',notify:3,calendarAdded:false};
+  state.dates.push(d);state.dates.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  saveState();renderDates();checkUpcomingDates();
+  if(statusEl)statusEl.textContent='';
+  const niceDate=new Date(d.date+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  toast(`📅 Saved: ${d.name} · ${niceDate}`);
+  const form=document.getElementById('dateForm');if(form&&form.style.display!=='none'&&typeof toggleDateForm==='function')toggleDateForm();
+  addDateToCalendarICS(d);
+}
+// Local natural-language date parser (backup for the AI). Handles "June 7th", "June seventh",
+// "6/7", "next Friday", "tomorrow", "this Saturday", etc. Returns {name,date,type} or null.
+function localParseDate(text){
+  const raw=text.trim();const lc=raw.toLowerCase();
+  const today=new Date();today.setHours(0,0,0,0);
+  const yr=today.getFullYear();
+  const months={january:0,jan:0,february:1,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,sept:8,october:9,oct:9,november:10,nov:10,december:11,dec:11};
+  const ord={first:1,second:2,third:3,fourth:4,fifth:5,sixth:6,seventh:7,eighth:8,ninth:9,tenth:10,eleventh:11,twelfth:12,thirteenth:13,fourteenth:14,fifteenth:15,sixteenth:16,seventeenth:17,eighteenth:18,nineteenth:19,twentieth:20,'twenty-first':21,'twenty-second':22,'twenty-third':23,'twenty-fourth':24,'twenty-fifth':25,'twenty-sixth':26,'twenty-seventh':27,'twenty-eighth':28,'twenty-ninth':29,thirtieth:30,'thirty-first':31};
+  const days={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};
+  let found=null;
+  // 1) "Month Day" e.g. "June 7", "June 7th", "June seventh"
+  const mNames=Object.keys(months).join('|');
+  let m=lc.match(new RegExp('('+mNames+')\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?','i'));
+  if(m){const day=parseInt(m[2]);found=monthDayToDate(months[m[1]],day,today,yr);}
+  if(!found){
+    const ordNames=Object.keys(ord).join('|');
+    let mo=lc.match(new RegExp('('+mNames+')\\.?\\s+('+ordNames+')','i'));
+    if(mo){found=monthDayToDate(months[mo[1]],ord[mo[2]],today,yr);}
+  }
+  // 2) numeric "6/7" or "6-7" (month/day) or "6/7/2026"
+  if(!found){let mn=lc.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);if(mn){const mo=parseInt(mn[1])-1,da=parseInt(mn[2]);let y=mn[3]?parseInt(mn[3]):yr;if(y<100)y+=2000;let dt=new Date(y,mo,da);if(!mn[3]&&dt<today)dt=new Date(y+1,mo,da);found=fmt(dt);}}
+  // 3) "today" / "tomorrow"
+  if(!found&&/\btomorrow\b/.test(lc)){const t=new Date(today);t.setDate(t.getDate()+1);found=fmt(t);}
+  if(!found&&/\btoday\b/.test(lc)){found=fmt(today);}
+  // 4) "next Friday" / "this Saturday" / "on Monday"
+  if(!found){for(const dn in days){if(new RegExp('\\b'+dn+'\\b').test(lc)){const t=new Date(today);const diff=(days[dn]-t.getDay()+7)%7||7;t.setDate(t.getDate()+diff);found=fmt(t);break;}}}
+  if(!found)return null;
+  // Build a clean name: strip the date words and filler
+  let name=raw
+    .replace(new RegExp('\\b(on|by|is|are|the|a|an|add|important date|reminder|remind me|please)\\b','ig'),' ')
+    .replace(new RegExp('('+mNames+')\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?','ig'),' ')
+    .replace(new RegExp('('+mNames+')\\.?\\s+('+Object.keys(ord).join('|')+')','ig'),' ')
+    .replace(/\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?\b/g,' ')
+    .replace(/\b(today|tomorrow|next|this)\b/ig,' ')
+    .replace(new RegExp('\\b('+Object.keys(days).join('|')+')\\b','ig'),' ')
+    .replace(/[,.]+/g,' ').replace(/\s+/g,' ').trim();
+  if(!name)name='Event';
+  name=name.charAt(0).toUpperCase()+name.slice(1);
+  let type='other';
+  if(/birthday|bday/i.test(lc))type='birthday';
+  else if(/anniversary/i.test(lc))type='anniversary';
+  else if(/party/i.test(lc))type='party';
+  else if(/dinner|lunch|brunch/i.test(lc))type='dinner';
+  else if(/weekend|getaway|trip/i.test(lc))type='weekend';
+  return {name,date:found,type};
+  function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function monthDayToDate(mo,da,today,yr){let dt=new Date(yr,mo,da);if(dt<today)dt=new Date(yr+1,mo,da);return fmt(dt);}
 }
 async function saveDate(){
   const type=document.getElementById('dType').value;
@@ -1516,6 +1589,57 @@ async function requestNotifications(){
     toast('Reminders on! Morning, midday & evening nudges set ✨');
   }else{toast('Permission denied — enable in iPhone Settings → Notifications');}
 }
+
+// AFFIRMATIONS — punchy daily pep for Pooja
+const AFFIRMATIONS=[
+  "Today doesn't stand a chance.",
+  "Messy bun, big plans. Let's go.",
+  "You're not lucky. You're that good.",
+  "Plot twist: you've got this.",
+  "Be the main character today, Pooja.",
+  "Tired girls still run the world.",
+  "Soft heart. Bold moves.",
+  "You + this day = unstoppable.",
+  "Make it look easy. Again.",
+  "Coffee first, then conquer.",
+  "Your vibe is the whole strategy.",
+  "Doubt's not invited today.",
+  "Walk in like you own it. You do.",
+  "Less stress, more sparkle.",
+  "You're a whole moment. Act like it.",
+  "Hard day? You're harder to beat.",
+  "Queen energy, zero apologies.",
+  "You already survived the worst. Easy.",
+  "Glow up the to-do list today.",
+  "Calm mind, killer instincts.",
+  "Born to do this. Literally.",
+  "Today's forecast: you, winning.",
+  "Stay soft. Stay savage. Both.",
+  "You're the upgrade, not the option.",
+  "Breathe. Then take over.",
+  "Pretty AND powerful. Deal with it.",
+  "Small steps, big boss energy.",
+  "You make it look effortless. It's not. You're just elite.",
+  "Whatever it is — handled.",
+  "Everything's going to be awesome. Promise.",
+];
+const AFFIRM_ART=[
+  `<svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB6C1"/><stop offset="1" stop-color="#F4A98C"/></linearGradient></defs><rect width="400" height="200" fill="url(#ga)"/><circle cx="200" cy="172" r="82" fill="#FFE4B5" opacity="0.85"/><circle cx="200" cy="184" r="56" fill="#FFF1DA" opacity="0.9"/><g opacity="0.55" fill="#fff"><circle cx="60" cy="40" r="3"/><circle cx="340" cy="60" r="2.5"/><circle cx="120" cy="30" r="2"/><circle cx="290" cy="35" r="2.5"/></g></svg>`,
+  `<svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9DCEB"/><stop offset="0.5" stop-color="#E3C6E0"/><stop offset="1" stop-color="#F4B6C2"/></linearGradient></defs><rect width="400" height="200" fill="url(#gb)"/><g opacity="0.45" fill="#fff"><circle cx="320" cy="60" r="26"/><circle cx="345" cy="82" r="18"/><circle cx="300" cy="84" r="14"/></g><g opacity="0.4" fill="#fff"><circle cx="70" cy="150" r="10"/><circle cx="95" cy="160" r="7"/></g></svg>`,
+  `<svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7C8D8"/><stop offset="1" stop-color="#C9B6E0"/></linearGradient></defs><rect width="400" height="200" fill="url(#gc)"/><g fill="#fff" opacity="0.5"><ellipse cx="200" cy="100" rx="14" ry="34"/><ellipse cx="200" cy="100" rx="34" ry="14"/><ellipse cx="200" cy="100" rx="26" ry="26" opacity="0.6"/></g><circle cx="200" cy="100" r="8" fill="#fff" opacity="0.55"/></svg>`,
+  `<svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFD7C2"/><stop offset="1" stop-color="#F4B6C2"/></linearGradient></defs><rect width="400" height="200" fill="url(#gd)"/><g opacity="0.5" stroke="#fff" stroke-width="3" fill="none"><path d="M0 150 q100 -40 200 0 t200 0"/><path d="M0 170 q100 -40 200 0 t200 0"/></g><circle cx="320" cy="55" r="30" fill="#FFF1DA" opacity="0.8"/></svg>`,
+  `<svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="ge" cx="0.3" cy="0.3" r="0.9"><stop offset="0" stop-color="#FBE0E6"/><stop offset="1" stop-color="#5A8CAA"/></radialGradient></defs><rect width="400" height="200" fill="url(#ge)"/><g fill="#fff" opacity="0.4"><circle cx="90" cy="70" r="40"/><circle cx="130" cy="100" r="28"/><circle cx="60" cy="110" r="22"/></g></svg>`,
+];
+function affirmDayIndex(){const d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);}
+let affirmManualOffset=0;
+function renderAffirmation(){
+  const txt=document.getElementById('affirmText');const art=document.getElementById('affirmArt');
+  if(!txt||!art)return;
+  const base=affirmDayIndex()+affirmManualOffset;
+  txt.textContent=AFFIRMATIONS[((base%AFFIRMATIONS.length)+AFFIRMATIONS.length)%AFFIRMATIONS.length];
+  art.innerHTML=AFFIRM_ART[((base%AFFIRM_ART.length)+AFFIRM_ART.length)%AFFIRM_ART.length];
+}
+function newAffirmation(){affirmManualOffset++;renderAffirmation();}
 
 function getTotalOpen(){
   const taskOpen=(state.tasks||[]).filter(t=>!t.done&&!isSnoozed(t)).length;
@@ -1831,7 +1955,7 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v11</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v13</span></h3></div>`;
   nonEmpty.forEach(g=>{
     html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
     g.items.forEach(item=>{
@@ -2006,7 +2130,7 @@ document.getElementById('manualInput').addEventListener('keydown',e=>{if(e.key==
 
 
 const affirmations=["Take a breath. You've got this.","Hardworking. Loving. Unstoppable.","Today is yours, Pooja.","Small steps, big wins.","You're the heart of everything you do.","One thing at a time — that's the secret.","You make it look easy. It isn't.","Lead with grace. You always do."];
-function setTodayMessage(){const d=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/86400000);document.getElementById('todayMsg').textContent=affirmations[d%affirmations.length];}
+function setTodayMessage(){const el=document.getElementById('todayMsg');if(el)el.textContent='';}
 
 function updateHomeCard(remaining,overdue,doneToday){
   document.getElementById('hStatRemaining').textContent=remaining;document.getElementById('hStatOverdue').textContent=overdue;document.getElementById('hStatDone').textContent=doneToday;
@@ -2021,7 +2145,7 @@ function updateHomeCard(remaining,overdue,doneToday){
 
 function render(){
   if(state.avatar){document.getElementById('avatarImg').src=state.avatar;document.getElementById('avatar').classList.add('has-photo');}
-  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();
+  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);
   updateHomeCard(totalOpen,overdue.length,getDoneTodayCount());
   // Show notification button or test button
