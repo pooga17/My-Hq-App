@@ -597,6 +597,7 @@
     </div>
     <button class="btn block" onclick="toggleDateForm()" id="addDateBtn">+ Add a Date or Event</button>
     <div style="height:14px"></div>
+    <div id="dateDiagnostic" style="font-size:12px;color:#7A2E3E;background:#FFF1ED;border-radius:10px;padding:8px 12px;margin-bottom:10px;text-align:center;font-weight:700;"></div>
     <div id="dateList"></div>
   </section>
 
@@ -1500,16 +1501,24 @@ function renderDates(){
   // Always re-render the calendar grid alongside the list
   try{renderHqCalendar();}catch(e){}
   const el=document.getElementById('dateList');
-  if(!state.dates.length){el.innerHTML='<div class="empty">No dates yet.</div>';return;}
+  const diag=document.getElementById('dateDiagnostic');
+  const all=(state.dates||[]).filter(d=>d&&d.date&&d.name);
+  if(diag){diag.textContent=`📊 ${all.length} saved date${all.length===1?'':'s'} in app`;}
+  if(!all.length){el.innerHTML='<div class="empty">No dates yet.</div>';return;}
   const now=new Date();now.setHours(0,0,0,0);
-  el.innerHTML=state.dates.map(d=>{
-    const dt=new Date(d.date+'T00:00:00');const diff=Math.round((dt-now)/86400000);
+  el.innerHTML=all.map(d=>{
+    // Safe date parsing — split YYYY-MM-DD into parts to avoid Safari timezone bug
+    let dt;
+    try{
+      const p=String(d.date).split('-');
+      dt=(p.length===3)?new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])):new Date(d.date);
+    }catch(e){dt=new Date();}
+    const diff=Math.round((dt-now)/86400000);
     let cd=diff===0?'today 🎉':diff===1?'tomorrow':diff>0?`in ${diff} days`:`${Math.abs(diff)} days ago`;
     const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
     const calTag=d.calendarAdded?'<span style="font-size:10px;background:#DFF2EA;color:#1A5038;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:4px;">📅 in calendar</span>':'';
     const locLine=d.location?`<div class="date-sub" style="color:#5A8CAA">📍 ${escapeHtml(d.location)}</div>`:'';
     const timeLine=d.time?` · ${d.time}`:'';
-    // Family share label depends on who's saved
     const c=state.contacts||{};
     const hasP=!!digitsOnly(c.piyush),hasK=!!digitsOnly(c.kiara);
     let shareLabel='📤 Share';
@@ -1536,10 +1545,8 @@ function renderHqCalendar(){
   const daysInMonth=new Date(year,month+1,0).getDate();
   const daysInPrev=new Date(year,month,0).getDate();
   const today=new Date();today.setHours(0,0,0,0);const todayKey=hqCalKey(today);
-  // Filter to ONLY valid dates with proper YYYY-MM-DD format and a name
-  const validDates=(state.dates||[]).filter(d=>d&&d.date&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&d.name);
-  // If we found ghosts/invalid entries, clean them out of state for good
-  if(validDates.length!==(state.dates||[]).length){state.dates=validDates;saveState();}
+  // Filter to dates with valid format for grid rendering ONLY (don't mutate state)
+  const validDates=(state.dates||[]).filter(d=>d&&d.date&&/^\d{4}-\d{2}-\d{2}$/.test(d.date));
   // Build event-by-day map
   const evMap={};
   validDates.forEach(d=>{if(!evMap[d.date])evMap[d.date]=[];evMap[d.date].push(d);});
@@ -1560,7 +1567,11 @@ function renderHqCalendar(){
   if(!info)return;
   if(!hqCalSelectedKey){info.style.display='none';return;}
   const evs=evMap[hqCalSelectedKey]||[];
-  const niceDate=new Date(hqCalSelectedKey+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  let niceDate;
+  try{
+    const sp=hqCalSelectedKey.split('-');
+    niceDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2])).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  }catch(e){niceDate=hqCalSelectedKey;}
   if(!evs.length){
     info.style.display='block';
     info.innerHTML=`<div class="ev-title">${niceDate}</div><div class="ev-empty">Nothing planned. ✨</div>`;
