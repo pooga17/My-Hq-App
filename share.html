@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F4B6C2">
+<title>Event from Pooja 💕</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#F4B6C2;
+  --pink-deep:#E89AAA;
+  --peach:#FFD7C2;
+  --blue:#C9DCEB;
+  --cream:#FFF8F4;
+  --ink:#3A2A30;
+  --line:#F0E2E0;
+  --green:#7BC4A4;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:linear-gradient(160deg,#FFE8EC 0%, #E8F4FF 100%);min-height:100vh;font-family:'Inter',sans-serif;color:var(--ink);padding:20px;display:flex;align-items:center;justify-content:center}
+.card{max-width:420px;width:100%;background:#fff;border-radius:24px;padding:28px 24px;box-shadow:0 12px 40px rgba(232,154,170,.25);text-align:center}
+.heart{font-size:42px;margin-bottom:6px}
+.from{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--pink-deep);font-style:italic;margin-bottom:18px}
+.from b{font-weight:700;font-style:normal}
+.event-emoji{font-size:64px;margin:10px 0}
+.event-name{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:6px}
+.event-date{font-size:16px;color:var(--pink-deep);font-weight:600;margin-bottom:4px}
+.event-meta{font-size:14px;color:#7A6A6E;margin-bottom:4px}
+.event-meta strong{color:var(--ink)}
+.divider{height:1px;background:var(--line);margin:22px 0}
+.btn{display:block;width:100%;padding:16px;border-radius:16px;border:none;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;text-decoration:none;text-align:center}
+.btn-primary{background:linear-gradient(135deg,var(--pink-deep),#D67B8C);color:#fff;box-shadow:0 6px 18px rgba(232,154,170,.4)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{background:#FFF1ED;color:var(--pink-deep);border:1px solid var(--pink)}
+.note{font-size:12px;color:#9A8A8E;margin-top:14px;line-height:1.5}
+.reminders{background:#FFF8F4;border-radius:12px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--pink-deep);font-weight:600;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="heart">💕</div>
+  <div class="from">From <b>Pooja</b></div>
+  <div class="event-emoji" id="emoji">📅</div>
+  <div class="event-name" id="name">Event</div>
+  <div class="event-date" id="date"></div>
+  <div class="event-meta" id="meta"></div>
+  <div class="reminders">🔔 Reminders set for 1 day & 2 days before</div>
+  <div class="divider"></div>
+  <a class="btn btn-primary" id="addBtn" href="#">📅 Add to my iPhone Calendar</a>
+  <button class="btn btn-secondary" onclick="downloadICS()">⬇️ Download as file</button>
+  <div class="note">Tap "Add to my iPhone Calendar" — your phone will open the calendar invite. Tap "Add" to save it with reminders.</div>
+</div>
+<script>
+const TYPE_EMOJI={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',recital:'🩰',class:'📚',appointment:'📅',other:'📅'};
+const params=new URLSearchParams(location.search);
+const ev={
+  name:params.get('n')||'Event',
+  date:params.get('dt')||'',
+  time:params.get('t')||'',
+  loc:params.get('loc')||'',
+  who:params.get('who')||'',
+  type:params.get('type')||'other'
+};
+function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+document.getElementById('emoji').textContent=TYPE_EMOJI[ev.type]||'📅';
+document.getElementById('name').textContent=ev.name;
+// Date display
+let dateLabel='';
+if(ev.date){
+  try{
+    const p=ev.date.split('-');
+    const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+    dateLabel=dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    if(ev.time)dateLabel+=' · '+ev.time;
+  }catch(e){dateLabel=ev.date}
+}
+document.getElementById('date').textContent=dateLabel;
+// Meta
+let meta=[];
+if(ev.who)meta.push('For <strong>'+escapeHtml(ev.who)+'</strong>');
+if(ev.loc)meta.push('📍 '+escapeHtml(ev.loc));
+document.getElementById('meta').innerHTML=meta.join(' · ');
+// Build ICS file content
+function buildICS(){
+  const title=(TYPE_EMOJI[ev.type]||'📅')+' '+ev.name+(ev.who?' ('+ev.who+')':'');
+  const parts=ev.date.split('-');const yr=parts[0],mo=parts[1],day=parts[2];
+  let lines=['BEGIN:VCALENDAR','VERSION:2.0','CALSCALE:GREGORIAN','PRODID:-//PoojaHQ//EN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+Date.now()+'@poojas-hq','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''),'SUMMARY:'+title];
+  if(!ev.time){lines.push('DTSTART;VALUE=DATE:'+yr+mo+day);lines.push('DTEND;VALUE=DATE:'+yr+mo+day);}
+  else{
+    const tp=ev.time.split(':');const hh=tp[0]||'09',mm=tp[1]||'00';
+    const endHH=String((parseInt(hh)+2)%24).padStart(2,'0');
+    lines.push('DTSTART:'+yr+mo+day+'T'+hh+mm+'00');
+    lines.push('DTEND:'+yr+mo+day+'T'+endHH+mm+'00');
+  }
+  if(ev.loc)lines.push('LOCATION:'+ev.loc);
+  lines.push('DESCRIPTION:Shared by Pooja'+(ev.who?' · For '+ev.who:''));
+  if(['birthday','anniversary'].includes(ev.type))lines.push('RRULE:FREQ=YEARLY');
+  lines.push('BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY','DESCRIPTION:2 days until: '+title,'END:VALARM');
+  lines.push('BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:Tomorrow: '+title,'END:VALARM');
+  lines.push('END:VEVENT','END:VCALENDAR');
+  return lines.join('\r\n');
+}
+// Set up the Add button - serve the .ics as a downloadable file with the correct MIME
+const icsContent=buildICS();
+const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+const blobUrl=URL.createObjectURL(blob);
+const addBtn=document.getElementById('addBtn');
+addBtn.href=blobUrl;
+addBtn.setAttribute('download',(ev.name||'event').replace(/[^a-z0-9]/gi,'_')+'.ics');
+function downloadICS(){
+  const a=document.createElement('a');
+  a.href=blobUrl;
+  a.download=(ev.name||'event').replace(/[^a-z0-9]/gi,'_')+'.ics';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+</script>
+</body>
+</html>

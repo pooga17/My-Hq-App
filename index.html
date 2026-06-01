@@ -1430,11 +1430,11 @@ async function saveDate(){
   }
 }
 function addDateToCalendarICS(d){
-  const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[d.type]||'📅';
+  const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
   const title=emoji+' '+d.name+(d.who?' ('+d.who+')':'');
   const isRecurring=['birthday','anniversary'].includes(d.type);
   const parts=d.date.split('-');const yr=parts[0],mo=parts[1],day=parts[2];
-  let lines=['BEGIN:VCALENDAR','VERSION:2.0','CALSCALE:GREGORIAN','PRODID:-//PoojaHQ//EN','BEGIN:VEVENT','UID:'+d.id+'@poojas-hq','SUMMARY:'+title];
+  let lines=['BEGIN:VCALENDAR','VERSION:2.0','CALSCALE:GREGORIAN','PRODID:-//PoojaHQ//EN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+d.id+'@poojas-hq','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''),'SUMMARY:'+title];
   if(!d.time){lines.push('DTSTART;VALUE=DATE:'+yr+mo+day);lines.push('DTEND;VALUE=DATE:'+yr+mo+day);}
   else{const tp=d.time.split(':');const hh=tp[0],mm=tp[1];const endHH=String((parseInt(hh)+2)%24).padStart(2,'0');lines.push('DTSTART:'+yr+mo+day+'T'+hh+mm+'00');lines.push('DTEND:'+yr+mo+day+'T'+endHH+mm+'00');}
   if(d.location)lines.push('LOCATION:'+d.location);
@@ -1442,17 +1442,21 @@ function addDateToCalendarICS(d){
   if(isRecurring)lines.push('RRULE:FREQ=YEARLY');
   lines.push('BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY','DESCRIPTION:2 days until: '+title,'END:VALARM');
   lines.push('BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:Tomorrow: '+title,'END:VALARM');
-  lines.push('BEGIN:VALARM','TRIGGER:PT0S','ACTION:DISPLAY','DESCRIPTION:Today: '+title+'!','END:VALARM');
   lines.push('END:VEVENT','END:VCALENDAR');
   const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=d.name.replace(/[^a-z0-9]/gi,'_')+'.ics';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),3000);
+  // Open in a NEW tab so iPhone Safari recognizes it as a calendar invite and shows the "Add to Calendar" prompt
+  const win=window.open(url,'_blank');
+  if(!win){
+    // Fallback if popup blocked - use download link
+    const a=document.createElement('a');a.href=url;a.download=d.name.replace(/[^a-z0-9]/gi,'_')+'.ics';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
   const idx=state.dates.findIndex(x=>x.id===d.id);
   if(idx>=0)state.dates[idx].calendarAdded=true;
   saveState();renderDates();
-  toast('📅 Tap the downloaded file to add to iPhone Calendar!');
+  toast('📅 iPhone will ask to add — tap "Add"!');
 }
 async function addDateToCalendar(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
@@ -1613,14 +1617,21 @@ function digitsOnly(s){return(s||'').replace(/\D/g,'');}
 function buildShareText(d,name){
   const dt=new Date(d.date+'T00:00:00');
   const dateStr=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const emoji={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',other:'📅'}[d.type]||'📅';
-  let body=`Hey ${name||''} — Pooja added: ${emoji} ${d.name} · ${dateStr}`;
+  const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+  let body=`Hey ${name||''} 💕 Pooja added: ${emoji} ${d.name} · ${dateStr}`;
   if(d.time)body+=` at ${d.time}`;
   if(d.location)body+=` · ${d.location}`;
-  body+=`. Tap to add to your calendar with reminders 1 & 2 days before: `;
-  // Build a data: URL for the .ics file so the recipient can tap and add it
-  const icsUrl=buildIcsDataUrl(d);
-  body+=icsUrl;
+  // Build a clean clickable web link to your hosted share page
+  const baseUrl=window.location.origin+window.location.pathname.replace(/\/[^\/]*$/,'')+'/share.html';
+  const params=new URLSearchParams({
+    n:d.name,
+    dt:d.date,
+    t:d.time||'',
+    loc:d.location||'',
+    who:d.who||'',
+    type:d.type||'other'
+  });
+  body+=`. Tap to add to your calendar (with reminders): ${baseUrl}?${params.toString()}`;
   return body;
 }
 function buildIcsDataUrl(d){
