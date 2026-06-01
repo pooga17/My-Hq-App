@@ -1536,11 +1536,14 @@ function renderHqCalendar(){
   const daysInMonth=new Date(year,month+1,0).getDate();
   const daysInPrev=new Date(year,month,0).getDate();
   const today=new Date();today.setHours(0,0,0,0);const todayKey=hqCalKey(today);
+  // Filter to ONLY valid dates with proper YYYY-MM-DD format and a name
+  const validDates=(state.dates||[]).filter(d=>d&&d.date&&/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&d.name);
+  // If we found ghosts/invalid entries, clean them out of state for good
+  if(validDates.length!==(state.dates||[]).length){state.dates=validDates;saveState();}
   // Build event-by-day map
   const evMap={};
-  (state.dates||[]).forEach(d=>{if(!evMap[d.date])evMap[d.date]=[];evMap[d.date].push(d);});
+  validDates.forEach(d=>{if(!evMap[d.date])evMap[d.date]=[];evMap[d.date].push(d);});
   let cells=[];
-  // prev month tail
   for(let i=startDow-1;i>=0;i--){const day=daysInPrev-i;cells.push({day,key:hqCalKey(new Date(year,month-1,day)),other:true});}
   for(let day=1;day<=daysInMonth;day++){cells.push({day,key:hqCalKey(new Date(year,month,day)),other:false});}
   while(cells.length%7!==0){const day=cells.length-startDow-daysInMonth+1;cells.push({day,key:hqCalKey(new Date(year,month+1,day)),other:true});}
@@ -1549,7 +1552,7 @@ function renderHqCalendar(){
     if(c.other)classes.push('other-month');
     if(c.key===todayKey)classes.push('today');
     if(c.key===hqCalSelectedKey)classes.push('selected');
-    if(evMap[c.key])classes.push('has-event');
+    if(evMap[c.key]&&evMap[c.key].length>0)classes.push('has-event');
     return`<div class="${classes.join(' ')}" onclick="hqCalSelect('${c.key}')">${c.day}</div>`;
   }).join('');
   // Selected day info
@@ -1565,7 +1568,8 @@ function renderHqCalendar(){
     info.style.display='block';
     info.innerHTML=`<div class="ev-title">${niceDate}</div>`+evs.map(d=>{
       const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
-      return`<div style="margin-top:6px;">${emoji} <strong>${escapeHtml(d.name)}</strong>${d.who?` · for ${escapeHtml(d.who)}`:''}${d.time?` · ${d.time}`:''}</div>`;
+      const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;font-family:inherit;">📤 Share with Piyush</button>`;
+      return`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(232,154,170,.3);">${emoji} <strong>${escapeHtml(d.name)}</strong>${d.who?` · for ${escapeHtml(d.who)}`:''}${d.time?` · ${d.time}`:''}<br/>${shareBtn}</div>`;
     }).join('');
   }
 }
