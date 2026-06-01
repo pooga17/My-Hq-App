@@ -1928,12 +1928,13 @@ function saveNudgeDataToIDB(){
   if(!('indexedDB' in window))return;
   const total=getTotalOpen();
   const overdue=(state.tasks||[]).filter(isOverdue).length;
+  const piyushQueued=(typeof pendingShareItems==='function')?pendingShareItems().total:0;
   const req=indexedDB.open('poojas-hq-sw',1);
   req.onupgradeneeded=ev=>ev.target.result.createObjectStore('kv');
   req.onsuccess=ev=>{
     const db=ev.target.result;
     const tx=db.transaction('kv','readwrite');
-    tx.objectStore('kv').put({total,overdue,notifEnabled:!!state.notificationsEnabled},'nudge-data');
+    tx.objectStore('kv').put({total,overdue,piyushQueued,notifEnabled:!!state.notificationsEnabled},'nudge-data');
   };
 }
 
@@ -2033,7 +2034,13 @@ function fireNudge(type){
     else if(overdue>0){title="Lunchtime nudge! 🍽️";body=`${overdue} item${overdue>1?'s are':' is'} waiting too long. Quick power move! 💪`;}
     else{title="Hey Pooja, it's midday! 🌺";body=`${total} open — afternoon you is about to crush them 😄`;}
   }else{
-    if(total===0){title="Evening wrap-up — you did it! 🎊";body="All done! Seriously Pooja, take a bow 👏";}
+    // Evening (8 PM) — if there are items queued for Piyush, prioritize that reminder
+    const queued=(typeof pendingShareItems==='function')?pendingShareItems().total:0;
+    if(queued>0){
+      title=`💕 8 PM — Piyush summary ready`;
+      body=`${queued} update${queued===1?'':'s'} queued. Open the app and tap Send 💛`;
+    }
+    else if(total===0){title="Evening wrap-up — you did it! 🎊";body="All done! Seriously Pooja, take a bow 👏";}
     else{title="Evening check-in 🌙✨";body=`${total} thing${total>1?'s':''} still hanging. Future-you will be grateful 😊`;}
   }
   new Notification(title,{body,icon:NOTIF_ICON,tag:'poojas-hq-'+type,renotify:true});
