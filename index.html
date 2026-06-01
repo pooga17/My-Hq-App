@@ -822,6 +822,7 @@ const manifest={name:"Pooja's HQ",short_name:"Pooja's HQ",start_url:".",display:
 document.getElementById('manifestLink').href='data:application/manifest+json;charset=utf-8,'+encodeURIComponent(JSON.stringify(manifest));
 
 let state={tasks:[],dates:[],gifts:[],photos:[],notes:[],plans:[],partyNotes:{groc:[],cook:[]},avatar:null,notificationsEnabled:false};
+const DATE_TYPE_EMOJI={birthday:'🎂',anniversary:'💕',party:'🎉',dinner:'🍽',weekend:'🌿',recital:'🩰',class:'📚',appointment:'📅',other:'📅'};
 const STORAGE_KEY='poojas-hq-state-v3';
 
 function loadState(){
