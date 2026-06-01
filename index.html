@@ -139,6 +139,13 @@
   .focus-empty h3{font-size:26px;color:var(--pink-deep);margin:10px 0 6px;}
   .focus-empty p{color:#3A2A30;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;}
   .section-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;}
+  .section-head.collapser{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+  .sec-chevron{font-size:12px;color:var(--muted);transition:transform .2s;display:inline-block;}
+  .collapser.open .sec-chevron,.ntg-head.open .sec-chevron{transform:rotate(180deg);}
+  .section-body{display:none;}
+  .section-body.open{display:block;}
+  .ntg-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;margin-bottom:6px;}
+  .ntg-count{font-size:10px;font-weight:700;color:#fff;background:#B58AA0;padding:2px 8px;border-radius:999px;}
   .section-head h3{font-size:15px;font-family:'Inter',sans-serif;font-weight:700;color:#1A1215;display:flex;align-items:center;gap:8px;}
   .section-head h3.overdue{color:#8B1010;}
   .section-head h3.today{color:#7A3A10;}
@@ -1032,11 +1039,11 @@ function renderToday(){
   }
   const groupsEl=document.getElementById('taskGroups');
   let html='';
-  if(overdue.length>1)html+=sectionHTML('🔥 More overdue','overdue',overdue.slice(1));
-  if(todayTasks.length>0&&!(overdue.length===0&&allOpen[0]&&isToday(allOpen[0])))html+=sectionHTML('⏰ Today','today',todayTasks.filter(t=>t.id!==(allOpen[0]&&allOpen[0].id)));
-  else if(todayTasks.length>1)html+=sectionHTML('⏰ Today','today',todayTasks.slice(1));
+  if(overdue.length>1)html+=sectionHTML('🔥 More overdue','overdue',overdue.slice(1),false);
+  if(todayTasks.length>0&&!(overdue.length===0&&allOpen[0]&&isToday(allOpen[0])))html+=sectionHTML('⏰ Today','today',todayTasks.filter(t=>t.id!==(allOpen[0]&&allOpen[0].id)),false);
+  else if(todayTasks.length>1)html+=sectionHTML('⏰ Today','today',todayTasks.slice(1),false);
   const weekFiltered=week.filter(t=>t.id!==(allOpen[0]&&allOpen[0].id));
-  if(weekFiltered.length>0)html+=sectionHTML('📋 This week','week',weekFiltered);
+  if(weekFiltered.length>0)html+=sectionHTML('📋 This week','week',weekFiltered,true);
   const snoozed=state.tasks.filter(t=>!t.done&&isSnoozed(t));
   if(snoozed.length>0){
     html+=`<div class="section-head"><h3 style="color:var(--muted)">😴 Snoozed</h3><span class="section-count">${snoozed.length}</span></div>`;
@@ -1082,7 +1089,7 @@ function renderToday(){
   if(hr>=18&&(doneTodayAll.length>0||totalOpen>0)){wrapEl.innerHTML=`<div class="wrap-card"><h3>Wrap up your day</h3><p><b>${doneTodayAll.length}</b> finished today${doneTodayAll.length>=3?" — that's a great day":''}.</p>${totalOpen>0?`<p><b>${totalOpen}</b> rolls into tomorrow.</p>`:''}<div class="quote">${dayClosingLine(doneTodayAll.length)}</div></div>`;}else{wrapEl.innerHTML='';}
 }
 
-function sectionHTML(title,cssClass,tasks){
+function sectionHTML(title,cssClass,tasks,collapsed){
   if(tasks.length===0)return'';
   const cards=tasks.map(t=>{
     const overdue=isOverdue(t);
@@ -1092,7 +1099,14 @@ function sectionHTML(title,cssClass,tasks){
       .map(s=>`<button class="status-btn ${s.cls}${status===s.val?' active':''}" onclick="setTaskStatus(${t.id},'${s.val}')">${s.label}</button>`).join('');
     return`<div class="task-row-card ${overdue?'row-overdue':''}"><div class="trc-top"><div class="trc-meta"><span class="trc-date">${dateStr}</span><span class="pill ${t.priority==='high'?'high':t.priority==='low'?'low':'med'}">${t.priority}</span>${overdue?'<span class="pill age danger">⚠ overdue</span>':''}</div><button class="task-del" onclick="deleteTask(${t.id})">×</button></div><div class="trc-title">${escapeHtml(t.title)}</div>${t.details?`<div class="trc-detail">${escapeHtml(t.details)}</div>`:''}<div class="status-toggle">${statusBtns}</div><div class="trc-actions"><button class="tt-btn snooze-b" onclick="openSnooze(${t.id})">⏰ Snooze</button></div></div>`;
   }).join('');
-  return`<div class="section-head"><h3 class="${cssClass}">${title}</h3><span class="section-count ${cssClass==='overdue'?'overdue-c':''}">${tasks.length}</span></div>${cards}`;
+  const gid='sec-'+cssClass;
+  const openCls=collapsed?'':' open';
+  return`<div class="section-head collapser${openCls}" onclick="toggleSection('${gid}')"><h3 class="${cssClass}">${title}</h3><div style="display:flex;align-items:center;gap:8px;"><span class="section-count ${cssClass==='overdue'?'overdue-c':''}">${tasks.length}</span><span class="sec-chevron">▾</span></div></div><div class="section-body${openCls}" id="${gid}">${cards}</div>`;
+}
+function toggleSection(id){
+  const body=document.getElementById(id);if(!body)return;
+  const head=body.previousElementSibling;
+  body.classList.toggle('open');if(head)head.classList.toggle('open');
 }
 
 function snoozeWakeLabel(ts){const days=Math.ceil((ts-Date.now())/86400000);if(days<=1)return'tomorrow';if(days<7)return`in ${days}d`;return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
@@ -1178,19 +1192,21 @@ function toggleDateForm(){
   f.style.display=open?'block':'none';b.style.display=open?'none':'flex';
   if(open)onDateTypeChange();
 }
-let dateMicRec=null,dateMicRecording=false,dateMicTranscript='';
+let dateMicRec=null,dateMicRecording=false,dateMicTranscript='',dateMicInterim='';
 function toggleDateMic(){
   if(!SR){toast('Voice not supported — type below');return;}
   if(dateMicRecording){
     dateMicRecording=false;
     document.getElementById('dateMicBtn').textContent='🎤 Speak';
+    // Use BOTH finalized and any pending interim words (the last words are often still interim)
+    const text=(dateMicTranscript+' '+dateMicInterim).trim();
     try{dateMicRec&&dateMicRec.stop();}catch(e){}
-    const text=dateMicTranscript.trim();
     if(text){
       document.getElementById('dateMicStatus').textContent='✨ understanding…';
       parseAndSaveDate(text);
     }else{
-      document.getElementById('dateMicStatus').textContent='';
+      document.getElementById('dateMicStatus').textContent='Didn\u2019t catch that — tap 🎤 and try again';
+      setTimeout(()=>{document.getElementById('dateMicStatus').textContent='';},4000);
     }
     return;
   }
@@ -1203,12 +1219,13 @@ function toggleDateMic(){
       if(e.results[i].isFinal)dateMicTranscript+=t+' ';
       else interim+=t;
     }
+    dateMicInterim=interim;
     const full=(dateMicTranscript+interim).trim();
     document.getElementById('dateMicStatus').textContent='🔴 '+full;
   };
   dateMicRec.onerror=()=>{dateMicRecording=false;document.getElementById('dateMicBtn').textContent='🎤 Speak';};
   dateMicRec.onend=()=>{if(dateMicRecording){try{dateMicRec.start();}catch(e){}}};
-  dateMicTranscript='';
+  dateMicTranscript='';dateMicInterim='';
   document.getElementById('dateMicStatus').textContent='🔴 listening…';
   document.getElementById('dateMicBtn').textContent='⏹ Stop';
   dateMicRecording=true;
@@ -1268,17 +1285,20 @@ function localParseDate(text){
   const today=new Date();today.setHours(0,0,0,0);
   const yr=today.getFullYear();
   const months={january:0,jan:0,february:1,feb:1,march:2,mar:2,april:3,apr:3,may:4,june:5,jun:5,july:6,jul:6,august:7,aug:7,september:8,sep:8,sept:8,october:9,oct:9,november:10,nov:10,december:11,dec:11};
-  const ord={first:1,second:2,third:3,fourth:4,fifth:5,sixth:6,seventh:7,eighth:8,ninth:9,tenth:10,eleventh:11,twelfth:12,thirteenth:13,fourteenth:14,fifteenth:15,sixteenth:16,seventeenth:17,eighteenth:18,nineteenth:19,twentieth:20,'twenty-first':21,'twenty-second':22,'twenty-third':23,'twenty-fourth':24,'twenty-fifth':25,'twenty-sixth':26,'twenty-seventh':27,'twenty-eighth':28,'twenty-ninth':29,thirtieth:30,'thirty-first':31};
+  const ord={first:1,second:2,third:3,fourth:4,fifth:5,sixth:6,seventh:7,eighth:8,ninth:9,tenth:10,eleventh:11,twelfth:12,thirteenth:13,fourteenth:14,fifteenth:15,sixteenth:16,seventeenth:17,eighteenth:18,nineteenth:19,twentieth:20,'twenty-first':21,'twenty first':21,'twenty-second':22,'twenty second':22,'twenty-third':23,'twenty third':23,'twenty-fourth':24,'twenty fourth':24,'twenty-fifth':25,'twenty fifth':25,'twenty-sixth':26,'twenty sixth':26,'twenty-seventh':27,'twenty seventh':27,'twenty-eighth':28,'twenty eighth':28,'twenty-ninth':29,'twenty ninth':29,thirtieth:30,'thirty-first':31,'thirty first':31,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20};
   const days={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};
   let found=null;
-  // 1) "Month Day" e.g. "June 7", "June 7th", "June seventh"
+  // 1) "Month Day" e.g. "June 7", "June 7th", "June seventh", "June seven"
   const mNames=Object.keys(months).join('|');
   let m=lc.match(new RegExp('('+mNames+')\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?','i'));
   if(m){const day=parseInt(m[2]);found=monthDayToDate(months[m[1]],day,today,yr);}
   if(!found){
-    const ordNames=Object.keys(ord).join('|');
-    let mo=lc.match(new RegExp('('+mNames+')\\.?\\s+('+ordNames+')','i'));
-    if(mo){found=monthDayToDate(months[mo[1]],ord[mo[2]],today,yr);}
+    const ordNames=Object.keys(ord).sort((a,b)=>b.length-a.length).join('|');
+    // "June seventh" / "June seven" OR "seventh of June" / "7th of June"
+    let mo=lc.match(new RegExp('('+mNames+')\\.?\\s+('+ordNames+')\\b','i'));
+    if(mo){found=monthDayToDate(months[mo[1]],ord[mo[2].replace(/\s+/g,' ')],today,yr);}
+    if(!found){let mo2=lc.match(new RegExp('(\\d{1,2})(?:st|nd|rd|th)?\\s+of\\s+('+mNames+')','i'));if(mo2){found=monthDayToDate(months[mo2[2]],parseInt(mo2[1]),today,yr);}}
+    if(!found){let mo3=lc.match(new RegExp('('+ordNames+')\\s+of\\s+('+mNames+')','i'));if(mo3){found=monthDayToDate(months[mo3[2]],ord[mo3[1].replace(/\s+/g,' ')],today,yr);}}
   }
   // 2) numeric "6/7" or "6-7" (month/day) or "6/7/2026"
   if(!found){let mn=lc.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);if(mn){const mo=parseInt(mn[1])-1,da=parseInt(mn[2]);let y=mn[3]?parseInt(mn[3]):yr;if(y<100)y+=2000;let dt=new Date(y,mo,da);if(!mn[3]&&dt<today)dt=new Date(y+1,mo,da);found=fmt(dt);}}
@@ -1290,9 +1310,12 @@ function localParseDate(text){
   if(!found)return null;
   // Build a clean name: strip the date words and filler
   let name=raw
-    .replace(new RegExp('\\b(on|by|is|are|the|a|an|add|important date|reminder|remind me|please)\\b','ig'),' ')
+    .replace(new RegExp('\\b(on|by|is|are|the|a|an|add|important date|reminder|remind me|please|of)\\b','ig'),' ')
     .replace(new RegExp('('+mNames+')\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?','ig'),' ')
-    .replace(new RegExp('('+mNames+')\\.?\\s+('+Object.keys(ord).join('|')+')','ig'),' ')
+    .replace(new RegExp('('+mNames+')\\.?\\s+('+Object.keys(ord).sort((a,b)=>b.length-a.length).join('|')+')','ig'),' ')
+    .replace(new RegExp('('+Object.keys(ord).sort((a,b)=>b.length-a.length).join('|')+')\\s+('+mNames+')','ig'),' ')
+    .replace(new RegExp('\\d{1,2}(?:st|nd|rd|th)?\\s+('+mNames+')','ig'),' ')
+    .replace(new RegExp('\\b('+mNames+')\\b','ig'),' ')
     .replace(/\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?\b/g,' ')
     .replace(/\b(today|tomorrow|next|this)\b/ig,' ')
     .replace(new RegExp('\\b('+Object.keys(days).join('|')+')\\b','ig'),' ')
@@ -1953,9 +1976,10 @@ function renderTodayNotes(){
   const nonEmpty=groups.filter(g=>g.items.length>0);
   const doneNotes=state.notes.filter(n=>n.done&&isDoneThisWeek(n)).sort((a,b)=>b.completedAt-a.completedAt);
   if(!nonEmpty.length&&!doneNotes.length){wrap.innerHTML='';return;}
-  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v14</span></h3></div>`;
+  let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v16</span></h3></div>`;
   nonEmpty.forEach(g=>{
-    html+=`<div class="today-note-group"><span class="today-note-group-label ${g.cls}">${g.label}</span>`;
+    const gid='ntg-'+g.key;
+    html+=`<div class="today-note-group"><div class="ntg-head open" onclick="toggleSection('${gid}')"><span class="today-note-group-label ${g.cls}">${g.label}</span><div style="display:flex;align-items:center;gap:7px;"><span class="ntg-count">${g.items.length}</span><span class="sec-chevron">▾</span></div></div><div class="section-body open" id="${gid}">`;
     g.items.forEach(item=>{
       const checked=item.checkedInToday||item.done||false;
       if(g.isParty){
@@ -1964,14 +1988,14 @@ function renderTodayNotes(){
         html+=`<div class="today-note-row${checked?' checked':''}"><div class="tn-check${checked?' done':''}" onclick="toggleTodayNote(${item.id})">${checked?'✓':''}</div><span class="tn-text${checked?' done':''}">${escapeHtml(item.text)}</span><span class="tn-done-hint" onclick="toggleTodayNote(${item.id})">Done</span><button class="tn-task-btn" onclick="promoteNoteToTask(${item.id})">→ To-Do</button></div>`;
       }
     });
-    html+='</div>';
+    html+='</div></div>';
   });
   if(doneNotes.length){
-    html+=`<div class="today-note-group"><span class="today-note-group-label tng-done">✓ Closed · ${doneNotes.length}</span>`;
+    html+=`<div class="today-note-group"><div class="ntg-head" onclick="toggleSection('ntg-closed')"><span class="today-note-group-label tng-done">✓ Closed · ${doneNotes.length}</span><span class="sec-chevron">▾</span></div><div class="section-body" id="ntg-closed">`;
     doneNotes.forEach(item=>{
       html+=`<div class="today-note-row checked"><div class="tn-check done" onclick="toggleTodayNote(${item.id})">✓</div><span class="tn-text done">${escapeHtml(item.text)}</span></div>`;
     });
-    html+='</div>';
+    html+='</div></div>';
   }
   html+='</div>';
   wrap.innerHTML=html;
