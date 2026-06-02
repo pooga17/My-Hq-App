@@ -378,6 +378,8 @@
   .fb-item-tag.urgent{background:#FFD0D0;color:#C04060;}
   .fb-item-tag.ack{background:#DFF2EA;color:#1A5038;}
   .fb-item-tag.event{background:#FFF1ED;color:#7A2E3E;}
+  .fb-owner-cycle{background:#FAF6F2;border:1px solid var(--line);border-radius:999px;width:30px;height:30px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;line-height:1;transition:transform .15s ease, background .15s ease;}
+  .fb-owner-cycle:active{transform:scale(.9);background:var(--pink);}
   .fb-empty{font-size:12px;color:#9A8A8E;font-style:italic;text-align:center;padding:8px 0;}
   .fb-fab{position:absolute;bottom:-20px;right:18px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#E89AAA,#D67B8C);color:#fff;border:none;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 8px 20px rgba(232,154,170,.5);display:flex;align-items:center;justify-content:center;line-height:1;z-index:5;}
   .fb-fab:active{transform:scale(.95);}
@@ -504,6 +506,30 @@
   .plan-modal-btns .confirm{background:var(--pink-deep);color:#fff;}
   .plan-modal-btns .cancel{background:var(--line);color:#1A1215;}
 </style>
+
+<!-- ===== OneSignal Push (waiting for your appId) ===== -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  // OneSignal will be initialized after Pooja provides her appId
+  // When ready, paste your appId into ONESIGNAL_APP_ID below and uncomment the init
+  window.ONESIGNAL_APP_ID='YOUR_ONESIGNAL_APP_ID_HERE';
+  function initOneSignal(){
+    if(!window.ONESIGNAL_APP_ID||window.ONESIGNAL_APP_ID==='YOUR_ONESIGNAL_APP_ID_HERE')return;
+    OneSignalDeferred.push(async function(OneSignal){
+      await OneSignal.init({
+        appId: window.ONESIGNAL_APP_ID,
+        safari_web_id: window.ONESIGNAL_SAFARI_WEB_ID||'',
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: true,
+      });
+      window.OneSignalReady=true;
+      // Tag this user as 'pooja' so we can target her specifically
+      try{await OneSignal.User.addTag('role','pooja');}catch(e){}
+    });
+  }
+  document.addEventListener('DOMContentLoaded',initOneSignal);
+</script>
 </head>
 <body>
 <div class="install-banner" id="installBanner">
@@ -543,6 +569,11 @@
     </div>
     <div id="notifTestWrap" style="display:none;text-align:center;margin-top:8px">
       <button onclick="testNudgeNow()" style="background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:999px;padding:8px 18px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔔 Test Nudge Now</button>
+    </div>
+    <div id="pushSubscribeWrap" style="display:none;text-align:center;margin-top:10px;background:linear-gradient(135deg,#FFF1ED,#FFE0E8);padding:14px 16px;border-radius:14px;border:1px solid var(--pink);">
+      <div style="font-size:13px;color:#7A2E3E;font-weight:700;margin-bottom:8px;">🔔 Real push notifications</div>
+      <div style="font-size:12px;color:#7A4E5E;margin-bottom:10px;line-height:1.4;">Get the 8 PM nudge even when the app is closed.</div>
+      <button onclick="enablePushNotifications()" style="background:linear-gradient(135deg,#E89AAA,#D67B8C);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">🔔 Enable Push</button>
     </div>
     <div id="upcomingBanner" class="upcoming-banner">
       <div class="ub-title" id="upcomingTitle"></div>
@@ -1953,7 +1984,10 @@ function renderFamilyBoard(){
           if(dayLabel)tags+=`<span class="fb-item-tag event">📅 ${dayLabel}</span>`;
         }
         if(i.confirmed)tags+=`<span class="fb-item-tag ack">✓ Piyush ack'd</span>`;
-        html+=`<div class="fb-item ${i.done?'done':''}"><div class="${checkClass}" onclick="event.stopPropagation();toggleBoardItem('${i.id}')"></div><div class="fb-item-text" onclick="toggleBoardItem('${i.id}')">${escapeHtml(i.text)}${tags}</div></div>`;
+        const ownerIcon=i.owner==='me'?'👩':i.owner==='piyush'?'👨':'👫';
+        const ownerLabel=i.owner==='me'?'Move to Piyush':i.owner==='piyush'?'Move to Both':'Move to Me';
+        const ownerBtn=`<button class="fb-owner-cycle" onclick="event.stopPropagation();cycleBoardOwner('${i.id}')" title="${ownerLabel}">${ownerIcon}</button>`;
+        html+=`<div class="fb-item ${i.done?'done':''}"><div class="${checkClass}" onclick="event.stopPropagation();toggleBoardItem('${i.id}')"></div><div class="fb-item-text" onclick="toggleBoardItem('${i.id}')">${escapeHtml(i.text)}${tags}</div>${ownerBtn}</div>`;
       });
     }
     html+=`</div>`;
@@ -1985,6 +2019,55 @@ function toggleBoardItem(id){
   saveState();renderFamilyBoard();
   try{renderNotes();}catch(e){}
   try{renderDates();}catch(e){}
+}
+
+// Cycle owner: Me → Piyush → Both → Me (and reset shared flag so next summary re-shares)
+function cycleBoardOwner(id){
+  const isDate=id.startsWith('d');
+  const realId=parseInt(id.substring(1));
+  const target=isDate?(state.dates||[]).find(x=>x.id===realId):(state.notes||[]).find(x=>x.id===realId);
+  if(!target)return;
+  const current=target.assignedTo||'both';
+  const next=current==='me'?'piyush':current==='piyush'?'both':'me';
+  target.assignedTo=next;
+  // If moved to me-only, drop from share queue (otherwise re-queue for next summary)
+  if(next==='me'){target.shared=true;}else{target.shared=false;}
+  saveState();renderFamilyBoard();
+  try{renderNotes();renderDates();renderDailySummaryBanner();}catch(e){}
+  const label=next==='me'?'👩 Pooja':next==='piyush'?'👨 Piyush':'👫 Both';
+  toast(`Moved to ${label}`);
+}
+
+// ===== OneSignal Push helpers =====
+async function enablePushNotifications(){
+  if(!window.ONESIGNAL_APP_ID||window.ONESIGNAL_APP_ID==='YOUR_ONESIGNAL_APP_ID_HERE'){
+    toast('Push not set up yet — see Settings');
+    return;
+  }
+  if(!window.OneSignalDeferred){toast('OneSignal not loaded — refresh the page');return;}
+  OneSignalDeferred.push(async function(OneSignal){
+    try{
+      await OneSignal.Notifications.requestPermission();
+      const subscribed=OneSignal.User.PushSubscription.optedIn;
+      if(subscribed){
+        toast('🔔 Push enabled! You\'ll get the 8 PM nudge.');
+        state.pushEnabled=true;saveState();
+        const wrap=document.getElementById('pushSubscribeWrap');
+        if(wrap)wrap.style.display='none';
+      }else{
+        toast('Permission denied — check iPhone Settings');
+      }
+    }catch(e){
+      toast('Couldn\'t enable: '+(e.message||'unknown'));
+    }
+  });
+}
+function updatePushPromptVisibility(){
+  const wrap=document.getElementById('pushSubscribeWrap');
+  if(!wrap)return;
+  const ready=window.ONESIGNAL_APP_ID&&window.ONESIGNAL_APP_ID!=='YOUR_ONESIGNAL_APP_ID_HERE';
+  const alreadyEnabled=state.pushEnabled;
+  wrap.style.display=(ready&&!alreadyEnabled)?'block':'none';
 }
 
 // ===== QUICK ADD MODAL =====
@@ -2896,7 +2979,7 @@ function renderHqGreeting(){
 function render(){
   if(state.avatar){const _ai=document.getElementById('avatarImg');const _a=document.getElementById('avatar');if(_ai)_ai.src=state.avatar;if(_a)_a.classList.add('has-photo');}
   try{renderHqGreeting();}catch(e){}
-  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();try{renderDailySummaryBanner();checkAutoSummary();}catch(e){}try{renderFamilyBoard();}catch(e){}
+  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();try{renderDailySummaryBanner();checkAutoSummary();}catch(e){}try{renderFamilyBoard();}catch(e){}try{updatePushPromptVisibility();}catch(e){}
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);
   updateHomeCard(totalOpen,overdue.length,getDoneTodayCount());
   // Show notification button or test button
