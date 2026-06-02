@@ -321,6 +321,86 @@
   .note-card-footer{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;}
   .note-badge{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em;}
   .note-badge.grocery-tag{background:#DFF2EA;color:#1A5038;}
+
+  /* ===== POP & SHIMMER ===== */
+  .hq-shimmer{
+    background:linear-gradient(90deg,#E89AAA 0%,#D4845A 25%,#E3A6C8 50%,#A8C5A0 75%,#E89AAA 100%);
+    background-size:200% auto;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+    animation:hqShimmer 6s ease-in-out infinite;
+    letter-spacing:-.5px;
+  }
+  @keyframes hqShimmer{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+  }
+  .hq-sparkle{position:absolute;font-size:14px;opacity:.85;display:inline-block;animation:hqFloat 3s ease-in-out infinite;}
+  .hq-sparkle-1{top:-18px;left:18%;animation-delay:0s;}
+  .hq-sparkle-2{top:-22px;right:14%;animation-delay:1s;font-size:12px;}
+  .hq-sparkle-3{top:-12px;left:48%;animation-delay:2s;font-size:11px;}
+  @keyframes hqFloat{
+    0%,100%{transform:translateY(0) rotate(0deg);opacity:.7;}
+    50%{transform:translateY(-6px) rotate(8deg);opacity:1;}
+  }
+
+  /* ===== FAMILY BOARD ===== */
+  .fam-board{background:linear-gradient(160deg,#FFF1ED 0%,#FFE0E8 100%);border-radius:24px;padding:20px 16px 28px;margin:0 14px 18px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(232,154,170,.15);position:relative;}
+  .fam-board-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:8px;}
+  .fb-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--pink-deep);line-height:1.1;}
+  .fb-date{font-size:11px;color:#7A6A6E;letter-spacing:.16em;font-weight:700;margin-top:3px;text-transform:uppercase;}
+  .fb-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+  .fb-btn{border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;}
+  .fb-send{background:linear-gradient(135deg,#FFD7C2,#F4B6C2);color:#7A2E3E;}
+  .fb-nudge{background:#fff;color:#7A2E3E;border:1px solid var(--pink);}
+  .fb-cols{display:flex;flex-direction:column;gap:14px;}
+  .fb-col{background:#fff;border-radius:16px;padding:12px 14px;border:1px solid rgba(244,182,194,.3);}
+  .fb-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .fb-col-title{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--ink);}
+  .fb-col-count{font-size:11px;font-weight:700;background:#FFF1ED;color:#7A2E3E;padding:2px 8px;border-radius:999px;}
+  .fb-col.col-me .fb-col-title{color:#A52E4E;}
+  .fb-col.col-me{border-left:4px solid #E89AAA;}
+  .fb-col.col-piyush .fb-col-title{color:#1A4E7A;}
+  .fb-col.col-piyush{border-left:4px solid #6FA5D3;}
+  .fb-col.col-both .fb-col-title{color:#7A4E2E;}
+  .fb-col.col-both{border-left:4px solid #E8B894;}
+  .fb-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #FAF6F2;font-size:13px;color:var(--ink);cursor:pointer;}
+  .fb-item:last-child{border-bottom:none;}
+  .fb-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--pink);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;margin-top:1px;}
+  .fb-check.done{background:#A7D7C5;border-color:#A7D7C5;color:#fff;font-size:11px;font-weight:700;}
+  .fb-check.done::after{content:'✓';}
+  .fb-item-text{flex:1;line-height:1.4;word-break:break-word;}
+  .fb-item.done .fb-item-text{text-decoration:line-through;color:#9A8A8E;}
+  .fb-item-tag{font-size:10px;background:#FFE0E8;color:#A52E4E;padding:2px 7px;border-radius:999px;font-weight:700;margin-left:4px;}
+  .fb-item-tag.urgent{background:#FFD0D0;color:#C04060;}
+  .fb-item-tag.ack{background:#DFF2EA;color:#1A5038;}
+  .fb-item-tag.event{background:#FFF1ED;color:#7A2E3E;}
+  .fb-empty{font-size:12px;color:#9A8A8E;font-style:italic;text-align:center;padding:8px 0;}
+  .fb-fab{position:absolute;bottom:-20px;right:18px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#E89AAA,#D67B8C);color:#fff;border:none;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 8px 20px rgba(232,154,170,.5);display:flex;align-items:center;justify-content:center;line-height:1;z-index:5;}
+  .fb-fab:active{transform:scale(.95);}
+
+  /* ===== QUICK ADD MODAL ===== */
+  .qa-overlay{position:fixed;inset:0;background:rgba(58,42,48,.45);z-index:100;display:none;align-items:flex-end;justify-content:center;}
+  .qa-overlay.open{display:flex;}
+  .qa-modal{background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:18px 20px calc(28px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:qaSlide .3s ease;}
+  @keyframes qaSlide{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .qa-handle{width:40px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 12px;}
+  .qa-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--pink-deep);text-align:center;margin-bottom:14px;}
+  .qa-modal textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#FAF6F2;resize:none;color:var(--ink);}
+  .qa-modal textarea:focus{outline:none;border-color:var(--pink);}
+  .qa-mic-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  .qa-mic{background:linear-gradient(135deg,#C9DCEB,#F4B6C2);color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+  .qa-mic-status{font-size:11px;color:#7A2E3E;font-weight:600;}
+  .qa-section-label{font-size:10px;letter-spacing:.18em;color:#7A6A6E;font-weight:700;margin:14px 0 6px;}
+  .qa-owner-row,.qa-cat-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .qa-owner,.qa-cat{flex:1;min-width:auto;background:#fff;border:1.5px solid var(--line);color:#5A4A50;border-radius:12px;padding:9px 6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;}
+  .qa-owner.active,.qa-cat.active{background:linear-gradient(135deg,#FFD7C2,#F4B6C2);color:#7A2E3E;border-color:transparent;}
+  .qa-buttons{display:flex;gap:10px;margin-top:18px;}
+  .qa-cancel{flex:1;background:#fff;border:1.5px solid var(--line);color:#7A6A6E;border-radius:14px;padding:13px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  .qa-save{flex:2;background:linear-gradient(135deg,#E89AAA,#D67B8C);color:#fff;border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
   .note-badge.time{background:var(--line);color:#1A1215;}
   .note-badge.auto{background:#E8F1F8;color:#1A3A5A;}
   .notes-empty{text-align:center;padding:30px 18px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#5A4A50;}
@@ -434,17 +514,10 @@
 
   <!-- HOME -->
   <section class="screen active" id="screen-home">
-    <div class="hero">
-      <div class="avatar" id="avatar">
-        <span class="monogram">P</span>
-        <img id="avatarImg" alt="Pooja" />
-        <label class="camera-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h3l2-2h8l2 2h3v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg>
-          <input type="file" accept="image/*" id="avatarInput" style="display:none"/>
-        </label>
-      </div>
-      <h1 class="title">Pooja's HQ</h1>
-      <p class="tagline">all heart, all hustle, all Pooja</p>
+    <div class="hero" style="padding-top:24px;padding-bottom:8px;position:relative;">
+      <div id="hqGreeting" style="text-align:center;font-size:13px;color:#A8758A;font-weight:600;letter-spacing:.18em;margin-bottom:4px;text-transform:uppercase;"></div>
+      <h1 class="title hq-shimmer" style="font-size:46px;margin-bottom:4px;text-align:center;">Pooja's HQ</h1>
+      <p class="tagline" style="text-align:center;position:relative;">all heart, all hustle, all Pooja <span class="hq-sparkle hq-sparkle-1">✨</span><span class="hq-sparkle hq-sparkle-2">💫</span><span class="hq-sparkle hq-sparkle-3">🌸</span></p>
     </div>
     <div class="affirm-card" id="affirmCard" onclick="newAffirmation()">
       <div class="affirm-art" id="affirmArt"></div>
@@ -478,6 +551,7 @@
     </div>
     <div class="home-section-label">Explore</div>
     <div class="home-quick">
+      <div class="hq-card" onclick="go('board')" style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-color:var(--pink);"><span class="hq-icon">👨‍👩‍👧</span><div><div class="hq-label">Family Board</div><div class="hq-sub">who's doing what</div></div></div>
       <div class="hq-card" onclick="go('notes')"><span class="hq-icon">📝</span><div><div class="hq-label">Notes</div><div class="hq-sub">office · personal · home</div></div></div>
       <div class="hq-card" onclick="go('dates')"><span class="hq-icon">💝</span><div><div class="hq-label">Dates</div><div class="hq-sub">birthdays & plans</div></div></div>
       <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
@@ -767,6 +841,17 @@
     </div>
   </section>
 
+  <!-- FAMILY BOARD (dedicated screen) -->
+  <section class="screen" id="screen-board">
+    <div class="screen-head"><h2>Family Board</h2><p id="boardDateLabel">Who's doing what today.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:14px;">
+      <button class="fb-btn fb-send" onclick="sendDailySummary()" id="fbSendBtn">📤 Send</button>
+      <button class="fb-btn fb-nudge" onclick="nudgePiyush()">🔔 Nudge</button>
+    </div>
+    <div class="fb-cols" id="fbCols" style="position:relative;"></div>
+    <button class="fb-fab" onclick="openQuickAdd()" aria-label="Add" style="position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));right:18px;">+</button>
+  </section>
+
 <!-- Plan Name Modal -->
 <div class="plan-modal-bg" id="planModalBg" onclick="if(event.target===this)closePlanModal()">
   <div class="plan-modal">
@@ -775,6 +860,36 @@
     <div class="plan-modal-btns">
       <button class="cancel" onclick="closePlanModal()">Cancel</button>
       <button class="confirm" onclick="confirmPlanName()">Create Plan ✨</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Quick Add Modal ===== -->
+<div class="qa-overlay" id="qaOverlay" onclick="closeQuickAdd(event)">
+  <div class="qa-modal" onclick="event.stopPropagation()">
+    <div class="qa-handle"></div>
+    <div class="qa-title">✨ Quick Add</div>
+    <textarea id="qaInput" placeholder="What needs doing? (e.g. 'pick up Kiara at 3pm')" rows="2"></textarea>
+    <div class="qa-mic-row">
+      <button class="qa-mic" id="qaMicBtn" onclick="toggleQuickAddMic()">🎤 Speak</button>
+      <span class="qa-mic-status" id="qaMicStatus"></span>
+    </div>
+    <div class="qa-section-label">WHO'S DOING IT?</div>
+    <div class="qa-owner-row">
+      <button class="qa-owner" data-owner="me" onclick="selectQAOwner('me')">👩 Pooja</button>
+      <button class="qa-owner" data-owner="piyush" onclick="selectQAOwner('piyush')">👨 Piyush</button>
+      <button class="qa-owner active" data-owner="both" onclick="selectQAOwner('both')">👫 Both</button>
+    </div>
+    <div class="qa-section-label">WHAT KIND?</div>
+    <div class="qa-cat-row">
+      <button class="qa-cat active" data-cat="auto" onclick="selectQACat('auto')">🪄 Auto</button>
+      <button class="qa-cat" data-cat="personal" onclick="selectQACat('personal')">🌸 Personal</button>
+      <button class="qa-cat" data-cat="home" onclick="selectQACat('home')">🏡 Home</button>
+      <button class="qa-cat" data-cat="grocery" onclick="selectQACat('grocery')">🛒 Grocery</button>
+    </div>
+    <div class="qa-buttons">
+      <button class="qa-cancel" onclick="closeQuickAdd()">Cancel</button>
+      <button class="qa-save" onclick="submitQuickAdd()">Add ✨</button>
     </div>
   </div>
 </div>
@@ -904,6 +1019,7 @@ function go(name){
   window.scrollTo(0,0);
   if(name==='today')renderToday();
   if(name==='family')loadContactsUI();
+  if(name==='board'){try{renderFamilyBoard();}catch(e){}}
   // Show FAB mic only on Today screen
   const fab=document.getElementById('fabMic');
   if(fab)fab.classList.toggle('visible',name==='today');
@@ -935,7 +1051,8 @@ function maybeShowInstallBanner(){
 }
 function dismissInstall(){document.getElementById('installBanner').classList.remove('show');localStorage.setItem('install-dismissed','1');}
 
-document.getElementById('avatarInput').addEventListener('change',(e)=>{
+const _avatarInput=document.getElementById('avatarInput');
+if(_avatarInput)_avatarInput.addEventListener('change',(e)=>{
   const f=e.target.files[0];if(!f)return;
   const reader=new FileReader();
   reader.onload=()=>{state.avatar=reader.result;document.getElementById('avatarImg').src=reader.result;document.getElementById('avatar').classList.add('has-photo');saveState();toast('Photo saved ✨');};
@@ -1796,6 +1913,156 @@ function sendUrgentNow(){
   saveState();renderDates();renderNotes();renderDailySummaryBanner();
   toast('⚡ Urgent sent!');
 }
+// ===== FAMILY BOARD =====
+function renderFamilyBoard(){
+  const dateEl=document.getElementById('fbDate');
+  if(dateEl)dateEl.textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  const cols=document.getElementById('fbCols');
+  if(!cols)return;
+  // Gather today's open items: shareable notes + dates within next 7 days
+  const now=new Date();now.setHours(0,0,0,0);const todayMs=now.getTime();
+  const weekEnd=todayMs+7*86400000;
+  const items=[];
+  (state.notes||[]).forEach(n=>{
+    if(!n.shareable||n.section==='office')return;
+    items.push({id:'n'+n.id,raw:n,kind:'note',text:n.text,owner:n.assignedTo||'both',done:!!n.done,urgent:!!n.urgent,confirmed:!!n.confirmed,section:n.section,when:null});
+  });
+  (state.dates||[]).forEach(d=>{
+    if(!d||!d.date)return;
+    try{
+      const p=d.date.split('-');const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+      if(dt.getTime()<todayMs-86400000||dt.getTime()>weekEnd)return;
+      items.push({id:'d'+d.id,raw:d,kind:'date',text:d.name,owner:d.assignedTo||'both',done:!!d.done,urgent:!!d.urgent,confirmed:!!d.confirmed,section:'date',when:dt});
+    }catch(e){}
+  });
+  // Split by owner
+  const byOwner={me:[],piyush:[],both:[]};
+  items.forEach(i=>{if(byOwner[i.owner])byOwner[i.owner].push(i);});
+  function renderCol(label,key,colClass,icon){
+    const arr=byOwner[key]||[];
+    const open=arr.filter(x=>!x.done).length;
+    let html=`<div class="fb-col ${colClass}"><div class="fb-col-head"><div class="fb-col-title">${icon} ${label}</div><div class="fb-col-count">${open}</div></div>`;
+    if(!arr.length){html+=`<div class="fb-empty">Nothing here ✨</div>`;}
+    else{
+      arr.forEach(i=>{
+        const checkClass=i.done?'fb-check done':'fb-check';
+        let tags='';
+        if(i.urgent&&!i.done)tags+=`<span class="fb-item-tag urgent">⚡ urgent</span>`;
+        if(i.kind==='date'){
+          const dayLabel=i.when?i.when.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'';
+          if(dayLabel)tags+=`<span class="fb-item-tag event">📅 ${dayLabel}</span>`;
+        }
+        if(i.confirmed)tags+=`<span class="fb-item-tag ack">✓ Piyush ack'd</span>`;
+        html+=`<div class="fb-item ${i.done?'done':''}"><div class="${checkClass}" onclick="event.stopPropagation();toggleBoardItem('${i.id}')"></div><div class="fb-item-text" onclick="toggleBoardItem('${i.id}')">${escapeHtml(i.text)}${tags}</div></div>`;
+      });
+    }
+    html+=`</div>`;
+    return html;
+  }
+  cols.innerHTML=
+    renderCol('PIYUSH','piyush','col-piyush','👨')+
+    renderCol('BOTH','both','col-both','👫')+
+    renderCol('POOJA','me','col-me','👩');
+  // Send button highlight if items queued
+  const sendBtn=document.getElementById('fbSendBtn');
+  if(sendBtn){
+    const queued=(typeof pendingShareItems==='function')?pendingShareItems().total:0;
+    sendBtn.textContent=queued>0?`📤 Send (${queued})`:'📤 Send';
+  }
+}
+function toggleBoardItem(id){
+  const isDate=id.startsWith('d');
+  const realId=parseInt(id.substring(1));
+  if(isDate){
+    const d=(state.dates||[]).find(x=>x.id===realId);
+    if(!d)return;
+    d.done=!d.done;d.completedAt=d.done?Date.now():null;
+  }else{
+    const n=(state.notes||[]).find(x=>x.id===realId);
+    if(!n)return;
+    n.done=!n.done;n.completedAt=n.done?Date.now():null;
+  }
+  saveState();renderFamilyBoard();
+  try{renderNotes();}catch(e){}
+  try{renderDates();}catch(e){}
+}
+
+// ===== QUICK ADD MODAL =====
+let qaSelectedOwner='both';
+let qaSelectedCat='auto';
+function openQuickAdd(){
+  qaSelectedOwner='both';qaSelectedCat='auto';
+  document.querySelectorAll('.qa-owner').forEach(b=>b.classList.toggle('active',b.dataset.owner==='both'));
+  document.querySelectorAll('.qa-cat').forEach(b=>b.classList.toggle('active',b.dataset.cat==='auto'));
+  document.getElementById('qaInput').value='';
+  document.getElementById('qaMicStatus').textContent='';
+  document.getElementById('qaOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('qaInput').focus(),200);
+}
+function closeQuickAdd(ev){
+  if(ev&&ev.target&&!ev.target.classList.contains('qa-overlay'))return;
+  document.getElementById('qaOverlay').classList.remove('open');
+  if(qaMicRecording){try{qaMicRec.stop();}catch(e){}qaMicRecording=false;}
+}
+function selectQAOwner(o){
+  qaSelectedOwner=o;
+  document.querySelectorAll('.qa-owner').forEach(b=>b.classList.toggle('active',b.dataset.owner===o));
+}
+function selectQACat(c){
+  qaSelectedCat=c;
+  document.querySelectorAll('.qa-cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===c));
+}
+function submitQuickAdd(){
+  const text=(document.getElementById('qaInput').value||'').trim();
+  if(!text){toast('Type or speak something first');return;}
+  // Determine section
+  let section=qaSelectedCat;
+  if(section==='auto'){section=detectNoteCategory(text)||'personal';}
+  if(!state.notes)state.notes=[];
+  const isShareable=['personal','home','grocery'].includes(section);
+  const isUrgent=/\burgent\b/i.test(text);
+  state.notes.unshift({id:Date.now(),text,section,createdAt:Date.now(),shareable:isShareable,urgent:isUrgent,shared:false,assignedTo:qaSelectedOwner,confirmed:false,confirmedAt:null});
+  saveState();
+  closeQuickAdd();
+  renderFamilyBoard();
+  try{renderNotes();renderDailySummaryBanner();}catch(e){}
+  const ownerLabel=qaSelectedOwner==='me'?'👩 Pooja':qaSelectedOwner==='piyush'?'👨 Piyush':'👫 Both';
+  toast(`✨ Added for ${ownerLabel}`);
+}
+
+// Quick Add mic — uses ITS OWN recognizer instance, never touches the main note mic
+let qaMicRec=null,qaMicRecording=false,qaMicFinal='',qaMicInterim='';
+function toggleQuickAddMic(){
+  if(!SR){toast('Voice not supported');return;}
+  const btn=document.getElementById('qaMicBtn');
+  const status=document.getElementById('qaMicStatus');
+  if(qaMicRecording){
+    qaMicRecording=false;btn.textContent='🎤 Speak';
+    const full=(qaMicFinal+' '+qaMicInterim).trim();
+    if(full){document.getElementById('qaInput').value=full;}
+    status.textContent=full?'✓ heard':'(nothing heard)';
+    try{qaMicRec.stop();}catch(e){}
+    return;
+  }
+  qaMicFinal='';qaMicInterim='';
+  if(!qaMicRec){
+    qaMicRec=new SR();qaMicRec.continuous=true;qaMicRec.interimResults=true;qaMicRec.lang='en-US';
+    qaMicRec.onresult=(e)=>{
+      let interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t=e.results[i][0].transcript;
+        if(e.results[i].isFinal)qaMicFinal+=t+' ';else interim+=t;
+      }
+      qaMicInterim=interim;
+      document.getElementById('qaInput').value=(qaMicFinal+interim).trim();
+    };
+    qaMicRec.onerror=()=>{qaMicRecording=false;btn.textContent='🎤 Speak';status.textContent='mic error';};
+    qaMicRec.onend=()=>{if(qaMicRecording){try{qaMicRec.start();}catch(e){}}};
+  }
+  qaMicRecording=true;btn.textContent='⏹ Stop';status.textContent='🔴 listening…';
+  try{qaMicRec.start();}catch(e){}
+}
+
 function renderDailySummaryBanner(){
   const banners=[document.getElementById('dailySummaryBanner'),document.getElementById('dailySummaryBannerNotes')];
   const{total}=pendingShareItems();
@@ -2043,11 +2310,16 @@ const AFFIRMATIONS=[
   "Everything's going to be awesome. Promise.",
 ];
 const AFFIRM_ART=[
-  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g fill="#F4B6C2" opacity="0.7"><ellipse cx="60" cy="60" rx="12" ry="30"/><ellipse cx="60" cy="60" rx="30" ry="12"/><ellipse cx="60" cy="60" rx="22" ry="22" opacity="0.5"/></g><circle cx="60" cy="60" r="7" fill="#D4845A" opacity="0.7"/></svg>`,
-  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g fill="#5A8CAA" opacity="0.5"><circle cx="70" cy="50" r="22"/><circle cx="50" cy="70" r="16"/><circle cx="85" cy="72" r="12"/></g></svg>`,
-  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="#C4607A" stroke-width="3" opacity="0.55"><path d="M30 80 q30 -50 60 0"/><path d="M40 85 q20 -35 40 0"/></g><circle cx="90" cy="35" r="10" fill="#FFD7C2" opacity="0.8"/></svg>`,
-  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g fill="#E3A6C8" opacity="0.6"><path d="M60 35 l8 17 18 2 -13 13 4 18 -17 -9 -17 9 4 -18 -13 -13 18 -2z"/></g></svg>`,
-  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="70" cy="55" r="34" fill="#FFE4B5" opacity="0.7"/><circle cx="70" cy="58" r="22" fill="#FFF1DA" opacity="0.85"/></svg>`,
+  // Pastel pink five-petal flower with leaf
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.85"><ellipse cx="60" cy="38" rx="14" ry="20" fill="#F4B6C2"/><ellipse cx="82" cy="55" rx="14" ry="20" fill="#F4B6C2" transform="rotate(72 82 55)"/><ellipse cx="75" cy="82" rx="14" ry="20" fill="#F4B6C2" transform="rotate(144 75 82)"/><ellipse cx="45" cy="82" rx="14" ry="20" fill="#F4B6C2" transform="rotate(216 45 82)"/><ellipse cx="38" cy="55" rx="14" ry="20" fill="#F4B6C2" transform="rotate(288 38 55)"/><circle cx="60" cy="60" r="9" fill="#D4845A"/><circle cx="60" cy="60" r="5" fill="#FFD7C2"/></g><path d="M60 78 Q55 95 48 105" stroke="#A8C5A0" stroke-width="2.5" fill="none" opacity="0.7"/><ellipse cx="50" cy="98" rx="6" ry="10" fill="#A8C5A0" opacity="0.7" transform="rotate(-35 50 98)"/></svg>`,
+  // Peach daisy
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8"><ellipse cx="60" cy="32" rx="10" ry="18" fill="#FFD7C2"/><ellipse cx="60" cy="88" rx="10" ry="18" fill="#FFD7C2"/><ellipse cx="32" cy="60" rx="18" ry="10" fill="#FFD7C2"/><ellipse cx="88" cy="60" rx="18" ry="10" fill="#FFD7C2"/><ellipse cx="42" cy="42" rx="10" ry="18" fill="#FFD7C2" transform="rotate(-45 42 42)"/><ellipse cx="78" cy="42" rx="10" ry="18" fill="#FFD7C2" transform="rotate(45 78 42)"/><ellipse cx="42" cy="78" rx="10" ry="18" fill="#FFD7C2" transform="rotate(45 42 78)"/><ellipse cx="78" cy="78" rx="10" ry="18" fill="#FFD7C2" transform="rotate(-45 78 78)"/><circle cx="60" cy="60" r="11" fill="#E89AAA"/></g></svg>`,
+  // Three little stem flowers (cottage core)
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8"><path d="M40 105 Q40 75 40 50" stroke="#A8C5A0" stroke-width="2" fill="none"/><path d="M60 105 Q60 70 60 38" stroke="#A8C5A0" stroke-width="2" fill="none"/><path d="M80 105 Q80 80 80 55" stroke="#A8C5A0" stroke-width="2" fill="none"/><ellipse cx="35" cy="60" rx="5" ry="8" fill="#A8C5A0" transform="rotate(-30 35 60)"/><ellipse cx="65" cy="75" rx="5" ry="8" fill="#A8C5A0" transform="rotate(30 65 75)"/><circle cx="40" cy="45" r="11" fill="#F4B6C2"/><circle cx="40" cy="45" r="4" fill="#D4845A"/><circle cx="60" cy="32" r="13" fill="#E3A6C8"/><circle cx="60" cy="32" r="4" fill="#D4845A"/><circle cx="80" cy="48" r="10" fill="#FFD7C2"/><circle cx="80" cy="48" r="4" fill="#D4845A"/></g></svg>`,
+  // Tulip cluster
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8"><path d="M55 105 Q55 80 55 60" stroke="#A8C5A0" stroke-width="2.5" fill="none"/><path d="M75 105 Q75 75 75 50" stroke="#A8C5A0" stroke-width="2.5" fill="none"/><ellipse cx="65" cy="80" rx="8" ry="4" fill="#A8C5A0" transform="rotate(20 65 80)"/><path d="M45 55 Q50 35 55 55 Q60 35 65 55 Z" fill="#F4B6C2"/><path d="M65 45 Q70 25 75 45 Q80 25 85 45 Z" fill="#E3A6C8"/></g></svg>`,
+  // Sun-bloom (gerbera)
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8"><g transform="translate(60 60)"><g><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFD7C2"/></g><g transform="rotate(30)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFE4B5"/></g><g transform="rotate(60)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFD7C2"/></g><g transform="rotate(90)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFE4B5"/></g><g transform="rotate(120)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFD7C2"/></g><g transform="rotate(150)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFE4B5"/></g><g transform="rotate(180)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFD7C2"/></g><g transform="rotate(210)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFE4B5"/></g><g transform="rotate(240)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFD7C2"/></g><g transform="rotate(270)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFE4B5"/></g><g transform="rotate(300)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFD7C2"/></g><g transform="rotate(330)"><ellipse cx="0" cy="-32" rx="6" ry="20" fill="#FFE4B5"/></g><circle cx="0" cy="0" r="10" fill="#D4845A"/></g></g></svg>`,
 ];
 function affirmDayIndex(){const d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);}
 let affirmManualOffset=0;
@@ -2610,9 +2882,21 @@ function updateHomeCard(remaining,overdue,doneToday){
   msg.textContent=text;msg.className='home-task-msg '+cls;
 }
 
+function renderHqGreeting(){
+  const el=document.getElementById('hqGreeting');if(!el)return;
+  const h=new Date().getHours();
+  const greetings=h<5?['🌙 Burning the midnight oil','Late night, Pooja 🌙','Night owl mode ✨']
+    :h<12?['🌷 Good morning, queen','Rise & shine, Pooja ☀️','Morning magic ✨']
+    :h<17?['☀️ Afternoon, Pooja','Hi sunshine ✨','Keep going, you got this 💕']
+    :h<21?['🌸 Evening, Pooja','Almost wrap time 🌅','Soft evening, Pooja 💫']
+    :['🌙 Hey night owl','Wind down time 🌷','Late evening, Pooja ✨'];
+  const idx=Math.floor(Date.now()/3600000)%greetings.length;
+  el.textContent=greetings[idx];
+}
 function render(){
-  if(state.avatar){document.getElementById('avatarImg').src=state.avatar;document.getElementById('avatar').classList.add('has-photo');}
-  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();try{renderDailySummaryBanner();checkAutoSummary();}catch(e){}
+  if(state.avatar){const _ai=document.getElementById('avatarImg');const _a=document.getElementById('avatar');if(_ai)_ai.src=state.avatar;if(_a)_a.classList.add('has-photo');}
+  try{renderHqGreeting();}catch(e){}
+  renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();try{renderDailySummaryBanner();checkAutoSummary();}catch(e){}try{renderFamilyBoard();}catch(e){}
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);
   updateHomeCard(totalOpen,overdue.length,getDoneTodayCount());
   // Show notification button or test button
