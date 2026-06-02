@@ -644,6 +644,7 @@
   <!-- NOTES -->
   <section class="screen" id="screen-notes">
     <div class="screen-head"><h2>Notes</h2><p>Office, personal, home — all in one place.</p></div>
+    <div id="dailySummaryBannerNotes"></div>
     <div class="notes-tabs">
       <button class="notes-tab-btn active" data-ntab="office" onclick="switchNotesTab('office')">💼 Office <span class="nt-count" id="nc-office">0</span></button>
       <button class="notes-tab-btn" data-ntab="personal" onclick="switchNotesTab('personal')">🌸 Personal <span class="nt-count" id="nc-personal">0</span></button>
@@ -1661,17 +1662,45 @@ function shareDateWithFamily(id){
   const piyush=digitsOnly(contacts.piyush);
   const kiara=digitsOnly(contacts.kiara);
   if(!piyush&&!kiara){toast('Add a phone number in Family first');go('family');return;}
-  // Build recipients & body
   const recipients=[];
   if(piyush)recipients.push(piyush);
   if(kiara)recipients.push(kiara);
-  // SMS pre-fill — iPhone supports group SMS with comma-separated numbers
   const body=buildShareText(d,piyush&&kiara?'Piyush & Kiara':(piyush?'Piyush':'Kiara'));
   const smsUrl=`sms:${recipients.join(',')}&body=${encodeURIComponent(body)}`;
   window.location.href=smsUrl;
-  // Mark this item as shared
   d.shared=true;saveState();renderDates();
+  try{renderDailySummaryBanner();}catch(e){}
   toast('📤 Opening Messages…');
+}
+
+// Send a single note to Piyush right away
+function shareNoteWithFamily(id){
+  const n=(state.notes||[]).find(x=>x.id===id);
+  if(!n){toast('Note not found');return;}
+  if(n.section==='office'){toast('Office notes are private — not shared');return;}
+  const contacts=state.contacts||{};
+  const piyush=digitsOnly(contacts.piyush);
+  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  const sectionEmoji={personal:'🌸',home:'🏡',grocery:'🛒'}[n.section]||'💛';
+  const body=`Hey Piyush 💕\n${sectionEmoji} ${n.text}\n— Pooja`;
+  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  window.location.href=smsUrl;
+  n.shared=true;saveState();renderNotes();
+  try{renderDailySummaryBanner();}catch(e){}
+  toast('📤 Opening Messages…');
+}
+
+// Ad-hoc nudge to Piyush — quick "don't forget" reminder, no item required
+function nudgePiyush(){
+  const contacts=state.contacts||{};
+  const piyush=digitsOnly(contacts.piyush);
+  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  const msg=prompt('What should Piyush remember?','Hey, don\'t forget — ');
+  if(!msg||!msg.trim())return;
+  const body=`🔔 Pooja's reminder:\n${msg.trim()}\n💕`;
+  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  window.location.href=smsUrl;
+  toast('📤 Reminder sent!');
 }
 
 // ===== Daily 8PM Summary to Piyush =====
@@ -1690,26 +1719,44 @@ function urgentItems(){
 function buildDailySummaryText(){
   const{notes,dates}=pendingShareItems();
   if(!notes.length&&!dates.length)return null;
-  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-  let body=`Hey Piyush 💕 Pooja's update — ${today}:\n`;
-  // Events first
-  dates.forEach(d=>{
-    const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
-    try{
-      const p=d.date.split('-');const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
-      const ds=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-      body+=`\n${emoji} ${d.name} · ${ds}`;
-      if(d.time)body+=` at ${d.time}`;
-    }catch(e){body+=`\n${emoji} ${d.name}`;}
-  });
-  // Then notes by section
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  let body=`💕 Pooja's HQ — ${today}\n`;
+  body+=`Hi Piyush, here's today's plan 👇\n`;
+  // Events first (most important — they have dates)
+  if(dates.length){
+    body+=`\n📅 EVENTS\n`;
+    dates.forEach(d=>{
+      const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
+      let line=`• ${emoji} ${d.name}`;
+      try{
+        const p=d.date.split('-');const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+        line+=` — ${dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}`;
+        if(d.time)line+=` at ${d.time}`;
+      }catch(e){}
+      if(d.who)line+=` (for ${d.who})`;
+      if(d.location)line+=` @ ${d.location}`;
+      body+=line+`\n`;
+    });
+  }
+  // Personal notes
   const personal=notes.filter(n=>n.section==='personal');
+  if(personal.length){
+    body+=`\n🌸 PERSONAL\n`;
+    personal.forEach(n=>{body+=`• ${n.text}\n`;});
+  }
+  // Home
   const home=notes.filter(n=>n.section==='home');
+  if(home.length){
+    body+=`\n🏡 HOME\n`;
+    home.forEach(n=>{body+=`• ${n.text}\n`;});
+  }
+  // Grocery last (often longest)
   const grocery=notes.filter(n=>n.section==='grocery');
-  personal.forEach(n=>body+=`\n🌸 ${n.text}`);
-  home.forEach(n=>body+=`\n🏡 ${n.text}`);
-  grocery.forEach(n=>body+=`\n🛒 ${n.text}`);
-  body+=`\n\nThanks for being on the team 💕`;
+  if(grocery.length){
+    body+=`\n🛒 GROCERY\n`;
+    grocery.forEach(n=>{body+=`• ${n.text}\n`;});
+  }
+  body+=`\nThanks for being on the team 💕`;
   return body;
 }
 function sendDailySummary(){
@@ -1750,17 +1797,25 @@ function sendUrgentNow(){
   toast('⚡ Urgent sent!');
 }
 function renderDailySummaryBanner(){
-  const banner=document.getElementById('dailySummaryBanner');
-  if(!banner)return;
+  const banners=[document.getElementById('dailySummaryBanner'),document.getElementById('dailySummaryBannerNotes')];
   const{total}=pendingShareItems();
   const urg=urgentItems();
-  if(!total){banner.style.display='none';return;}
-  banner.style.display='block';
-  const now=new Date();const eightPM=new Date();eightPM.setHours(20,0,0,0);
-  const isAfter8=now.getTime()>=eightPM.getTime();
-  let urgentBtn=urg.total>0?`<button onclick="sendUrgentNow()" style="background:#E89AAA;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;">⚡ Send ${urg.total} urgent now</button>`:'';
-  const sendNowLabel=isAfter8?'📤 Send summary now':'📤 Send summary early';
-  banner.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-radius:14px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--pink);"><div style="font-size:12px;color:#7A2E3E;font-weight:700;margin-bottom:6px;">📤 ${total} item${total===1?'':'s'} queued for Piyush · auto-sends at 8 PM</div>${urgentBtn}<button onclick="sendDailySummary()" style="background:#fff;color:var(--pink-deep);border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">${sendNowLabel}</button></div>`;
+  banners.forEach(banner=>{
+    if(!banner)return;
+    // Always show the Nudge Piyush button — even when queue is empty
+    const nudgeBtn=`<button onclick="nudgePiyush()" style="background:#fff;color:#7A2E3E;border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:4px;">🔔 Nudge Piyush</button>`;
+    if(!total){
+      banner.style.display='block';
+      banner.innerHTML=`<div style="background:#FFF8F4;border-radius:14px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--line);text-align:center;"><div style="font-size:12px;color:#7A6A6E;font-weight:600;margin-bottom:8px;">No items queued for Piyush yet</div>${nudgeBtn}</div>`;
+      return;
+    }
+    banner.style.display='block';
+    const now=new Date();const eightPM=new Date();eightPM.setHours(20,0,0,0);
+    const isAfter8=now.getTime()>=eightPM.getTime();
+    let urgentBtn=urg.total>0?`<button onclick="sendUrgentNow()" style="background:#E89AAA;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">⚡ Send ${urg.total} urgent now</button>`:'';
+    const sendNowLabel=isAfter8?'📤 Send all to Piyush now':'📤 Send all to Piyush early';
+    banner.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-radius:14px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--pink);"><div style="font-size:12px;color:#7A2E3E;font-weight:700;margin-bottom:8px;">📤 ${total} item${total===1?'':'s'} queued for Piyush · auto-reminds at 8 PM</div>${urgentBtn}<button onclick="sendDailySummary()" style="background:#fff;color:var(--pink-deep);border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">${sendNowLabel}</button>${nudgeBtn}</div>`;
+  });
 }
 // Auto-prompt at 8 PM if there are pending items
 function checkAutoSummary(){
@@ -2443,7 +2498,8 @@ function addNote(section){
   const newNote={id:Date.now(),text,section:finalSection,createdAt:Date.now(),shareable:isShareable,urgent:isUrgent,shared:false};
   state.notes.unshift(newNote);
   saveState();renderNotes();
-  if(isShareable&&isUrgent){toast('⚡ Urgent — tap Share button on the note',2800);}
+  try{renderDailySummaryBanner();}catch(e){}
+  if(isShareable&&isUrgent){toast('⚡ Urgent — tap the pink banner to send now',2800);}
   if(autoCategory&&finalSection!==section){
     const tabFor=finalSection==='grocery'?'personal':finalSection;
     switchNotesTab(tabFor);
@@ -2462,7 +2518,16 @@ function renderNoteList(containerId,items,isGrocery){
     const ago=relativeTime(n.createdAt);
     const grocTag=isGrocery?'<span class="note-badge grocery-tag">🛒 grocery</span>':'';
     const doneBtn=`<button class="note-card-done" onclick="toggleTodayNote(${n.id})">Done</button>`;
-    return`<div class="note-card${isGrocery?' grocery':''}"><div class="note-card-top"><span class="note-card-text">${escapeHtml(n.text)}</span><button class="note-card-del" onclick="deleteNote(${n.id})">×</button></div><div class="note-card-footer">${grocTag}<span class="note-badge time">${ago}</span>${doneBtn}</div></div>`;
+    // Per-note Send-to-Piyush button — only for shareable, unshared items
+    let sendBtn='';
+    if(n.shareable&&n.section!=='office'){
+      if(n.shared){
+        sendBtn=`<span class="note-badge" style="background:#DFF2EA;color:#1A5038;">✓ shared</span>`;
+      }else{
+        sendBtn=`<button class="note-card-done" onclick="shareNoteWithFamily(${n.id})" style="background:linear-gradient(135deg,#FFD7C2,#F4B6C2);color:#7A2E3E;border:none;">📤 Send</button>`;
+      }
+    }
+    return`<div class="note-card${isGrocery?' grocery':''}"><div class="note-card-top"><span class="note-card-text">${escapeHtml(n.text)}</span><button class="note-card-del" onclick="deleteNote(${n.id})">×</button></div><div class="note-card-footer">${grocTag}<span class="note-badge time">${ago}</span>${sendBtn}${doneBtn}</div></div>`;
   }).join('');
 }
 
