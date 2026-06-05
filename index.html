@@ -505,6 +505,24 @@
   .plan-modal-btns button{flex:1;padding:12px;border-radius:999px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
   .plan-modal-btns .confirm{background:var(--pink-deep);color:#fff;}
   .plan-modal-btns .cancel{background:var(--line);color:#1A1215;}
+  /* ===== AI feature cards (premium) ===== */
+  .ai-card{position:relative;overflow:hidden;border-radius:22px;padding:16px 16px 14px;margin:0 0 12px;background:linear-gradient(135deg,#FFFFFF 0%,#FFF4F7 55%,#EAF4FB 100%);border:1px solid rgba(196,96,122,.16);box-shadow:0 10px 30px rgba(196,96,122,.16),inset 0 1px 0 rgba(255,255,255,.7);}
+  .ai-card::before{content:"";position:absolute;top:-40%;right:-20%;width:180px;height:180px;background:radial-gradient(circle,rgba(244,182,194,.45),transparent 70%);pointer-events:none;}
+  .ai-card-head{display:flex;align-items:center;gap:12px;position:relative;z-index:1;}
+  .ai-card-icon{width:44px;height:44px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,var(--pink),var(--peach));box-shadow:0 4px 12px rgba(196,96,122,.3);}
+  .ai-card-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:22px;line-height:1.05;color:#7A2E3E;letter-spacing:.01em;}
+  .ai-card-sub{font-size:12px;color:#8A6A72;margin-top:2px;line-height:1.35;}
+  .ai-card-cta{position:relative;z-index:1;margin-top:13px;width:100%;border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.04em;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));box-shadow:0 6px 16px rgba(196,96,122,.32);transition:transform .12s ease,box-shadow .12s ease;}
+  .ai-card-cta:active{transform:scale(.97);box-shadow:0 3px 10px rgba(196,96,122,.3);}
+  .ai-card-cta:disabled{opacity:.7;cursor:default;}
+  .ai-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:aiSpin .7s linear infinite;vertical-align:-2px;margin-right:7px;}
+  @keyframes aiSpin{to{transform:rotate(360deg);}}
+  .ai-result{position:relative;z-index:1;margin-top:12px;border-radius:14px;background:rgba(255,255,255,.75);border:1px solid rgba(196,96,122,.14);padding:12px 14px;font-size:13px;color:#5A3A42;line-height:1.5;display:none;}
+  .ai-result.show{display:block;animation:aiReveal .4s ease;}
+  @keyframes aiReveal{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .ai-result .meal-line{padding:6px 0;border-bottom:1px dashed rgba(232,154,170,.35);}
+  .ai-result .meal-line:last-child{border-bottom:none;}
+  .ai-result .meal-name{font-weight:700;color:#7A2E3E;}
 </style>
 
 <!-- ===== OneSignal Push (waiting for your appId) ===== -->
@@ -587,6 +605,7 @@
       <div class="hq-card" onclick="go('dates')"><span class="hq-icon">💝</span><div><div class="hq-label">Dates</div><div class="hq-sub">birthdays & plans</div></div></div>
       <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
       <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
+      <div class="hq-card" onclick="planMealsFromHome()" style="background:linear-gradient(135deg,#EEF8F4,#FFF4E8);border-color:var(--green);"><span class="hq-icon">🍽️</span><div><div class="hq-label">Meal Prep</div><div class="hq-sub">plan dinners → grocery</div></div></div>
     </div>
     <div class="home-section-label">Your data</div>
     <div style="display:flex;gap:10px;">
@@ -701,7 +720,8 @@
       <div class="btn-row"><button class="btn block" onclick="saveDate()">Save ✨</button><button class="btn ghost" onclick="toggleDateForm()">Cancel</button></div>
     </div>
     <button class="btn block" onclick="toggleDateForm()" id="addDateBtn">+ Add a Date or Event</button>
-    <div style="height:14px"></div>
+    <input type="file" id="flyerInput" accept="image/*" capture="environment" style="display:none" onchange="handleFlyerFile(this)"/>
+    <button id="flyerBtn" onclick="triggerFlyerScan()" style="display:block;width:100%;margin-top:8px;background:transparent;border:1px solid var(--line);color:#8A6A72;border-radius:12px;padding:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">📸 or scan a flyer photo</button>
     <div id="dailySummaryBanner"></div>
     <div id="dateDiagnostic" style="font-size:12px;color:#7A2E3E;background:#FFF1ED;border-radius:10px;padding:8px 12px;margin-bottom:10px;text-align:center;font-weight:700;"></div>
     <div id="dateList"></div>
@@ -821,6 +841,17 @@
         <button onclick="addNote('personal')">Add</button>
       </div>
       <div class="grocery-header"><span class="grocery-divider"></span><span class="grocery-header-label">🛒 Grocery / Shopping</span><span class="grocery-divider"></span></div>
+      <div class="ai-card">
+        <div class="ai-card-head">
+          <div class="ai-card-icon">🍽️</div>
+          <div>
+            <div class="ai-card-title">Plan the week's dinners</div>
+            <div class="ai-card-sub">I'll suggest dinners and drop every ingredient into your grocery list.</div>
+          </div>
+        </div>
+        <button class="ai-card-cta" id="mealBtn" onclick="planMeals()">🍽️ Plan dinners → grocery</button>
+        <div class="ai-result" id="mealResult"></div>
+      </div>
       <div id="noteList-grocery"></div>
       <div style="height:10px"></div>
       <div id="noteList-personal"></div>
@@ -1584,6 +1615,206 @@ async function saveDate(){
     toast('Save failed: '+(e.message||'try again'));
   }
 }
+// ===== 📸 Snap a flyer → event =====
+function triggerFlyerScan(){const i=document.getElementById('flyerInput');if(i){i.value='';i.click();}}
+function handleFlyerFile(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const btn=document.getElementById('flyerBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="ai-spin"></span>Reading photo…';}
+  const url=URL.createObjectURL(file);
+  const img=new Image();
+  img.onload=()=>{
+    try{
+      // Normalize to JPEG via canvas (handles HEIC, shrinks payload)
+      const max=1600;let w=img.width,h=img.height;
+      if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s);}
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=cv.toDataURL('image/jpeg',0.85);
+      const base64=dataUrl.split(',')[1];
+      URL.revokeObjectURL(url);
+      extractEventFromImage(base64);
+    }catch(e){URL.revokeObjectURL(url);resetFlyerBtn();toast('Couldn\'t read that image — try another');}
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);resetFlyerBtn();toast('Couldn\'t open that photo');};
+  img.src=url;
+}
+function resetFlyerBtn(){const b=document.getElementById('flyerBtn');if(b){b.disabled=false;b.innerHTML='📸 Scan a photo';}}
+async function extractEventFromImage(base64){
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        system:`You read a photo of an invitation, flyer, schedule or note and pull out ONE event. Return ONLY JSON, no markdown:
+{"dateType":"birthday|anniversary|party|dinner|weekend|other","name":"short event name","date":"YYYY-MM-DD or null","time":"HH:MM 24h or null","who":"person it's for or null","location":"place or null"}
+Today is ${new Date().toISOString().slice(0,10)}. If a year isn't shown, assume the next upcoming occurrence. If you truly can't find an event, return {"name":null}.`,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:base64}},
+          {type:'text',text:'Pull the event details from this image.'}
+        ]}]
+      })
+    });
+    if(!resp.ok)throw new Error('api');
+    const data=await resp.json();
+    const raw=data.content&&data.content[0]&&data.content[0].text;
+    if(!raw)throw new Error('empty');
+    const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    resetFlyerBtn();
+    if(!p||!p.name){toast('No event found in that photo — try a clearer one');return;}
+    // Open the form and prefill for review
+    const f=document.getElementById('dateForm');const b=document.getElementById('addDateBtn');
+    if(f&&f.style.display==='none'){f.style.display='block';b.style.display='none';onDateTypeChange();}
+    const types=['birthday','anniversary','party','dinner','weekend','other'];
+    const setVal=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+    document.getElementById('dType').value=types.includes(p.dateType)?p.dateType:'other';
+    onDateTypeChange();
+    setVal('dName',p.name);setVal('dDate',p.date);setVal('dTime',p.time);
+    setVal('dLocation',p.location);setVal('dWho',p.who);
+    try{f.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+    toast('✨ Found it — check the details and tap Save');
+  }catch(e){
+    resetFlyerBtn();
+    toast('Couldn\'t read that one — add it manually below');
+  }
+}
+// ===== 🍽️ Plan dinners → grocery =====
+function addGroceryItem(text){
+  const t=(text||'').trim();if(!t)return false;
+  if(!state.notes)state.notes=[];
+  const exists=state.notes.some(n=>n.section==='grocery'&&!n.done&&n.text.toLowerCase()===t.toLowerCase());
+  if(exists)return false;
+  state.notes.unshift({id:Date.now()+Math.floor(Math.random()*1000),text:t,section:'grocery',createdAt:Date.now(),shareable:true,urgent:false,shared:false});
+  return true;
+}
+// ===== Grocery store routing (shared) =====
+const GROC_STORE_ORDER=['Patel Brothers','Costco',"Trader Joe's",'Whole Foods','Amazon','Target','Other'];
+const GROC_STORE_META={
+  'Patel Brothers':{emoji:'🫚',color:'#D9822B'},
+  'Costco':{emoji:'🛒',color:'#3A6EA5'},
+  "Trader Joe's":{emoji:'🛍️',color:'#C6414E'},
+  'Whole Foods':{emoji:'🥬',color:'#2E7A5A'},
+  'Amazon':{emoji:'📦',color:'#7A6A5E'},
+  'Target':{emoji:'🎯',color:'#CC4452'},
+  'Other':{emoji:'🛒',color:'#8A6A72'}
+};
+let lastMealGrocery={};
+function copyTextSafe(text){
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text);return;}}catch(e){}
+  try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);}catch(e){}
+}
+function copyStoreList(i){
+  let text='';
+  if(i<0){
+    GROC_STORE_ORDER.forEach(s=>{const items=lastMealGrocery[s];if(items&&items.length){text+=`${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s}\n`+items.map(it=>`• ${it}`).join('\n')+'\n\n';}});
+    if(!text){toast('Nothing to copy yet');return;}
+    copyTextSafe(text.trim());toast('📋 Full list copied');return;
+  }
+  const s=GROC_STORE_ORDER[i];const items=lastMealGrocery[s]||[];
+  if(!items.length){toast('Nothing to copy');return;}
+  text=`${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s} — Pooja's HQ\n`+items.map(it=>`• ${it}`).join('\n');
+  copyTextSafe(text);toast(`📋 ${s} list copied`);
+}
+function planMealsFromHome(){
+  go('notes');
+  try{switchNotesTab('personal');}catch(e){}
+  setTimeout(()=>{
+    try{const r=document.getElementById('mealResult');if(r)r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+    planMeals();
+  },250);
+}
+async function planMeals(){
+  const prefs=prompt('Which cuisines & how many dinners this week?','5 dinners — Indian + Gujarati, one Mexican, one Italian, a chaat night');
+  if(prefs===null)return;
+  const btn=document.getElementById('mealBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="ai-spin"></span>Planning the week…';}
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1300,
+        system:`You are the dinner planner for an Indian-American family (Pooja & Piyush). Cooking is mostly vegetarian and rotates through:
+- North Indian: dal, rice, roti, paneer dishes (palak paneer, paneer tikka, matar paneer), chole, rajma
+- Gujarati: shaak (gawar nu shaak, bhinda, dudhi), dal-bhaat, kadhi, thepla
+- Mexican: tacos, quesadillas, burrito bowls
+- Italian: pasta
+- Chaat night: pani puri, sev puri, dahi chaat
+Plus simple salads and basics alongside.
+Given the request, propose a weekly DINNER plan and a grocery list. Return ONLY JSON, no markdown:
+{"meals":[{"day":"Mon","name":"dish description","cuisine":"Gujarati|North Indian|Mexican|Italian|Chaat"}],
+ "grocery":[{"item":"short shopping-list item with rough qty","store":"Patel Brothers|Costco|Trader Joe's|Whole Foods|Amazon|Target"}]}
+Routing — pick the single best store per item:
+- Patel Brothers (Indian grocer): dals & lentils, paneer, atta/flour, ghee, Indian spices & masalas, Indian vegetables (gawar, tindora, methi, bhindi, dudhi, karela), chaat items (pani puri kits, sev, chutneys), frozen Indian, Indian snacks
+- Costco: bulk staples, large produce, dairy, eggs, oils, nuts, paper goods
+- Trader Joe's: affordable snacks, cheese, frozen, tortillas, sauces, specialty treats
+- Whole Foods: fresh/organic specialty produce and anything not covered above
+- Amazon: pantry dry goods & specialty spices you'd reorder online
+- Target: household basics
+Combine duplicate ingredients into one line. Keep items short (e.g. "paneer 400g", "2 lb onions").`,
+        messages:[{role:'user',content:(prefs.trim()||'5 family dinners across our usual cuisines')}]
+      })
+    });
+    if(!resp.ok)throw new Error('api');
+    const data=await resp.json();
+    const raw=data.content&&data.content[0]&&data.content[0].text;
+    if(!raw)throw new Error('empty');
+    const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const meals=(p&&p.meals)||[];
+    const grocery=(p&&p.grocery)||[];
+    if(!meals.length)throw new Error('nomeals');
+    // Add grocery items (store tagged) to the in-app list
+    let added=0;
+    grocery.forEach(g=>{const item=g.item||g;const store=g.store?` — ${g.store}`:'';if(addGroceryItem(`${item}${store}`))added++;});
+    state.lastMealPlan={at:Date.now(),meals};
+    saveState();try{renderNotes();renderDailySummaryBanner();}catch(e){}
+    // Group grocery by store for the store-card display
+    const byStore={};
+    grocery.forEach(g=>{const s=g.store||'Other';(byStore[s]=byStore[s]||[]).push(g.item||g);});
+    lastMealGrocery=byStore;
+    let groceryHtml='';
+    GROC_STORE_ORDER.forEach((s,i)=>{
+      const items=byStore[s];if(!items||!items.length)return;
+      const m=GROC_STORE_META[s]||GROC_STORE_META.Other;
+      groceryHtml+=`<div style="margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(196,96,122,.12);border-left:4px solid ${m.color};padding:10px 12px;box-shadow:0 2px 8px rgba(196,96,122,.06);">`+
+        `<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${m.emoji}</span><span style="font-weight:700;color:${m.color};font-size:13px;">${s}</span><span style="font-size:11px;font-weight:700;background:${m.color}22;color:${m.color};padding:1px 8px;border-radius:999px;">${items.length}</span><span style="flex:1;"></span><button onclick="copyStoreList(${i})" style="background:transparent;border:1px solid ${m.color};color:${m.color};border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">📋 Copy</button></div>`+
+        items.map(it=>`<div style="font-size:13px;color:#5A3A42;padding:2px 0 2px 24px;">• ${escapeHtml(it)}</div>`).join('')+
+        `</div>`;
+    });
+    const res=document.getElementById('mealResult');
+    if(res){
+      res.innerHTML=
+        `<div style="font-weight:700;color:#7A2E3E;margin-bottom:4px;">This week's dinners</div>`+
+        meals.map(m=>`<div class="meal-line"><span class="meal-name">🍽️ ${escapeHtml(m.name)}</span>${m.cuisine?` <span style="font-size:11px;color:#8A6A72;">· ${escapeHtml(m.cuisine)}</span>`:''}</div>`).join('')+
+        (groceryHtml?`<div style="margin-top:12px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<button onclick="copyStoreList(-1)" style="margin-top:8px;width:100%;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy the full list</button>`:'')+
+        `<div style="margin-top:10px;font-weight:700;color:#2E7A5A;">✓ ${added} item${added===1?'':'s'} added to your grocery list</div>`+
+        `<button onclick="sendMealPlanToPiyush()" style="margin-top:12px;width:100%;border:none;border-radius:12px;padding:11px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;">📤 Send plan to Piyush for his picks</button>`;
+      res.classList.add('show');
+    }
+    toast(`🍽️ Week planned · ${added} grocery item${added===1?'':'s'} added`);
+  }catch(e){
+    toast('Meal plan didn\'t work this time — try again');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='🍽️ Plan dinners → grocery';}
+  }
+}
+// Text Piyush the week's dinner ideas and ask his preferences
+function sendMealPlanToPiyush(){
+  const contacts=state.contacts||{};
+  const piyush=digitsOnly(contacts.piyush);
+  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  const meals=(state.lastMealPlan&&state.lastMealPlan.meals)||[];
+  if(!meals.length){toast('Plan a week first 🍽️');return;}
+  const lines=meals.map((m,i)=>`${i+1}.  ${m.name}${m.cuisine?`  (${m.cuisine})`:''}`).join('\n');
+  const body=`🍽️ This week's dinner ideas from Pooja's HQ 💕\n\n${lines}\n\nWhich are you craving? Want to swap any or add a request? Reply back and I'll adjust 💕`;
+  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  window.location.href=smsUrl;
+  toast('📤 Sent to Piyush 💕');
+}
 function addDateToCalendarICS(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
   const title=emoji+' '+d.name+(d.who?' ('+d.who+')':'');
@@ -1659,6 +1890,8 @@ async function addDateToCalendar(d){
 function deleteDate(id){state.dates=state.dates.filter(x=>x.id!==id);saveState();renderDates();}
 let showPastDates=false;
 function togglePastDates(){showPastDates=!showPastDates;renderDates();}
+let showLaterDates=false;
+function toggleLaterDates(){showLaterDates=!showLaterDates;renderDates();}
 function renderDates(){
   // Always re-render the calendar grid alongside the list
   try{renderHqCalendar();}catch(e){}
@@ -1695,11 +1928,19 @@ function renderDates(){
     const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:8px;margin-right:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit;">${shareLabel}</button>`;
     return`<div class="date-card"><div class="date-badge"><div class="day">${dt.getDate()}</div><div class="mo">${dt.toLocaleString('en-US',{month:'short'})}</div></div><div class="date-info"><div class="date-name">${emoji} ${escapeHtml(d.name)}${calTag}</div>${d.who?`<div class="date-sub">for ${escapeHtml(d.who)}${timeLine} · remind ${d.notify}d before</div>`:`<div class="date-sub">remind ${d.notify}d before${timeLine}</div>`}${locLine}<div class="countdown">${cd}</div>${shareBtn}<button onclick="exportSingleDateICS(${d.id})" style="margin-top:8px;background:#FFF1ED;border:1px solid var(--pink);color:var(--pink-deep);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;font-family:inherit;">📅 Add to my Calendar</button></div><button class="task-del" onclick="deleteDate(${d.id})">×</button></div>`;
   }
-  // Today + future = upcoming (soonest first); anything before today = past (most recent first)
-  const upcoming=all.filter(d=>Math.round((parseDt(d)-now)/86400000)>=0).sort((a,b)=>parseDt(a)-parseDt(b));
-  const past=all.filter(d=>Math.round((parseDt(d)-now)/86400000)<0).sort((a,b)=>parseDt(b)-parseDt(a));
+  // This month = shown; later months = collapsed; past = collapsed
+  const ms=d=>parseDt(d).getTime();
+  const todayMs=now.getTime();
+  const endOfMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getTime();
+  const thisMonth=all.filter(d=>ms(d)>=todayMs&&ms(d)<=endOfMonth).sort((a,b)=>ms(a)-ms(b));
+  const later=all.filter(d=>ms(d)>endOfMonth).sort((a,b)=>ms(a)-ms(b));
+  const past=all.filter(d=>ms(d)<todayMs).sort((a,b)=>ms(b)-ms(a));
   let html='';
-  html+=upcoming.length?upcoming.map(cardHtml).join(''):'<div class="empty">No upcoming dates. ✨</div>';
+  html+=thisMonth.length?thisMonth.map(cardHtml).join(''):'<div class="empty">Nothing left this month. ✨</div>';
+  if(later.length){
+    html+=`<div onclick="toggleLaterDates()" style="margin:20px 0 8px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#7A4E5E;font-size:12px;font-weight:700;letter-spacing:.05em;-webkit-tap-highlight-color:transparent;"><span>${showLaterDates?'▾':'▸'} LATER (${later.length})</span><span style="flex:1;height:1px;background:rgba(232,154,170,.3);"></span></div>`;
+    if(showLaterDates){html+=later.map(cardHtml).join('');}
+  }
   if(past.length){
     html+=`<div onclick="togglePastDates()" style="margin:20px 0 8px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#9A7A85;font-size:12px;font-weight:700;letter-spacing:.05em;-webkit-tap-highlight-color:transparent;"><span>${showPastDates?'▾':'▸'} PAST EVENTS (${past.length})</span><span style="flex:1;height:1px;background:rgba(232,154,170,.3);"></span></div>`;
     if(showPastDates){html+=`<div style="opacity:.55;">${past.map(cardHtml).join('')}</div>`;}
@@ -1892,8 +2133,8 @@ function nudgePiyush(){
     // Remember this exact order so "Log reply" numbers line up with what Piyush saw
     state.lastNudge={at:Date.now(),ids:open.map(o=>o.id)};
     saveState();
-    const lines=open.map((i,idx)=>`${idx+1}. ${i.text}${i.urgent?' ⚡':''}`).join('\n');
-    const prefill=`🔔 Pooja's HQ — still open for you:\n${lines}\n\nReply with the numbers you've done (e.g. "done 1 3") 💕`;
+    const lines=open.map((i,idx)=>`${idx+1}.  ${i.text}${i.urgent?'  ⚡':''}`).join('\n');
+    const prefill=`🔔 Pooja's HQ — still open for you 💕\n\n${lines}\n\nReply with the numbers you've done (e.g. "done 1 3") 💕`;
     const edited=prompt('Nudge Piyush — edit if you like:',prefill);
     if(!edited||!edited.trim())return;
     body=edited.trim();
