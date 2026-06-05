@@ -849,7 +849,7 @@
             <div class="ai-card-sub">I'll suggest dinners and drop every ingredient into your grocery list.</div>
           </div>
         </div>
-        <button class="ai-card-cta" id="mealBtn" onclick="planMeals()">🍽️ Plan dinners → grocery</button>
+        <button class="ai-card-cta" id="mealBtn" onclick="planWeek()">🍽️ Plan the week's dinners</button>
         <div class="ai-result" id="mealResult"></div>
       </div>
       <div id="noteList-grocery"></div>
@@ -1723,97 +1723,125 @@ function planMealsFromHome(){
   try{switchNotesTab('personal');}catch(e){}
   setTimeout(()=>{
     try{const r=document.getElementById('mealResult');if(r)r.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
-    planMeals();
+    planWeek();
   },250);
 }
-async function planMeals(){
-  const prefs=prompt('Which cuisines & how many dinners this week?','5 dinners — Indian + Gujarati, one Mexican, one Italian, a chaat night');
-  if(prefs===null)return;
-  const btn=document.getElementById('mealBtn');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="ai-spin"></span>Planning the week…';}
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1300,
-        system:`You are the dinner planner for an Indian-American family (Pooja & Piyush). Cooking is mostly vegetarian and rotates through:
-- North Indian: dal, rice, roti, paneer dishes (palak paneer, paneer tikka, matar paneer), chole, rajma
-- Gujarati: shaak (gawar nu shaak, bhinda, dudhi), dal-bhaat, kadhi, thepla
-- Mexican: tacos, quesadillas, burrito bowls
-- Italian: pasta
-- Chaat night: pani puri, sev puri, dahi chaat
-Plus simple salads and basics alongside.
-Given the request, propose a weekly DINNER plan and a grocery list. Return ONLY JSON, no markdown:
-{"meals":[{"day":"Mon","name":"dish description","cuisine":"Gujarati|North Indian|Mexican|Italian|Chaat"}],
- "grocery":[{"item":"short shopping-list item with rough qty","store":"Patel Brothers|Costco|Trader Joe's|Whole Foods|Amazon|Target"}]}
-Routing — pick the single best store per item:
-- Patel Brothers (Indian grocer): dals & lentils, paneer, atta/flour, ghee, Indian spices & masalas, Indian vegetables (gawar, tindora, methi, bhindi, dudhi, karela), chaat items (pani puri kits, sev, chutneys), frozen Indian, Indian snacks
-- Costco: bulk staples, large produce, dairy, eggs, oils, nuts, paper goods
-- Trader Joe's: affordable snacks, cheese, frozen, tortillas, sauces, specialty treats
-- Whole Foods: fresh/organic specialty produce and anything not covered above
-- Amazon: pantry dry goods & specialty spices you'd reorder online
-- Target: household basics
-Combine duplicate ingredients into one line. Keep items short (e.g. "paneer 400g", "2 lb onions").`,
-        messages:[{role:'user',content:(prefs.trim()||'5 family dinners across our usual cuisines')}]
-      })
-    });
-    if(!resp.ok)throw new Error('api');
-    const data=await resp.json();
-    const raw=data.content&&data.content[0]&&data.content[0].text;
-    if(!raw)throw new Error('empty');
-    const p=JSON.parse(raw.replace(/```json|```/g,'').trim());
-    const meals=(p&&p.meals)||[];
-    const grocery=(p&&p.grocery)||[];
-    if(!meals.length)throw new Error('nomeals');
-    // Add grocery items (store tagged) to the in-app list
-    let added=0;
-    grocery.forEach(g=>{const item=g.item||g;const store=g.store?` — ${g.store}`:'';if(addGroceryItem(`${item}${store}`))added++;});
-    state.lastMealPlan={at:Date.now(),meals};
-    saveState();try{renderNotes();renderDailySummaryBanner();}catch(e){}
-    // Group grocery by store for the store-card display
-    const byStore={};
-    grocery.forEach(g=>{const s=g.store||'Other';(byStore[s]=byStore[s]||[]).push(g.item||g);});
-    lastMealGrocery=byStore;
-    let groceryHtml='';
-    GROC_STORE_ORDER.forEach((s,i)=>{
-      const items=byStore[s];if(!items||!items.length)return;
-      const m=GROC_STORE_META[s]||GROC_STORE_META.Other;
-      groceryHtml+=`<div style="margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(196,96,122,.12);border-left:4px solid ${m.color};padding:10px 12px;box-shadow:0 2px 8px rgba(196,96,122,.06);">`+
-        `<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${m.emoji}</span><span style="font-weight:700;color:${m.color};font-size:13px;">${s}</span><span style="font-size:11px;font-weight:700;background:${m.color}22;color:${m.color};padding:1px 8px;border-radius:999px;">${items.length}</span><span style="flex:1;"></span><button onclick="copyStoreList(${i})" style="background:transparent;border:1px solid ${m.color};color:${m.color};border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">📋 Copy</button></div>`+
-        items.map(it=>`<div style="font-size:13px;color:#5A3A42;padding:2px 0 2px 24px;">• ${escapeHtml(it)}</div>`).join('')+
-        `</div>`;
-    });
-    const res=document.getElementById('mealResult');
-    if(res){
-      res.innerHTML=
-        `<div style="font-weight:700;color:#7A2E3E;margin-bottom:4px;">This week's dinners</div>`+
-        meals.map(m=>`<div class="meal-line"><span class="meal-name">🍽️ ${escapeHtml(m.name)}</span>${m.cuisine?` <span style="font-size:11px;color:#8A6A72;">· ${escapeHtml(m.cuisine)}</span>`:''}</div>`).join('')+
-        (groceryHtml?`<div style="margin-top:12px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<button onclick="copyStoreList(-1)" style="margin-top:8px;width:100%;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy the full list</button>`:'')+
-        `<div style="margin-top:10px;font-weight:700;color:#2E7A5A;">✓ ${added} item${added===1?'':'s'} added to your grocery list</div>`+
-        `<button onclick="sendMealPlanToPiyush()" style="margin-top:12px;width:100%;border:none;border-radius:12px;padding:11px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;">📤 Send plan to Piyush for his picks</button>`;
-      res.classList.add('show');
-    }
-    toast(`🍽️ Week planned · ${added} grocery item${added===1?'':'s'} added`);
-  }catch(e){
-    toast('Meal plan didn\'t work this time — try again');
-  }finally{
-    if(btn){btn.disabled=false;btn.innerHTML='🍽️ Plan dinners → grocery';}
+// ===== Meal Prep engine (self-contained, no API needed) =====
+const CUISINE_META={
+  'North Indian':{emoji:'🍛',color:'#C4607A'},
+  'Gujarati':{emoji:'🫓',color:'#D9822B'},
+  'Mexican':{emoji:'🌮',color:'#C6414E'},
+  'Italian':{emoji:'🍝',color:'#2E7A5A'},
+  'Chaat':{emoji:'🥘',color:'#5A8CAA'},
+  'Light':{emoji:'🥗',color:'#7A6A5E'}
+};
+// Each meal: n=name, c=cuisine, g=[[item, store]]
+const MEAL_LIBRARY=[
+  {n:'Dal tadka + jeera rice',c:'North Indian',g:[['toor dal','Patel Brothers'],['basmati rice','Costco'],['onions','Costco'],['tomatoes','Costco'],['ginger-garlic','Patel Brothers'],['cumin & whole spices','Patel Brothers'],['ghee','Patel Brothers']]},
+  {n:'Palak paneer + roti',c:'North Indian',g:[['paneer 400g','Patel Brothers'],['spinach','Costco'],['onions','Costco'],['tomatoes','Costco'],['atta (wheat flour)','Patel Brothers'],['garam masala','Patel Brothers'],['cream','Costco']]},
+  {n:'Chole + basmati rice',c:'North Indian',g:[['chickpeas','Patel Brothers'],['onions','Costco'],['tomatoes','Costco'],['chole masala','Patel Brothers'],['basmati rice','Costco'],['ginger-garlic','Patel Brothers']]},
+  {n:'Rajma + rice',c:'North Indian',g:[['rajma (kidney beans)','Patel Brothers'],['onions','Costco'],['tomatoes','Costco'],['basmati rice','Costco'],['rajma masala','Patel Brothers']]},
+  {n:'Paneer butter masala + naan',c:'North Indian',g:[['paneer 400g','Patel Brothers'],['butter','Costco'],['tomatoes','Costco'],['cashews','Costco'],['naan','Trader Joe\'s'],['garam masala','Patel Brothers'],['cream','Costco']]},
+  {n:'Aloo gobi + roti',c:'North Indian',g:[['potatoes','Costco'],['cauliflower','Costco'],['onions','Costco'],['turmeric & spices','Patel Brothers'],['atta (wheat flour)','Patel Brothers'],['cilantro','Whole Foods']]},
+  {n:'Matar paneer + roti',c:'North Indian',g:[['paneer 400g','Patel Brothers'],['green peas (frozen)','Costco'],['onions','Costco'],['tomatoes','Costco'],['atta (wheat flour)','Patel Brothers'],['garam masala','Patel Brothers']]},
+  {n:'Baingan bharta + roti',c:'North Indian',g:[['eggplant','Whole Foods'],['onions','Costco'],['tomatoes','Costco'],['atta (wheat flour)','Patel Brothers'],['cumin & spices','Patel Brothers']]},
+  {n:'Dal makhani + rice',c:'North Indian',g:[['urad dal & rajma','Patel Brothers'],['butter','Costco'],['cream','Costco'],['tomatoes','Costco'],['basmati rice','Costco'],['ginger-garlic','Patel Brothers']]},
+  {n:'Gawar nu shaak + rotli + dal-bhaat',c:'Gujarati',g:[['gawar (cluster beans)','Patel Brothers'],['toor dal','Patel Brothers'],['basmati rice','Costco'],['atta (wheat flour)','Patel Brothers'],['jaggery','Patel Brothers'],['mustard seeds & spices','Patel Brothers']]},
+  {n:'Bhinda nu shaak + rotli',c:'Gujarati',g:[['okra (bhindi)','Patel Brothers'],['onions','Costco'],['atta (wheat flour)','Patel Brothers'],['besan (gram flour)','Patel Brothers'],['turmeric & spices','Patel Brothers']]},
+  {n:'Kadhi + khichdi',c:'Gujarati',g:[['yogurt','Costco'],['besan (gram flour)','Patel Brothers'],['moong dal','Patel Brothers'],['basmati rice','Costco'],['curry leaves','Patel Brothers'],['ghee','Patel Brothers']]},
+  {n:'Thepla + chundo + chaas',c:'Gujarati',g:[['atta (wheat flour)','Patel Brothers'],['fenugreek (methi)','Patel Brothers'],['yogurt','Costco'],['mango chundo','Patel Brothers'],['besan (gram flour)','Patel Brothers']]},
+  {n:'Dudhi muthia + chutney',c:'Gujarati',g:[['bottle gourd (dudhi)','Patel Brothers'],['besan (gram flour)','Patel Brothers'],['semolina (sooji)','Patel Brothers'],['green chutney','Patel Brothers'],['sesame seeds','Patel Brothers']]},
+  {n:'Sev tameta nu shaak + rotli',c:'Gujarati',g:[['tomatoes','Costco'],['gathiya sev','Patel Brothers'],['atta (wheat flour)','Patel Brothers'],['turmeric & spices','Patel Brothers']]},
+  {n:'Undhiyu + puri',c:'Gujarati',g:[['mixed winter veg','Whole Foods'],['surti papdi','Patel Brothers'],['besan (gram flour)','Patel Brothers'],['atta (wheat flour)','Patel Brothers'],['undhiyu masala','Patel Brothers']]},
+  {n:'Batata nu shaak + puri',c:'Gujarati',g:[['potatoes','Costco'],['atta (wheat flour)','Patel Brothers'],['mustard seeds & spices','Patel Brothers'],['curry leaves','Patel Brothers']]},
+  {n:'Bean & cheese tacos',c:'Mexican',g:[['black beans','Trader Joe\'s'],['taco shells','Trader Joe\'s'],['shredded cheese','Costco'],['lettuce','Costco'],['salsa','Trader Joe\'s'],['avocados','Costco']]},
+  {n:'Veggie quesadillas',c:'Mexican',g:[['flour tortillas','Trader Joe\'s'],['shredded cheese','Costco'],['bell peppers','Costco'],['onions','Costco'],['salsa','Trader Joe\'s']]},
+  {n:'Burrito bowl',c:'Mexican',g:[['rice','Costco'],['black beans','Trader Joe\'s'],['corn','Trader Joe\'s'],['shredded cheese','Costco'],['avocados','Costco'],['lime','Whole Foods']]},
+  {n:'Veg enchiladas',c:'Mexican',g:[['corn tortillas','Trader Joe\'s'],['enchilada sauce','Trader Joe\'s'],['shredded cheese','Costco'],['black beans','Trader Joe\'s'],['bell peppers','Costco']]},
+  {n:'Penne arrabbiata',c:'Italian',g:[['penne pasta','Trader Joe\'s'],['marinara sauce','Trader Joe\'s'],['garlic','Costco'],['red chili flakes','Amazon'],['parmesan','Costco'],['olive oil','Costco']]},
+  {n:'Pasta primavera',c:'Italian',g:[['fettuccine','Trader Joe\'s'],['mixed vegetables','Costco'],['cream','Costco'],['parmesan','Costco'],['garlic','Costco'],['olive oil','Costco']]},
+  {n:'Margherita pizza',c:'Italian',g:[['pizza dough','Trader Joe\'s'],['mozzarella','Costco'],['marinara sauce','Trader Joe\'s'],['fresh basil','Whole Foods'],['olive oil','Costco']]},
+  {n:'Baked ziti',c:'Italian',g:[['ziti pasta','Trader Joe\'s'],['marinara sauce','Trader Joe\'s'],['ricotta','Whole Foods'],['mozzarella','Costco'],['parmesan','Costco']]},
+  {n:'Pani puri night',c:'Chaat',g:[['pani puri kit','Patel Brothers'],['potatoes','Costco'],['chickpeas','Patel Brothers'],['mint-coriander chutney','Patel Brothers'],['tamarind chutney','Patel Brothers']]},
+  {n:'Sev puri + dahi puri',c:'Chaat',g:[['puri/papdi','Patel Brothers'],['sev','Patel Brothers'],['yogurt','Costco'],['potatoes','Costco'],['chutneys','Patel Brothers'],['onions','Costco']]},
+  {n:'Pav bhaji',c:'Chaat',g:[['pav (dinner rolls)','Trader Joe\'s'],['mixed vegetables','Costco'],['potatoes','Costco'],['pav bhaji masala','Patel Brothers'],['butter','Costco'],['onions','Costco']]},
+  {n:'Aloo tikki chaat',c:'Chaat',g:[['potatoes','Costco'],['chickpeas','Patel Brothers'],['yogurt','Costco'],['chutneys','Patel Brothers'],['sev','Patel Brothers'],['chaat masala','Patel Brothers']]},
+  {n:'Masala khichdi',c:'Light',g:[['moong dal','Patel Brothers'],['basmati rice','Costco'],['mixed vegetables','Costco'],['ghee','Patel Brothers'],['cumin & spices','Patel Brothers']]},
+  {n:'Besan chila + green chutney',c:'Light',g:[['besan (gram flour)','Patel Brothers'],['onions','Costco'],['tomatoes','Costco'],['cilantro','Whole Foods'],['green chutney','Patel Brothers']]},
+  {n:'Dhokla + chutney',c:'Light',g:[['besan (gram flour)','Patel Brothers'],['semolina (sooji)','Patel Brothers'],['yogurt','Costco'],['green chutney','Patel Brothers'],['mustard seeds','Patel Brothers']]},
+  {n:'Big salad + tomato soup',c:'Light',g:[['salad greens','Costco'],['cherry tomatoes','Costco'],['cucumber','Costco'],['tomato soup','Trader Joe\'s'],['feta','Costco'],['olive oil','Costco']]}
+];
+let currentMealOptions=[];
+let selectedMealIdx=new Set();
+
+function pickWeeklyOptions(n){
+  const recent=(state.recentMeals||[]);
+  const pool=MEAL_LIBRARY.slice().sort(()=>Math.random()-0.5);
+  const chosen=[];const usedCuisine={};
+  // First pass: fresh + cuisine variety
+  for(const m of pool){
+    if(chosen.length>=n)break;
+    if(recent.includes(m.n))continue;
+    if((usedCuisine[m.c]||0)>=2)continue;
+    chosen.push(m);usedCuisine[m.c]=(usedCuisine[m.c]||0)+1;
   }
+  // Fill if short (ignore recent), then if still short ignore cuisine cap
+  if(chosen.length<n)for(const m of pool){if(chosen.length>=n)break;if(chosen.includes(m))continue;if((usedCuisine[m.c]||0)>=2)continue;chosen.push(m);usedCuisine[m.c]=(usedCuisine[m.c]||0)+1;}
+  if(chosen.length<n)for(const m of pool){if(chosen.length>=n)break;if(!chosen.includes(m))chosen.push(m);}
+  return chosen.slice(0,n);
 }
-// Text Piyush the week's dinner ideas and ask his preferences
-function sendMealPlanToPiyush(){
-  const contacts=state.contacts||{};
-  const piyush=digitsOnly(contacts.piyush);
+function planWeek(){
+  currentMealOptions=pickWeeklyOptions(6);
+  selectedMealIdx=new Set();
+  state.recentMeals=currentMealOptions.map(m=>m.n);
+  saveState();
+  renderMealOptions();
+  try{const r=document.getElementById('mealResult');if(r)r.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+}
+function toggleMealSelect(i){selectedMealIdx.has(i)?selectedMealIdx.delete(i):selectedMealIdx.add(i);renderMealOptions();}
+function renderMealOptions(){
+  const res=document.getElementById('mealResult');if(!res)return;
+  if(!currentMealOptions.length){res.classList.remove('show');res.innerHTML='';return;}
+  const count=selectedMealIdx.size;
+  let html=`<div style="font-weight:700;color:#7A2E3E;margin-bottom:2px;">This week's dinner options</div><div style="font-size:11px;color:#8A6A72;margin-bottom:6px;">Tap the ones you want to make</div>`;
+  html+=currentMealOptions.map((m,i)=>{
+    const sel=selectedMealIdx.has(i);const meta=CUISINE_META[m.c]||{emoji:'🍽️',color:'#C4607A'};
+    return `<div onclick="toggleMealSelect(${i})" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border-radius:14px;cursor:pointer;border:1.5px solid ${sel?meta.color:'rgba(196,96,122,.15)'};background:${sel?meta.color+'14':'#fff'};transition:all .12s;"><div style="width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:${sel?meta.color:'#F0E4E8'};color:${sel?'#fff':'#B89AA2'};">${sel?'✓':''}</div><div style="flex:1;"><div style="font-weight:700;color:#5A2E3A;font-size:14px;">${meta.emoji} ${escapeHtml(m.n)}</div><div style="font-size:11px;color:#8A6A72;">${escapeHtml(m.c)}</div></div></div>`;
+  }).join('');
+  html+=`<div style="display:flex;gap:8px;margin-top:12px;"><button onclick="planWeek()" style="flex:1;background:transparent;border:1px solid var(--line);color:#8A6A72;border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔀 Different options</button><button onclick="sendOptionsToPiyush()" style="flex:1;background:transparent;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📤 Send to Piyush</button></div>`;
+  html+=`<button onclick="buildGroceryFromSelected()" ${count?'':'disabled'} style="margin-top:8px;width:100%;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:${count?'pointer':'default'};opacity:${count?1:.5};">🛒 Build grocery from ${count} selected</button>`;
+  html+=`<div id="groceryRouted"></div>`;
+  res.innerHTML=html;res.classList.add('show');
+}
+function sendOptionsToPiyush(){
+  const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
   if(!piyush){toast('Add Piyush in Family first');go('family');return;}
-  const meals=(state.lastMealPlan&&state.lastMealPlan.meals)||[];
-  if(!meals.length){toast('Plan a week first 🍽️');return;}
-  const lines=meals.map((m,i)=>`${i+1}.  ${m.name}${m.cuisine?`  (${m.cuisine})`:''}`).join('\n');
-  const body=`🍽️ This week's dinner ideas from Pooja's HQ 💕\n\n${lines}\n\nWhich are you craving? Want to swap any or add a request? Reply back and I'll adjust 💕`;
-  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
-  window.location.href=smsUrl;
+  if(!currentMealOptions.length){toast('Plan a week first 🍽️');return;}
+  const list=selectedMealIdx.size?[...selectedMealIdx].sort((a,b)=>a-b).map(i=>currentMealOptions[i]):currentMealOptions;
+  const lines=list.map((m,i)=>`${i+1}.  ${m.n}  (${m.c})`).join('\n');
+  const body=`🍽️ Dinner options this week — Pooja's HQ 💕\n\n${lines}\n\nWhich are you feeling? Reply with the numbers, or tell me what you'd like 💕`;
+  window.location.href=`sms:${piyush}&body=${encodeURIComponent(body)}`;
   toast('📤 Sent to Piyush 💕');
+}
+function buildGroceryFromSelected(){
+  const sel=[...selectedMealIdx].map(i=>currentMealOptions[i]).filter(Boolean);
+  if(!sel.length){toast('Tap a few dinners first');return;}
+  const byStore={};
+  sel.forEach(m=>m.g.forEach(pair=>{const item=pair[0],store=pair[1];(byStore[store]=byStore[store]||[]).push(item);}));
+  Object.keys(byStore).forEach(s=>{const seen=new Set();byStore[s]=byStore[s].filter(it=>{const k=it.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});});
+  lastMealGrocery=byStore;
+  let added=0;
+  GROC_STORE_ORDER.forEach(s=>{(byStore[s]||[]).forEach(it=>{if(addGroceryItem(`${it} — ${s}`))added++;});});
+  saveState();try{renderNotes();renderDailySummaryBanner();}catch(e){}
+  let groceryHtml='';
+  GROC_STORE_ORDER.forEach((s,i)=>{
+    const items=byStore[s];if(!items||!items.length)return;
+    const m=GROC_STORE_META[s]||GROC_STORE_META.Other;
+    groceryHtml+=`<div style="margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(196,96,122,.12);border-left:4px solid ${m.color};padding:10px 12px;box-shadow:0 2px 8px rgba(196,96,122,.06);"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${m.emoji}</span><span style="font-weight:700;color:${m.color};font-size:13px;">${s}</span><span style="font-size:11px;font-weight:700;background:${m.color}22;color:${m.color};padding:1px 8px;border-radius:999px;">${items.length}</span><span style="flex:1;"></span><button onclick="copyStoreList(${i})" style="background:transparent;border:1px solid ${m.color};color:${m.color};border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">📋 Copy</button></div>`+items.map(it=>`<div style="font-size:13px;color:#5A3A42;padding:2px 0 2px 24px;">• ${escapeHtml(it)}</div>`).join('')+`</div>`;
+  });
+  const gr=document.getElementById('groceryRouted');
+  if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<button onclick="copyStoreList(-1)" style="margin-top:8px;width:100%;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy the full list</button><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
+  toast(`🛒 ${added} item${added===1?'':'s'} added · routed by store`);
 }
 function addDateToCalendarICS(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
