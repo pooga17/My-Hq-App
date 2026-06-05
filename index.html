@@ -1657,6 +1657,8 @@ async function addDateToCalendar(d){
   }
 }
 function deleteDate(id){state.dates=state.dates.filter(x=>x.id!==id);saveState();renderDates();}
+let showPastDates=false;
+function togglePastDates(){showPastDates=!showPastDates;renderDates();}
 function renderDates(){
   // Always re-render the calendar grid alongside the list
   try{renderHqCalendar();}catch(e){}
@@ -1666,13 +1668,17 @@ function renderDates(){
   if(diag){diag.textContent=`📊 ${all.length} saved date${all.length===1?'':'s'} in app`;}
   if(!all.length){el.innerHTML='<div class="empty">No dates yet.</div>';return;}
   const now=new Date();now.setHours(0,0,0,0);
-  el.innerHTML=all.map(d=>{
-    // Safe date parsing — split YYYY-MM-DD into parts to avoid Safari timezone bug
+  // Safe date parsing — split YYYY-MM-DD into parts to avoid Safari timezone bug
+  function parseDt(d){
     let dt;
     try{
       const p=String(d.date).split('-');
       dt=(p.length===3)?new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])):new Date(d.date);
     }catch(e){dt=new Date();}
+    return dt;
+  }
+  function cardHtml(d){
+    const dt=parseDt(d);
     const diff=Math.round((dt-now)/86400000);
     let cd=diff===0?'today 🎉':diff===1?'tomorrow':diff>0?`in ${diff} days`:`${Math.abs(diff)} days ago`;
     const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
@@ -1688,7 +1694,17 @@ function renderDates(){
     else shareLabel='📤 Set up sharing';
     const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:8px;margin-right:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit;">${shareLabel}</button>`;
     return`<div class="date-card"><div class="date-badge"><div class="day">${dt.getDate()}</div><div class="mo">${dt.toLocaleString('en-US',{month:'short'})}</div></div><div class="date-info"><div class="date-name">${emoji} ${escapeHtml(d.name)}${calTag}</div>${d.who?`<div class="date-sub">for ${escapeHtml(d.who)}${timeLine} · remind ${d.notify}d before</div>`:`<div class="date-sub">remind ${d.notify}d before${timeLine}</div>`}${locLine}<div class="countdown">${cd}</div>${shareBtn}<button onclick="exportSingleDateICS(${d.id})" style="margin-top:8px;background:#FFF1ED;border:1px solid var(--pink);color:var(--pink-deep);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;font-family:inherit;">📅 Add to my Calendar</button></div><button class="task-del" onclick="deleteDate(${d.id})">×</button></div>`;
-  }).join('');
+  }
+  // Today + future = upcoming (soonest first); anything before today = past (most recent first)
+  const upcoming=all.filter(d=>Math.round((parseDt(d)-now)/86400000)>=0).sort((a,b)=>parseDt(a)-parseDt(b));
+  const past=all.filter(d=>Math.round((parseDt(d)-now)/86400000)<0).sort((a,b)=>parseDt(b)-parseDt(a));
+  let html='';
+  html+=upcoming.length?upcoming.map(cardHtml).join(''):'<div class="empty">No upcoming dates. ✨</div>';
+  if(past.length){
+    html+=`<div onclick="togglePastDates()" style="margin:20px 0 8px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#9A7A85;font-size:12px;font-weight:700;letter-spacing:.05em;-webkit-tap-highlight-color:transparent;"><span>${showPastDates?'▾':'▸'} PAST EVENTS (${past.length})</span><span style="flex:1;height:1px;background:rgba(232,154,170,.3);"></span></div>`;
+    if(showPastDates){html+=`<div style="opacity:.55;">${past.map(cardHtml).join('')}</div>`;}
+  }
+  el.innerHTML=html;
 }
 
 // ===== In-app calendar (Pooja's HQ) =====
