@@ -1189,12 +1189,11 @@ Today is ${new Date().toISOString().slice(0,10)}. Year is ${new Date().getFullYe
     setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},3000);
   }else if(p.type==='grocery'){
     if(!state.notes)state.notes=[];
-    (p.items||[text]).forEach(item=>{
-      state.notes.unshift({id:Date.now()+Math.random(),text:item.trim(),section:'personal',createdAt:Date.now()});
-    });
-    saveState();renderNotes();
+    let n=0;
+    (p.items||[text]).forEach(item=>{if(addGroceryItem(String(item).trim()))n++;});
+    saveState();renderNotes();try{renderDailySummaryBanner();}catch(e){}
     aiStatus.textContent='🛒 Added to Grocery!';
-    toast('🛒 Added to Personal Grocery!');
+    toast(n?`🛒 ${n} added to Grocery!`:'Already on your grocery list 🛒');
     setTimeout(()=>{aiStatus.textContent='';transcriptEl.textContent='';},2000);
   }else if(p.type==='note'){
     if(!state.notes)state.notes=[];
@@ -1256,7 +1255,7 @@ function renderToday(){
   const doneWeekTasks=state.tasks.filter(isDoneThisWeek);
   const doneWeekNotes=(state.notes||[]).filter(n=>n.done&&isDoneThisWeek(n));
   const doneWeek=[...doneWeekTasks,...doneWeekNotes];
-  const pendingNotes=(state.notes||[]).filter(n=>!n.checkedInToday&&!n.done).length;
+  const pendingNotes=(state.notes||[]).filter(n=>n.section!=='grocery'&&!n.checkedInToday&&!n.done).length;
   const pn=state.partyNotes||{groc:[],cook:[]};
   const pendingParty=[...(pn.groc||[]),...(pn.cook||[])].filter(i=>!i.done).length;
   const totalOpen=open.length+pendingNotes+pendingParty;
@@ -1682,11 +1681,28 @@ Today is ${new Date().toISOString().slice(0,10)}. If a year isn't shown, assume 
   }
 }
 // ===== 🍽️ Plan dinners → grocery =====
+// Normalize a grocery item to its core name so duplicates are caught smartly
+// e.g. "2 lb Onions", "onions", "Onions — Costco" all reduce to "onion"
+function groceryCore(text){
+  let t=String(text||'').toLowerCase();
+  t=t.split('—')[0].split(' - ')[0];              // drop "— Store" suffix
+  t=t.replace(/\(.*?\)/g,' ');                      // drop (parentheticals)
+  t=t.replace(/\b\d+(\.\d+)?\s*(g|kg|ml|l|lb|lbs|oz|cup|cups|tbsp|tsp|pc|pcs|piece|pieces|pack|packs|bunch|bunches|dozen|clove|cloves|can|cans|jar|jars|bag|bags|box|boxes)\b/g,' '); // qty+unit
+  t=t.replace(/\b\d+(\.\d+)?\b/g,' ');             // stray numbers
+  t=t.replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
+  if(t.endsWith('s')&&t.length>3)t=t.slice(0,-1); // light singular
+  return t;
+}
+// Already on the active grocery list? (ignores completed items so you can re-buy)
+function groceryHas(text){
+  const core=groceryCore(text);
+  if(!core)return (state.notes||[]).some(n=>n.section==='grocery'&&!n.done&&n.text.toLowerCase()===String(text||'').toLowerCase());
+  return (state.notes||[]).some(n=>n.section==='grocery'&&!n.done&&groceryCore(n.text)===core);
+}
 function addGroceryItem(text){
   const t=(text||'').trim();if(!t)return false;
   if(!state.notes)state.notes=[];
-  const exists=state.notes.some(n=>n.section==='grocery'&&!n.done&&n.text.toLowerCase()===t.toLowerCase());
-  if(exists)return false;
+  if(groceryHas(t))return false;
   state.notes.unshift({id:Date.now()+Math.floor(Math.random()*1000),text:t,section:'grocery',createdAt:Date.now(),shareable:true,urgent:false,shared:false});
   return true;
 }
@@ -1773,6 +1789,60 @@ const MEAL_LIBRARY=[
 ];
 let currentMealOptions=[];
 let selectedMealIdx=new Set();
+let revealedTwist=new Set();
+// Fun variation per dish — "cooking can be fun" twists
+const TWIST_MAP={
+  'Dal tadka + jeera rice':'Use a panchmel (5-dal) mix and finish with a smoked-ghee dhungar tadka.',
+  'Palak paneer + roti':'Grill the paneer first for palak paneer tikka — smoky edges, same comfort.',
+  'Chole + basmati rice':'Turn leftovers into chole tacos or a chole-stuffed kulcha.',
+  'Rajma + rice':'Make rajma quesadillas with the leftovers — Indo-Mexican fusion.',
+  'Paneer butter masala + naan':'Use the gravy as a pasta sauce — paneer makhani penne.',
+  'Aloo gobi + roti':'Oven-roast the aloo-gobi with chaat masala for crispy edges.',
+  'Matar paneer + roti':'Roll it into a grilled paneer-matar frankie wrap.',
+  'Baingan bharta + roti':'Spread bharta on toasted sourdough as a smoky bruschetta.',
+  'Dal makhani + rice':'Spoon it over baked potatoes, or use as a creamy pasta base.',
+  'Gawar nu shaak + rotli + dal-bhaat':'Add a peanut-sesame crunch masala for extra texture.',
+  'Bhinda nu shaak + rotli':'Try air-fried kurkuri bhindi tossed in chaat masala.',
+  'Kadhi + khichdi':'Make Punjabi-style kadhi with pakoras for a richer version.',
+  'Thepla + chundo + chaas':'Roll theplas into a paneer-veggie wrap for lunchboxes.',
+  'Dudhi muthia + chutney':'Pan-toast leftover muthia with sesame for a crunchy snack.',
+  'Sev tameta nu shaak + rotli':'Spoon over toast with extra sev — Gujarati bruschetta.',
+  'Undhiyu + puri':'Stuff undhiyu into a grilled cheese sandwich.',
+  'Batata nu shaak + puri':'Mash and roll into masala potato frankies.',
+  'Bean & cheese tacos':'Add a spoon of leftover sabzi for desi-Mexican tacos.',
+  'Veggie quesadillas':'Fill with paneer bhurji instead of cheese for an Indo twist.',
+  'Burrito bowl':'Swap rice for jeera rice and beans for rajma.',
+  'Veg enchiladas':'Fill with palak-paneer for a fusion bake.',
+  'Penne arrabbiata':'Add a pinch of garam masala and paneer cubes — desi arrabbiata.',
+  'Pasta primavera':'Toss in tandoori-spiced veggies for a smoky version.',
+  'Margherita pizza':'Brush a thin layer of green chutney under the sauce.',
+  'Baked ziti':'Layer in spiced spinach for a palak baked ziti.',
+  'Pani puri night':'Set up a puri bar with 3 waters — pudina, hing, chatpata.',
+  'Sev puri + dahi puri':'Add pomegranate and avocado for a fresh modern chaat.',
+  'Pav bhaji':'Try a cheese-burst pav bhaji or a green (palak) bhaji.',
+  'Aloo tikki chaat':'Top the tikki with ragda and a drizzle of garlic chutney.',
+  'Masala khichdi':'Finish with a crispy garlic-ghee tadka and papad crumble.',
+  'Besan chila + green chutney':'Stuff with paneer bhurji and roll it like a wrap.',
+  'Dhokla + chutney':'Try a spinach or beetroot dhokla for colour and veggies.',
+  'Big salad + tomato soup':'Add roasted chana or paneer croutons for protein.'
+};
+function toggleTwist(i){revealedTwist.has(i)?revealedTwist.delete(i):revealedTwist.add(i);renderMealOptions();}
+// Keep the meals you already picked; replace only the unselected ones
+function shuffleUnselected(){
+  if(!currentMealOptions.length){planWeek();return;}
+  const used=new Set(currentMealOptions.filter((m,i)=>selectedMealIdx.has(i)).map(m=>m.n));
+  const pool=MEAL_LIBRARY.filter(m=>!used.has(m.n)).sort(()=>Math.random()-0.5);
+  let pi=0;
+  currentMealOptions=currentMealOptions.map((m,i)=>{
+    if(selectedMealIdx.has(i))return m;
+    while(pi<pool.length&&used.has(pool[pi].n))pi++;
+    const pick=pool[pi]||m;
+    if(pool[pi]){used.add(pool[pi].n);pi++;}
+    return pick;
+  });
+  revealedTwist=new Set();
+  renderMealOptions();
+}
 
 function pickWeeklyOptions(n){
   const recent=(state.recentMeals||[]);
@@ -1793,6 +1863,7 @@ function pickWeeklyOptions(n){
 function planWeek(){
   currentMealOptions=pickWeeklyOptions(6);
   selectedMealIdx=new Set();
+  revealedTwist=new Set();
   state.recentMeals=currentMealOptions.map(m=>m.n);
   saveState();
   renderMealOptions();
@@ -1806,9 +1877,18 @@ function renderMealOptions(){
   let html=`<div style="font-weight:700;color:#7A2E3E;margin-bottom:2px;">This week's dinner options</div><div style="font-size:11px;color:#8A6A72;margin-bottom:6px;">Tap the ones you want to make</div>`;
   html+=currentMealOptions.map((m,i)=>{
     const sel=selectedMealIdx.has(i);const meta=CUISINE_META[m.c]||{emoji:'🍽️',color:'#C4607A'};
-    return `<div onclick="toggleMealSelect(${i})" style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border-radius:14px;cursor:pointer;border:1.5px solid ${sel?meta.color:'rgba(196,96,122,.15)'};background:${sel?meta.color+'14':'#fff'};transition:all .12s;"><div style="width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:${sel?meta.color:'#F0E4E8'};color:${sel?'#fff':'#B89AA2'};">${sel?'✓':''}</div><div style="flex:1;"><div style="font-weight:700;color:#5A2E3A;font-size:14px;">${meta.emoji} ${escapeHtml(m.n)}</div><div style="font-size:11px;color:#8A6A72;">${escapeHtml(m.c)}</div></div></div>`;
+    const twist=TWIST_MAP[m.n];const twistOpen=revealedTwist.has(i);
+    let card=`<div style="margin-top:8px;">`;
+    card+=`<div onclick="toggleMealSelect(${i})" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;cursor:pointer;border:1.5px solid ${sel?meta.color:'rgba(196,96,122,.15)'};background:${sel?meta.color+'14':'#fff'};transition:all .12s;">`;
+    card+=`<div style="width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:${sel?meta.color:'#F0E4E8'};color:${sel?'#fff':'#B89AA2'};">${sel?'✓':''}</div>`;
+    card+=`<div style="flex:1;"><div style="font-weight:700;color:#5A2E3A;font-size:14px;">${meta.emoji} ${escapeHtml(m.n)}</div><div style="font-size:11px;color:#8A6A72;">${escapeHtml(m.c)}</div></div>`;
+    if(twist)card+=`<button onclick="event.stopPropagation();toggleTwist(${i})" style="flex-shrink:0;background:${twistOpen?'#FCEAF0':'transparent'};border:1px solid var(--pink);color:var(--pink-deep);border-radius:999px;font-size:11px;font-weight:700;padding:4px 9px;cursor:pointer;font-family:inherit;">✨ twist</button>`;
+    card+=`</div>`;
+    if(twist&&twistOpen)card+=`<div style="margin-top:4px;margin-left:12px;font-size:12px;color:#7A4E5E;background:#FFF4F7;border-left:3px solid var(--pink);border-radius:8px;padding:8px 10px;line-height:1.4;">✨ <b>Twist:</b> ${escapeHtml(twist)}</div>`;
+    card+=`</div>`;
+    return card;
   }).join('');
-  html+=`<div style="display:flex;gap:8px;margin-top:12px;"><button onclick="planWeek()" style="flex:1;background:transparent;border:1px solid var(--line);color:#8A6A72;border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔀 Different options</button><button onclick="sendOptionsToPiyush()" style="flex:1;background:transparent;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📤 Send to Piyush</button></div>`;
+  html+=`<div style="display:flex;gap:8px;margin-top:12px;"><button onclick="shuffleUnselected()" style="flex:1;background:transparent;border:1px solid var(--line);color:#8A6A72;border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔀 Different options</button><button onclick="sendOptionsToPiyush()" style="flex:1;background:transparent;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📤 Send to Piyush</button></div>`;
   html+=`<button onclick="buildGroceryFromSelected()" ${count?'':'disabled'} style="margin-top:8px;width:100%;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:${count?'pointer':'default'};opacity:${count?1:.5};">🛒 Build grocery from ${count} selected</button>`;
   html+=`<div id="groceryRouted"></div>`;
   res.innerHTML=html;res.classList.add('show');
@@ -1840,8 +1920,18 @@ function buildGroceryFromSelected(){
     groceryHtml+=`<div style="margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(196,96,122,.12);border-left:4px solid ${m.color};padding:10px 12px;box-shadow:0 2px 8px rgba(196,96,122,.06);"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${m.emoji}</span><span style="font-weight:700;color:${m.color};font-size:13px;">${s}</span><span style="font-size:11px;font-weight:700;background:${m.color}22;color:${m.color};padding:1px 8px;border-radius:999px;">${items.length}</span><span style="flex:1;"></span><button onclick="copyStoreList(${i})" style="background:transparent;border:1px solid ${m.color};color:${m.color};border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">📋 Copy</button></div>`+items.map(it=>`<div style="font-size:13px;color:#5A3A42;padding:2px 0 2px 24px;">• ${escapeHtml(it)}</div>`).join('')+`</div>`;
   });
   const gr=document.getElementById('groceryRouted');
-  if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<button onclick="copyStoreList(-1)" style="margin-top:8px;width:100%;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy the full list</button><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
+  if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<div style="display:flex;gap:8px;margin-top:8px;"><button onclick="copyStoreList(-1)" style="flex:1;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy all</button><button onclick="sendGroceryToPiyush()" style="flex:1;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;font-family:inherit;">📤 Send to Piyush</button></div><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
   toast(`🛒 ${added} item${added===1?'':'s'} added · routed by store`);
+}
+function sendGroceryToPiyush(){
+  const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
+  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  let body="🛒 Grocery list — Pooja's HQ 💕\n";let any=false;
+  GROC_STORE_ORDER.forEach(s=>{const items=lastMealGrocery[s];if(items&&items.length){any=true;body+=`\n${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s}\n`+items.map(it=>`• ${it}`).join('\n')+'\n';}});
+  if(!any){toast('Build a grocery list first 🛒');return;}
+  body+='\nThank you 💕';
+  window.location.href=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  toast('📤 Grocery sent to Piyush 💕');
 }
 function addDateToCalendarICS(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
@@ -2330,11 +2420,14 @@ function renderFamilyBoard(){
   items.forEach(i=>{if(byOwner[i.owner])byOwner[i.owner].push(i);});
   function renderCol(label,key,colClass,icon){
     const arr=byOwner[key]||[];
-    const open=arr.filter(x=>!x.done).length;
+    const groceryItems=arr.filter(x=>x.section==='grocery');
+    const others=arr.filter(x=>x.section!=='grocery');
+    const groceryOpen=groceryItems.filter(x=>!x.done).length;
+    const open=others.filter(x=>!x.done).length+(groceryOpen>0?1:0);
     let html=`<div class="fb-col ${colClass}"><div class="fb-col-head"><div class="fb-col-title">${icon} ${label}</div><div class="fb-col-count">${open}</div></div>`;
-    if(!arr.length){html+=`<div class="fb-empty">Nothing here ✨</div>`;}
+    if(!others.length&&!groceryOpen){html+=`<div class="fb-empty">Nothing here ✨</div>`;}
     else{
-      arr.forEach(i=>{
+      others.forEach(i=>{
         const checkClass=i.done?'fb-check done':'fb-check';
         let tags='';
         if(i.urgent&&!i.done)tags+=`<span class="fb-item-tag urgent">⚡ urgent</span>`;
@@ -2348,6 +2441,10 @@ function renderFamilyBoard(){
         const ownerBtn=`<button class="fb-owner-cycle" onclick="event.stopPropagation();cycleBoardOwner('${i.id}')" title="${ownerLabel}">${ownerIcon}</button>`;
         html+=`<div class="fb-item ${i.done?'done':''}"><div class="${checkClass}" onclick="event.stopPropagation();toggleBoardItem('${i.id}')"></div><div class="fb-item-text" onclick="toggleBoardItem('${i.id}')">${escapeHtml(i.text)}${tags}</div>${ownerBtn}</div>`;
       });
+      // Grocery rolled up into one tappable line — never explodes the board
+      if(groceryOpen>0){
+        html+=`<div class="fb-item" onclick="go('notes');try{switchNotesTab('personal');}catch(e){}" style="cursor:pointer;"><div class="fb-check" style="visibility:hidden;"></div><div class="fb-item-text">🛒 Grocery <span class="fb-item-tag">${groceryOpen} item${groceryOpen===1?'':'s'}</span></div><span style="color:#B89AA2;font-size:13px;">›</span></div>`;
+      }
     }
     html+=`</div>`;
     return html;
@@ -2359,7 +2456,10 @@ function renderFamilyBoard(){
   // Send button highlight if items queued
   const sendBtn=document.getElementById('fbSendBtn');
   if(sendBtn){
-    const queued=(typeof pendingShareItems==='function')?pendingShareItems().total:0;
+    const ps=(typeof pendingShareItems==='function')?pendingShareItems():{notes:[],dates:[],total:0};
+    const nonGroc=(ps.notes||[]).filter(n=>n.section!=='grocery').length+(ps.dates||[]).length;
+    const grocG=(ps.notes||[]).some(n=>n.section==='grocery')?1:0;
+    const queued=nonGroc+grocG;
     sendBtn.textContent=queued>0?`📤 Send (${queued})`:'📤 Send';
   }
 }
@@ -3097,7 +3197,8 @@ function renderTodayNotes(){
   let html=`<div class="today-notes-section"><div class="today-notes-head"><h3>📝 Notes &amp; Backlog <span style="font-size:11px;color:var(--green-deep);font-weight:700;">· v16</span></h3></div>`;
   nonEmpty.forEach(g=>{
     const gid='ntg-'+g.key;
-    html+=`<div class="today-note-group"><div class="ntg-head open" onclick="toggleSection('${gid}')"><span class="today-note-group-label ${g.cls}">${g.label}</span><div style="display:flex;align-items:center;gap:7px;"><span class="ntg-count">${g.items.length}</span><span class="sec-chevron">▾</span></div></div><div class="section-body open" id="${gid}">`;
+    const oc=(g.key==='grocery')?'':' open';
+    html+=`<div class="today-note-group"><div class="ntg-head${oc}" onclick="toggleSection('${gid}')"><span class="today-note-group-label ${g.cls}">${g.label}</span><div style="display:flex;align-items:center;gap:7px;"><span class="ntg-count">${g.items.length}</span><span class="sec-chevron">▾</span></div></div><div class="section-body${oc}" id="${gid}">`;
     g.items.forEach(item=>{
       const checked=item.checkedInToday||item.done||false;
       if(g.isParty){
@@ -3206,6 +3307,8 @@ function addNote(section){
     else if(autoCategory==='office')toast('Work item → Office 💼');
   }
   if(!state.notes)state.notes=[];
+  // Grocery stays a unique list — skip if it's already there
+  if(finalSection==='grocery'&&groceryHas(text)){toast('Already on your grocery list 🛒');if(autoCategory&&finalSection!==section)switchNotesTab('personal');return;}
   // Shareable: Personal, Home, Grocery — NOT Office. Urgent if text contains 'urgent'
   const isShareable=['personal','home','grocery'].includes(finalSection);
   const isUrgent=/\burgent\b/i.test(text);
