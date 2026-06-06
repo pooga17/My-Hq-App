@@ -3325,6 +3325,31 @@ function addNote(section){
 
 function deleteNote(id){state.notes=state.notes.filter(x=>x.id!==id);saveState();renderNotes();}
 
+// Grocery shown as a tap-to-check shopping list (got vs still-to-buy)
+function renderGroceryShopping(){
+  const el=document.getElementById('noteList-grocery');if(!el)return;
+  const all=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done);
+  if(!all.length){el.innerHTML='';return;}
+  const pending=all.filter(n=>!n.bought);
+  const cart=all.filter(n=>n.bought);
+  const row=(n)=>{
+    const got=!!n.bought;
+    return `<div onclick="toggleBought(${n.id})" style="display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:${got?'#EEF8F4':'#fff'};border:1px solid ${got?'rgba(46,122,90,.3)':'rgba(196,96,122,.14)'};"><div style="width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid ${got?'var(--green-deep)':'#D8B8C0'};background:${got?'var(--green-deep)':'transparent'};color:#fff;">${got?'✓':''}</div><span style="flex:1;font-size:14px;font-weight:600;color:${got?'#7A9A88':'#3A2A30'};${got?'text-decoration:line-through;':''}">${escapeHtml(n.text)}</span><button onclick="event.stopPropagation();deleteNote(${n.id})" style="background:none;border:none;color:#C8A8B0;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">×</button></div>`;
+  };
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#7A4E5E;"><span>${pending.length} to buy${cart.length?` · ${cart.length} in cart`:''}</span>${cart.length?`<button onclick="clearBoughtGrocery()" style="background:transparent;border:1px solid var(--green);color:var(--green-deep);border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">🧹 Clear cart</button>`:''}</div>`;
+  html+=pending.map(row).join('');
+  if(cart.length){html+=`<div style="font-size:11px;color:#2E7A5A;font-weight:700;margin:10px 0 6px;letter-spacing:.05em;">✓ IN CART</div>`+cart.map(row).join('');}
+  el.innerHTML=html;
+}
+function toggleBought(id){const n=(state.notes||[]).find(x=>x.id===id);if(!n)return;n.bought=!n.bought;saveState();renderGroceryShopping();}
+function clearBoughtGrocery(){
+  const before=state.notes.length;
+  state.notes=state.notes.filter(n=>!(n.section==='grocery'&&n.bought&&!n.done));
+  const cleared=before-state.notes.length;
+  saveState();renderNotes();
+  try{renderToday();renderFamilyBoard();renderDailySummaryBanner();}catch(e){}
+  toast(`🧹 Cleared ${cleared} from cart`);
+}
 function renderNoteList(containerId,items,isGrocery){
   const el=document.getElementById(containerId);if(!el)return;
   if(!items.length){
@@ -3356,7 +3381,7 @@ function renderNotes(){
   const home=state.notes.filter(n=>n.section==='home'&&!n.done);
   renderNoteList('noteList-office',office,false);
   renderNoteList('noteList-personal',personal,false);
-  renderNoteList('noteList-grocery',grocery,true);
+  renderGroceryShopping();
   renderNoteList('noteList-home',home,false);
   document.getElementById('nc-office').textContent=office.length||'';
   document.getElementById('nc-personal').textContent=(personal.length+grocery.length)||'';
