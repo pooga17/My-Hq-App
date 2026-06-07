@@ -1767,7 +1767,7 @@ function addGroceryItem(text){
   const t=(text||'').trim();if(!t)return false;
   if(!state.notes)state.notes=[];
   if(groceryHas(t))return false;
-  state.notes.unshift({id:Date.now()+Math.floor(Math.random()*1000),text:t,section:'grocery',createdAt:Date.now(),shareable:true,urgent:false,shared:false,assignedTo:'both'});
+  state.notes.unshift({id:Date.now()+Math.floor(Math.random()*1000),text:t,section:'grocery',createdAt:Date.now(),shareable:true,urgent:false,shared:false,assignedTo:'piyush'});
   return true;
 }
 // ===== Grocery store routing (shared) =====
@@ -2300,10 +2300,10 @@ function piyushOpenBoardItems(){
   const weekEnd=todayMs+14*86400000;
   const out=[];
   (state.notes||[]).forEach(n=>{
-    if(!n.shareable||n.section==='office'||n.done)return;
+    if(!n.shareable||n.section==='office'||n.section==='grocery'||n.done)return;
     const owner=n.assignedTo||'both';
     if(owner!=='piyush'&&owner!=='both')return;
-    const e=n.section==='home'?'🏡':n.section==='grocery'?'🛒':'🌸';
+    const e=n.section==='home'?'🏡':'🌸';
     out.push({id:'n'+n.id,text:`${e} ${n.text}`,owner,urgent:!!n.urgent});
   });
   (state.dates||[]).forEach(d=>{
@@ -2324,23 +2324,39 @@ function nudgePiyush(){
   const contacts=state.contacts||{};
   const piyush=digitsOnly(contacts.piyush);
   if(!piyush){toast('Add Piyush in Family first');go('family');return;}
-  const open=piyushOpenBoardItems();
-  let body;
-  if(open.length){
-    // Remember this exact order so "Log reply" numbers line up with what Piyush saw
-    state.lastNudge={at:Date.now(),ids:open.map(o=>o.id)};
-    saveState();
-    const lines=open.map((i,idx)=>`${idx+1}.  ${i.text}${i.urgent?'  ⚡':''}`).join('\n');
-    const prefill=`🔔 Pooja's HQ — still open for you 💕\n\n${lines}\n\nReply with the numbers you've done (e.g. "done 1 3") 💕`;
-    const edited=prompt('Nudge Piyush — edit if you like:',prefill);
-    if(!edited||!edited.trim())return;
-    body=edited.trim();
-  }else{
+  const tasks=piyushOpenBoardItems(); // non-grocery, urgent-first
+  // Grocery assigned to Piyush/Both, still to buy — grouped by store
+  const groc=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&((n.assignedTo||'both')==='piyush'||(n.assignedTo||'both')==='both'));
+  const handled=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&n.mineHandled).map(n=>n.text.split('—').slice(0,-1).join('—').trim()||n.text);
+  const byStore={};
+  groc.forEach(n=>{const parts=n.text.split('—');const store=parts.length>1?parts[parts.length-1].trim():'Other';const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();(byStore[store]=byStore[store]||[]).push(item);});
+  const storeKeys=(typeof GROC_STORE_ORDER!=='undefined'?GROC_STORE_ORDER:[]).concat(Object.keys(byStore));
+  if(!tasks.length&&!groc.length&&!handled.length){
     const msg=prompt('Nothing open on Piyush\'s side — send a custom reminder?','Hey, don\'t forget — ');
     if(!msg||!msg.trim())return;
-    body=`🔔 Pooja's reminder:\n${msg.trim()}\n💕`;
+    const smsUrl=`sms:${piyush}&body=${encodeURIComponent(`🔔 Pooja's reminder:\n${msg.trim()}\n💕`)}`;
+    window.location.href=smsUrl;toast('📤 Reminder sent!');return;
   }
-  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
+  // Remember the task order so "Log reply" numbers line up (grocery isn't numbered)
+  state.lastNudge={at:Date.now(),ids:tasks.map(o=>o.id)};
+  saveState();
+  let body=`🔔 Pooja's HQ — for you 💕\n`;
+  if(tasks.length){
+    body+=`\n✅ To do first:\n`+tasks.map((i,idx)=>`${idx+1}.  ${i.text}${i.urgent?'  ⚡':''}`).join('\n')+`\n`;
+  }
+  if(groc.length){
+    body+=`\n🛒 Grocery:\n`;
+    const seen={};
+    storeKeys.forEach(s=>{if(seen[s]||!byStore[s])return;seen[s]=1;body+=`  ${s}\n`+byStore[s].map(it=>`   • ${it}`).join('\n')+`\n`;});
+  }
+  if(handled.length){
+    body+=`\n✅ I've got these (ordering from Costco) — one less for you 💕:\n`+handled.map(it=>`   • ${it}`).join('\n')+`\n`;
+  }
+  if(tasks.length)body+=`\nReply with the to-do numbers you've done (e.g. "done 1 3") 💕`;
+  else if(groc.length)body+=`\nReply when you've grabbed these 💕`;
+  const edited=prompt('Nudge Piyush — edit if you like:',body);
+  if(!edited||!edited.trim())return;
+  const smsUrl=`sms:${piyush}&body=${encodeURIComponent(edited.trim())}`;
   window.location.href=smsUrl;
   toast('📤 Reminder sent!');
 }
@@ -2426,8 +2442,8 @@ function buildDailySummaryText(){
     body+=`\n🏡 HOME\n`;
     home.forEach(n=>{body+=`• ${n.text}\n`;});
   }
-  // Grocery last (often longest) — grouped by store
-  const grocery=notes.filter(n=>n.section==='grocery');
+  // Grocery last (often longest) — grouped by store, excluding what Pooja's handling
+  const grocery=notes.filter(n=>n.section==='grocery'&&!n.bought&&!n.mineHandled);
   if(grocery.length){
     body+=`\n🛒 GROCERY\n`;
     const byStore={};
@@ -2444,6 +2460,12 @@ function buildDailySummaryText(){
       body+=`  ${s}:\n`;
       byStore[s].forEach(it=>{body+=`   • ${it}\n`;});
     });
+  }
+  // Items Pooja is handling herself (e.g. Costco same-day)
+  const handled=notes.filter(n=>n.section==='grocery'&&n.mineHandled);
+  if(handled.length){
+    body+=`\n✅ I've got these (ordering myself) — one less for you 💕\n`;
+    handled.forEach(n=>{const it=n.text.split('—').slice(0,-1).join('—').trim()||n.text;body+=`   • ${it}\n`;});
   }
   body+=`\nThanks for being on the team 💕`;
   return body;
@@ -3417,22 +3439,44 @@ function addNote(section){
 function deleteNote(id){state.notes=state.notes.filter(x=>x.id!==id);saveState();renderNotes();}
 
 // Grocery shown as a tap-to-check shopping list (got vs still-to-buy)
+function orderCostcoSameDay(){
+  const notes=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&/—\s*costco\s*$/i.test(n.text));
+  const items=notes.map(n=>n.text.split('—').slice(0,-1).join('—').trim());
+  if(!items.length){toast('No Costco items right now');return;}
+  if(!confirm(`Order these ${items.length} from Costco same-day?\n\nThey'll be marked "you've got it" so Piyush only sees the rest. Your list is copied to paste into the search.`))return;
+  copyTextSafe(items.map(i=>`• ${i}`).join('\n'));
+  notes.forEach(n=>{n.mineHandled=true;}); // Pooja is handling these — off Piyush's list
+  saveState();renderNotes();try{renderFamilyBoard();renderDailySummaryBanner();}catch(e){}
+  try{window.open('https://sameday.costco.com/','_blank');}catch(e){window.location.href='https://sameday.costco.com/';}
+  toast('🚚 You\'ve got these — Costco list copied');
+}
 function renderGroceryShopping(){
   const el=document.getElementById('noteList-grocery');if(!el)return;
   const all=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done);
   if(!all.length){el.innerHTML='';return;}
-  const pending=all.filter(n=>!n.bought);
-  const cart=all.filter(n=>n.bought);
+  const pending=all.filter(n=>!n.bought&&!n.mineHandled);
+  const cart=all.filter(n=>n.bought&&!n.mineHandled);
+  const handled=all.filter(n=>n.mineHandled);
   const row=(n)=>{
     const got=!!n.bought;
     return `<div onclick="toggleBought(${n.id})" style="display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:${got?'#EEF8F4':'#fff'};border:1px solid ${got?'rgba(46,122,90,.3)':'rgba(196,96,122,.14)'};"><div style="width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid ${got?'var(--green-deep)':'#D8B8C0'};background:${got?'var(--green-deep)':'transparent'};color:#fff;">${got?'✓':''}</div><span style="flex:1;font-size:14px;font-weight:600;color:${got?'#7A9A88':'#3A2A30'};${got?'text-decoration:line-through;':''}">${escapeHtml(n.text)}</span><button onclick="event.stopPropagation();deleteNote(${n.id})" style="background:none;border:none;color:#C8A8B0;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">×</button></div>`;
   };
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#7A4E5E;"><span>${pending.length} to buy${cart.length?` · ${cart.length} in cart`:''}</span>${cart.length?`<button onclick="clearBoughtGrocery()" style="background:transparent;border:1px solid var(--green);color:var(--green-deep);border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">🧹 Clear cart</button>`:''}</div>`;
+  // Costco same-day: copy Costco items + open the delivery site
+  const costcoCount=pending.filter(n=>/—\s*costco\s*$/i.test(n.text)).length;
+  if(costcoCount){
+    html+=`<button onclick="orderCostcoSameDay()" style="width:100%;margin-bottom:10px;border:none;border-radius:13px;padding:11px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#3A6EA5,#5A8CAA);cursor:pointer;box-shadow:0 4px 12px rgba(58,110,165,.28);">🚚 Order ${costcoCount} from Costco same-day</button>`;
+  }
   html+=pending.map(row).join('');
   if(cart.length){html+=`<div style="font-size:11px;color:#2E7A5A;font-weight:700;margin:10px 0 6px;letter-spacing:.05em;">✓ IN CART</div>`+cart.map(row).join('');}
+  if(handled.length){
+    html+=`<div style="font-size:11px;color:#3A6EA5;font-weight:700;margin:12px 0 6px;letter-spacing:.05em;">🚚 YOU'VE GOT THESE (Costco — off Piyush's list)</div>`;
+    html+=handled.map(n=>`<div onclick="toggleHandled(${n.id})" style="display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:#EAF2FA;border:1px solid rgba(58,110,165,.28);"><div style="width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;background:#3A6EA5;color:#fff;">🚚</div><span style="flex:1;font-size:14px;font-weight:600;color:#5A7A9A;text-decoration:line-through;">${escapeHtml(n.text)}</span><button onclick="event.stopPropagation();deleteNote(${n.id})" style="background:none;border:none;color:#9AB0C4;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">×</button></div>`).join('');
+  }
   el.innerHTML=html;
 }
 function toggleBought(id){const n=(state.notes||[]).find(x=>x.id===id);if(!n)return;n.bought=!n.bought;saveState();renderGroceryShopping();}
+function toggleHandled(id){const n=(state.notes||[]).find(x=>x.id===id);if(!n)return;n.mineHandled=!n.mineHandled;saveState();renderGroceryShopping();try{renderFamilyBoard();}catch(e){}}
 function clearBoughtGrocery(){
   const before=state.notes.length;
   state.notes=state.notes.filter(n=>!(n.section==='grocery'&&n.bought&&!n.done));
