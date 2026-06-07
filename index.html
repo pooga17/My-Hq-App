@@ -600,12 +600,12 @@
     </div>
     <div class="home-section-label">Explore</div>
     <div class="home-quick">
-      <div class="hq-card" onclick="go('board')" style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-color:var(--pink);"><span class="hq-icon">👨‍👩‍👧</span><div><div class="hq-label">Family Board</div><div class="hq-sub">who's doing what</div></div></div>
       <div class="hq-card" onclick="go('notes')"><span class="hq-icon">📝</span><div><div class="hq-label">Notes</div><div class="hq-sub">office · personal · home</div></div></div>
+      <div class="hq-card" onclick="go('board')" style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-color:var(--pink);"><span class="hq-icon">👨‍👩‍👧</span><div><div class="hq-label">Family Board</div><div class="hq-sub">who's doing what</div></div></div>
       <div class="hq-card" onclick="go('dates')"><span class="hq-icon">💝</span><div><div class="hq-label">Dates</div><div class="hq-sub">birthdays & plans</div></div></div>
-      <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
-      <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
       <div class="hq-card" onclick="planMealsFromHome()" style="background:linear-gradient(135deg,#EEF8F4,#FFF4E8);border-color:var(--green);"><span class="hq-icon">🍽️</span><div><div class="hq-label">Meal Prep</div><div class="hq-sub">plan dinners → grocery</div></div></div>
+      <div class="hq-card" onclick="go('photos')"><span class="hq-icon">📸</span><div><div class="hq-label">Photos</div><div class="hq-sub">your moments</div></div></div>
+      <div class="hq-card" onclick="go('gifts')"><span class="hq-icon">🎁</span><div><div class="hq-label">Send a Gift</div><div class="hq-sub">message or card</div></div></div>
     </div>
     <div class="home-section-label">Your data</div>
     <div style="display:flex;gap:10px;">
@@ -618,16 +618,15 @@
   <!-- TODAY -->
   <section class="screen" id="screen-today">
     <div class="screen-head"><h2>Today</h2><p id="todaySubtitle">Your action center.</p></div>
-    <div class="summary-strip">
-      <div><div class="stat-num" id="statOpen">0</div><div class="stat-label">Open</div></div>
-      <div><div class="stat-num warn" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
-      <div onclick="toggleDoneWeek()" style="cursor:pointer"><div class="stat-num win" id="statDoneWeek">0</div><div class="stat-label">Done this wk</div></div>
+    <div style="background:#fff;border-radius:16px;padding:13px 15px;box-shadow:var(--shadow);border:1px solid rgba(196,96,122,.1);margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-around;gap:6px;">
+        <div style="text-align:center;"><div class="stat-num" id="statOpen">0</div><div class="stat-label">Open</div></div>
+        <div style="text-align:center;"><div class="stat-num warn" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
+        <div onclick="toggleDoneWeek()" style="text-align:center;cursor:pointer;"><div class="stat-num win" id="statDoneWeek">0</div><div class="stat-label">Done/wk</div></div>
+      </div>
+      <div class="progress-bar" style="margin-top:11px;"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.03em;"><span id="weekStats"></span><span id="progressPct">0%</span></div>
     </div>
-    <div class="progress-wrap">
-      <div class="progress-label"><span>This week's progress</span><span id="progressPct">0%</span></div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
-    <div id="weekStats" style="text-align:center;font-size:11px;color:var(--muted);font-weight:700;margin-top:8px;letter-spacing:.03em;"></div>
     <div id="focusCardWrap"></div>
     <div id="taskGroups"></div>
     <div class="done-today-wrap" id="doneTodayWrap" style="display:none">
@@ -852,6 +851,12 @@
         <button class="ai-card-cta" id="mealBtn" onclick="planWeek()">🍽️ Plan the week's dinners</button>
         <div class="ai-result" id="mealResult"></div>
       </div>
+      <div style="display:flex;gap:8px;margin:2px 0 6px;">
+        <input id="groceryQuickInput" placeholder="Add a grocery item…" onkeydown="if(event.key==='Enter'){event.preventDefault();addGroceryFromInput();}" style="flex:1;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;outline:none;"/>
+        <button onclick="addGroceryFromInput()" style="background:linear-gradient(135deg,#A7D7C5,#7FB8A0);color:#0F4636;border:none;border-radius:12px;padding:0 16px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">Add</button>
+        <button id="groceryMicBtn" onclick="toggleGroceryMic()" style="background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border:none;border-radius:12px;padding:0 14px;font-size:16px;cursor:pointer;">🎤</button>
+      </div>
+      <div id="groceryMicStatus" style="font-size:12px;color:var(--green-deep);min-height:14px;margin-bottom:6px;"></div>
       <div id="noteList-grocery"></div>
       <div style="height:10px"></div>
       <div id="noteList-personal"></div>
@@ -1699,11 +1704,70 @@ function groceryHas(text){
   if(!core)return (state.notes||[]).some(n=>n.section==='grocery'&&!n.done&&n.text.toLowerCase()===String(text||'').toLowerCase());
   return (state.notes||[]).some(n=>n.section==='grocery'&&!n.done&&groceryCore(n.text)===core);
 }
+// Pantry basics Pooja always keeps at home — never added to the shopping list
+const STAPLE_KEYWORDS=['flour','atta','maida','oil','butter','ghee','rice','basmati','salt','sugar','dal','toor','moong','urad','masoor','chana dal','lentil','pulse','turmeric','cumin','jeera','mustard seed','garam masala','masala','spice','curry leaf','chickpea','chana','rajma','kidney bean'];
+function isStaple(item){
+  const core=groceryCore(item);
+  if(!core)return false;
+  return STAPLE_KEYWORDS.some(k=>core.includes(k)||k.includes(core));
+}
+// Best-guess store for a spoken/typed item (no AI needed)
+const STORE_RULES=[
+  ['Patel Brothers',['paneer','atta','ghee','masala','dal','lentil','chana','rajma','methi','gawar','tindora','bhindi','okra','dudhi','karela','sev','puri','chutney','papad','poha','sooji','semolina','besan','jaggery','curry leaf','turmeric','cumin','mustard seed','garam','chaat','thepla','dhokla','indian','tikka','spice','masoor','moong','urad','tamarind','coriander seed','asafoetida','hing']],
+  ["Trader Joe's",['tortilla','pasta','penne','ziti','fettuccine','marinara','pizza','naan','salsa','enchilada','taco','pav','dinner roll','frozen','sauce','snack']],
+  ['Costco',['milk','egg','cream','yogurt','onion','tomato','potato','cashew','almond','nuts','paper','mozzarella','parmesan','cheese','produce','spinach','peas','cauliflower','bulk','water','berries']],
+  ['Whole Foods',['organic','basil','eggplant','lime','lemon','herb','salad','greens','cucumber','avocado','cilantro','mint','ricotta','feta']],
+  ['Target',['detergent','soap','toothpaste','paper towel','cleaning','household','shampoo','tissue','foil','wrap','battery']]
+];
+function routeStore(item){
+  const core=groceryCore(item);
+  for(const [store,keys] of STORE_RULES){if(keys.some(k=>core.includes(k))){return store;}}
+  return 'Whole Foods';
+}
+// Add free-text grocery (one or several items) with smart store routing
+function addGroceryItemsFromText(text){
+  const parts=String(text||'').split(/,|;|\band\b|\balso\b|\n/).map(s=>s.trim()).filter(Boolean);
+  let n=0;
+  parts.forEach(p=>{
+    if(isStaple(p))return; // skip basics she always has
+    const store=routeStore(p);
+    if(addGroceryItem(`${p} — ${store}`))n++;
+  });
+  if(n){saveState();renderNotes();try{renderDailySummaryBanner();renderFamilyBoard();}catch(e){}}
+  return n;
+}
+function addGroceryFromInput(){
+  const el=document.getElementById('groceryQuickInput');if(!el)return;
+  const txt=el.value.trim();if(!txt)return;
+  const n=addGroceryItemsFromText(txt);
+  el.value='';
+  toast(n?`🛒 Added ${n} · routed by store`:'Already on your list (or a pantry basic) 🛒');
+}
+// Grocery voice capture — independent instance (core mic untouched)
+let grocMicRec=null,grocMicRecording=false,grocMicFinal='',grocMicInterim='';
+function toggleGroceryMic(){
+  if(!SR){toast('Voice not supported — type below');return;}
+  const btn=document.getElementById('groceryMicBtn');const st=document.getElementById('groceryMicStatus');
+  if(grocMicRecording){
+    grocMicRecording=false;if(btn)btn.textContent='🎤';
+    const text=(grocMicFinal+' '+grocMicInterim).trim();
+    try{grocMicRec&&grocMicRec.stop();}catch(e){}
+    if(text){const n=addGroceryItemsFromText(text);if(st)st.textContent='';toast(n?`🛒 Added ${n} · routed by store`:'Already on your list (or a pantry basic) 🛒');}
+    else if(st){st.textContent='Didn\u2019t catch that — tap 🎤 and try again';setTimeout(()=>{if(st)st.textContent='';},4000);}
+    return;
+  }
+  grocMicRec=new SR();grocMicRec.continuous=true;grocMicRec.interimResults=true;grocMicRec.lang='en-US';
+  grocMicRec.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)grocMicFinal+=t+' ';else interim+=t;}grocMicInterim=interim;if(st)st.textContent='🔴 '+(grocMicFinal+interim).trim();};
+  grocMicRec.onerror=()=>{grocMicRecording=false;if(btn)btn.textContent='🎤';};
+  grocMicRec.onend=()=>{if(grocMicRecording){try{grocMicRec.start();}catch(e){}}};
+  grocMicFinal='';grocMicInterim='';if(st)st.textContent='🔴 listening… tap to stop';if(btn)btn.textContent='⏹';
+  grocMicRecording=true;try{grocMicRec.start();}catch(e){}
+}
 function addGroceryItem(text){
   const t=(text||'').trim();if(!t)return false;
   if(!state.notes)state.notes=[];
   if(groceryHas(t))return false;
-  state.notes.unshift({id:Date.now()+Math.floor(Math.random()*1000),text:t,section:'grocery',createdAt:Date.now(),shareable:true,urgent:false,shared:false});
+  state.notes.unshift({id:Date.now()+Math.floor(Math.random()*1000),text:t,section:'grocery',createdAt:Date.now(),shareable:true,urgent:false,shared:false,assignedTo:'both'});
   return true;
 }
 // ===== Grocery store routing (shared) =====
@@ -1907,7 +1971,7 @@ function buildGroceryFromSelected(){
   const sel=[...selectedMealIdx].map(i=>currentMealOptions[i]).filter(Boolean);
   if(!sel.length){toast('Tap a few dinners first');return;}
   const byStore={};
-  sel.forEach(m=>m.g.forEach(pair=>{const item=pair[0],store=pair[1];(byStore[store]=byStore[store]||[]).push(item);}));
+  sel.forEach(m=>m.g.forEach(pair=>{const item=pair[0],store=pair[1];if(isStaple(item))return;(byStore[store]=byStore[store]||[]).push(item);}));
   Object.keys(byStore).forEach(s=>{const seen=new Set();byStore[s]=byStore[s].filter(it=>{const k=it.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});});
   lastMealGrocery=byStore;
   let added=0;
@@ -1926,12 +1990,27 @@ function buildGroceryFromSelected(){
 function sendGroceryToPiyush(){
   const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
   if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  // Offer to add anything else first
+  const extra=prompt('Anything else to add before sending? (comma-separated, or leave blank)','');
+  if(extra===null)return;
+  if(extra.trim()){const n=addGroceryItemsFromText(extra);if(n)rebuildLastMealGrocery();}
   let body="🛒 Grocery list — Pooja's HQ 💕\n";let any=false;
   GROC_STORE_ORDER.forEach(s=>{const items=lastMealGrocery[s];if(items&&items.length){any=true;body+=`\n${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s}\n`+items.map(it=>`• ${it}`).join('\n')+'\n';}});
   if(!any){toast('Build a grocery list first 🛒');return;}
-  body+='\nThank you 💕';
+  body+='\nWant to add anything? Just reply 💕';
   window.location.href=`sms:${piyush}&body=${encodeURIComponent(body)}`;
   toast('📤 Grocery sent to Piyush 💕');
+}
+// Rebuild the store-grouped view from the live grocery list (after additions)
+function rebuildLastMealGrocery(){
+  const byStore={};
+  (state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought).forEach(n=>{
+    const parts=n.text.split('—');
+    const store=parts.length>1?parts[parts.length-1].trim():'Other';
+    const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();
+    (byStore[store]=byStore[store]||[]).push(item);
+  });
+  lastMealGrocery=byStore;
 }
 function addDateToCalendarICS(d){
   const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
@@ -2347,11 +2426,24 @@ function buildDailySummaryText(){
     body+=`\n🏡 HOME\n`;
     home.forEach(n=>{body+=`• ${n.text}\n`;});
   }
-  // Grocery last (often longest)
+  // Grocery last (often longest) — grouped by store
   const grocery=notes.filter(n=>n.section==='grocery');
   if(grocery.length){
     body+=`\n🛒 GROCERY\n`;
-    grocery.forEach(n=>{body+=`• ${n.text}\n`;});
+    const byStore={};
+    grocery.forEach(n=>{
+      const parts=n.text.split('—');
+      const store=parts.length>1?parts[parts.length-1].trim():'Other';
+      const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();
+      (byStore[store]=byStore[store]||[]).push(item);
+    });
+    const order=(typeof GROC_STORE_ORDER!=='undefined')?GROC_STORE_ORDER:Object.keys(byStore);
+    const seen={};
+    order.concat(Object.keys(byStore)).forEach(s=>{
+      if(seen[s]||!byStore[s])return;seen[s]=1;
+      body+=`  ${s}:\n`;
+      byStore[s].forEach(it=>{body+=`   • ${it}\n`;});
+    });
   }
   body+=`\nThanks for being on the team 💕`;
   return body;
@@ -3185,7 +3277,6 @@ function renderTodayNotes(){
   const groups=[
     {key:'office',label:'💼 Office',cls:'tng-office',items:state.notes.filter(n=>n.section==='office'&&!n.checkedInToday&&!n.done)},
     {key:'personal',label:'🌸 Personal',cls:'tng-personal',items:state.notes.filter(n=>n.section==='personal'&&!n.checkedInToday&&!n.done)},
-    {key:'grocery',label:'🛒 Grocery',cls:'tng-grocery',items:state.notes.filter(n=>n.section==='grocery'&&!n.checkedInToday&&!n.done)},
     {key:'home',label:'🏡 Home',cls:'tng-home',items:state.notes.filter(n=>n.section==='home'&&!n.checkedInToday&&!n.done)},
   ];
   const pn=state.partyNotes||{groc:[],cook:[]};
