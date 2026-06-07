@@ -2514,6 +2514,20 @@ function sendUrgentNow(){
   toast('⚡ Urgent sent!');
 }
 // ===== FAMILY BOARD =====
+let fbGroceryOpen=false;
+function toggleBoardGrocery(){fbGroceryOpen=!fbGroceryOpen;renderFamilyBoard();}
+// Store-grouped grocery list shown inline on the board when expanded
+function boardGroceryGroupedHtml(){
+  const groc=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done);
+  if(!groc.length)return '';
+  const byStore={};
+  groc.forEach(n=>{const parts=n.text.split('—');const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');const item=(parts.length>1?parts.slice(0,-1).join('—'):n.text).trim();(byStore[store]=byStore[store]||[]).push(item);});
+  let h=`<div style="margin:2px 0 8px;padding:10px 12px;border-radius:12px;background:#FBF2F5;border:1px dashed rgba(196,96,122,.25);">`;
+  const renderS=(s)=>{const arr=byStore[s];if(!arr||!arr.length)return;const m=GROC_STORE_META[s]||GROC_STORE_META.Other;h+=`<div style="display:flex;align-items:center;gap:6px;margin:6px 0 4px;"><span>${m.emoji}</span><span style="font-weight:700;color:${m.color};font-size:11px;letter-spacing:.02em;">${s}</span><span style="font-size:10px;font-weight:700;color:${m.color};">(${arr.length})</span></div>`;arr.forEach(it=>{h+=`<div style="font-size:13px;color:#5A3A42;padding:1px 0 1px 20px;">• ${escapeHtml(it)}</div>`;});};
+  GROC_STORE_ORDER.forEach(renderS);Object.keys(byStore).forEach(s=>{if(!GROC_STORE_ORDER.includes(s))renderS(s);});
+  h+=`<div onclick="go('notes');try{switchNotesTab('personal');}catch(e){}" style="margin-top:8px;font-size:11px;font-weight:700;color:var(--pink-deep);cursor:pointer;">Open full shopping list ›</div></div>`;
+  return h;
+}
 function renderFamilyBoard(){
   const dateEl=document.getElementById('fbDate');
   if(dateEl)dateEl.textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
@@ -2562,9 +2576,10 @@ function renderFamilyBoard(){
         const ownerBtn=`<button class="fb-owner-cycle" onclick="event.stopPropagation();cycleBoardOwner('${i.id}')" title="${ownerLabel}">${ownerIcon}</button>`;
         html+=`<div class="fb-item ${i.done?'done':''}"><div class="${checkClass}" onclick="event.stopPropagation();toggleBoardItem('${i.id}')"></div><div class="fb-item-text" onclick="toggleBoardItem('${i.id}')">${escapeHtml(i.text)}${tags}</div>${ownerBtn}</div>`;
       });
-      // Grocery rolled up into one tappable line in Piyush's column
+      // Grocery rolled up — tap to expand the store-grouped list right here
       if(showGrocery){
-        html+=`<div class="fb-item" onclick="go('notes');try{switchNotesTab('personal');}catch(e){}" style="cursor:pointer;"><div class="fb-check" style="visibility:hidden;"></div><div class="fb-item-text">🛒 Grocery <span class="fb-item-tag">${groceryOpenAll} item${groceryOpenAll===1?'':'s'}</span></div><span style="color:#B89AA2;font-size:13px;">›</span></div>`;
+        html+=`<div class="fb-item" onclick="toggleBoardGrocery()" style="cursor:pointer;"><div class="fb-check" style="visibility:hidden;"></div><div class="fb-item-text">🛒 Grocery <span class="fb-item-tag">${groceryOpenAll} item${groceryOpenAll===1?'':'s'}</span></div><span style="color:#B89AA2;font-size:13px;">${fbGroceryOpen?'▾':'▸'}</span></div>`;
+        if(fbGroceryOpen)html+=boardGroceryGroupedHtml();
       }
     }
     html+=`</div>`;
