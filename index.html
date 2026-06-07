@@ -582,12 +582,48 @@
     </div>
   </div>
 
+  <!-- WELCOME TOUR (after onboarding) -->
+  <div id="tourOverlay" style="display:none;position:fixed;inset:0;z-index:10000;background:linear-gradient(160deg,#FFF4F7,#EAF4FB);">
+    <div id="tourSlides" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;height:100%;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <div class="tour-slide" style="min-width:100vw;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 32px 150px;">
+        <div style="font-size:60px;margin-bottom:14px;">👋</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#7A2E3E;margin-bottom:10px;">Welcome to your HQ</div>
+        <div style="font-size:15px;color:#6A4A52;line-height:1.5;max-width:300px;">Your home, schedule, and family — all in one calm place. Here's the quick tour. Swipe →</div>
+      </div>
+      <div class="tour-slide" style="min-width:100vw;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 32px 150px;">
+        <div style="font-size:60px;margin-bottom:14px;">🎤</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#7A2E3E;margin-bottom:10px;">Just speak or type</div>
+        <div style="font-size:15px;color:#6A4A52;line-height:1.5;max-width:300px;">Tap the mic and say it — "remind me to email the office," "add milk and bread." It sorts itself into Office, Personal, Home, or Grocery. Prefer typing? That works too.</div>
+        <div style="font-size:12px;color:#8A6A72;line-height:1.45;max-width:300px;margin-top:12px;background:rgba(255,255,255,.6);border-radius:10px;padding:9px 12px;">🎙️ First time? Tap <b>Allow</b> when asked for the mic — or enable it in <b>Settings → Safari → Microphone → Allow</b>.</div>
+      </div>
+      <div class="tour-slide" style="min-width:100vw;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 32px 150px;">
+        <div style="font-size:60px;margin-bottom:14px;">🍽️</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#7A2E3E;margin-bottom:10px;">Plan meals in a tap</div>
+        <div style="font-size:15px;color:#6A4A52;line-height:1.5;max-width:300px;">Pick your dinners for the week and the grocery list builds itself — neatly grouped by store, so you shop once and skip the mental juggling.</div>
+      </div>
+      <div class="tour-slide" style="min-width:100vw;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 32px 150px;">
+        <div style="font-size:60px;margin-bottom:14px;">👨‍👩‍👧</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#7A2E3E;margin-bottom:10px;">Share the load</div>
+        <div style="font-size:15px;color:#6A4A52;line-height:1.5;max-width:300px;">The Family Board shows who's doing what. Send your partner a tidy to-do and grocery list by text in one tap — no nagging required.</div>
+      </div>
+      <div class="tour-slide" style="min-width:100vw;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 32px 150px;">
+        <div style="font-size:60px;margin-bottom:14px;">💚</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#7A2E3E;margin-bottom:10px;">You've got this</div>
+        <div style="font-size:15px;color:#6A4A52;line-height:1.5;max-width:300px;">You run so much — this is here to make it lighter. Let's begin.</div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:calc(34px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;padding:0 24px;">
+      <div id="tourDots" style="margin-bottom:16px;letter-spacing:5px;color:var(--pink-deep);font-size:13px;">● ○ ○ ○ ○</div>
+      <button onclick="closeTour()" style="width:100%;max-width:360px;border:none;border-radius:14px;padding:15px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;box-shadow:0 6px 16px rgba(196,96,122,.3);">Get started ✨</button>
+    </div>
+  </div>
+
   <!-- HOME -->
   <section class="screen active" id="screen-home">
     <div class="hero" style="padding-top:24px;padding-bottom:8px;position:relative;">
       <div id="hqGreeting" style="text-align:center;font-size:13px;color:#A8758A;font-weight:600;letter-spacing:.18em;margin-bottom:4px;text-transform:uppercase;"></div>
-      <h1 class="title hq-shimmer" style="font-size:46px;margin-bottom:4px;text-align:center;">Pooja's HQ</h1>
-      <p class="tagline" style="text-align:center;position:relative;">all heart, all hustle, all Pooja <span class="hq-sparkle hq-sparkle-1">✨</span><span class="hq-sparkle hq-sparkle-2">💫</span><span class="hq-sparkle hq-sparkle-3">🌸</span></p>
+      <h1 class="title hq-shimmer" id="hqTitle" style="font-size:46px;margin-bottom:4px;text-align:center;">Pooja's HQ</h1>
+      <p class="tagline" style="text-align:center;position:relative;">all heart, all hustle, all <span id="hqTagName">Pooja</span> <span class="hq-sparkle hq-sparkle-1">✨</span><span class="hq-sparkle hq-sparkle-2">💫</span><span class="hq-sparkle hq-sparkle-3">🌸</span></p>
     </div>
     <div class="affirm-card" id="affirmCard" onclick="newAffirmation()">
       <div class="affirm-art" id="affirmArt"></div>
@@ -916,7 +952,8 @@
     <div class="screen-head"><h2>How it works</h2><p>Your action center, explained.</p></div>
     <div class="step"><h4>📝 Notes</h4><p>Three tabs: Office, Personal, Home. Say "Costco", "groceries", "Amazon" or any food/shopping word and the note auto-routes to your Personal Grocery section. You can also speak notes with the mic — review in the text box, then tap Add.</p></div>
     <div class="step"><h4>✨ Today</h4><p>Your most important task is always at the top. Tap Open / In Progress / Done to update status. Swipe right = done, swipe left = snooze.</p></div>
-    <div class="step"><h4>🎤 Capture</h4><p>Tap the mic and speak your task (works in Safari). Say "urgent" → auto high priority. Or just type it.</p></div>
+    <div class="step"><h4>🎤 Capture</h4><p>Tap the mic and speak your task (works best in Safari). Say "urgent" → auto high priority. Or just type it.</p></div>
+    <div class="step"><h4>🎙️ Turn on the microphone</h4><p>To use voice, your phone needs mic permission:</p><p><b>1.</b> When the app first asks "…would like to access the microphone," tap <b>Allow</b>.<br/><b>2.</b> If it was blocked: open the app in <b>Safari</b>, tap <b>"aA"</b> on the left of the address bar → <b>Website Settings</b> → <b>Microphone</b> → <b>Allow</b>.<br/><b>3.</b> Or go to <b>iPhone Settings → Safari → Microphone → Allow</b>.<br/><b>Tip:</b> Voice is most reliable when you open the app in Safari. Typing always works as a backup.</p></div>
     <div class="step"><h4>🪄 Voice finish</h4><p>Tap "What did you finish?" and say what you completed. It matches and checks them off automatically.</p></div>
     <div class="step"><h4>🔔 Notifications</h4><p>Enable reminders on the home screen. You'll get nudged every 6 hours for pending tasks.</p></div>
     <div class="step"><h4>🎁 Send a Gift</h4><p>Pick an occasion, generate a heartfelt AI message, send via SMS, or open Amazon to send a gift card directly.</p></div>
@@ -931,7 +968,7 @@
       <div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);padding:12px 14px;border-radius:12px;margin-bottom:14px;font-size:13px;color:#3A2A30;line-height:1.5;">
         💡 Save phone numbers here once. Then tap <strong>📤 Share</strong> on any event to text it with a one-tap "Add to Calendar" link.
       </div>
-      <label>💑 Piyush's phone</label>
+      <label id="lblPartnerPhone">💑 Piyush's phone</label>
       <input id="contactPiyush" type="tel" placeholder="(201) 936-0416" autocomplete="tel"/>
       <label>👧 Kiara's phone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#5A4A50">(optional)</span></label>
       <input id="contactKiara" type="tel" placeholder="(555) 123-4567" autocomplete="tel"/>
@@ -976,7 +1013,7 @@
     <div class="qa-section-label">WHO'S DOING IT?</div>
     <div class="qa-owner-row">
       <button class="qa-owner" data-owner="me" onclick="selectQAOwner('me')">👩 Pooja</button>
-      <button class="qa-owner" data-owner="piyush" onclick="selectQAOwner('piyush')">👨 Piyush</button>
+      <button class="qa-owner" data-owner="piyush" id="qaOwnerPartner" onclick="selectQAOwner('piyush')">👨 Piyush</button>
       <button class="qa-owner active" data-owner="both" onclick="selectQAOwner('both')">👫 Both</button>
     </div>
     <div class="qa-section-label">WHAT KIND?</div>
@@ -2482,7 +2519,7 @@ function buildDailySummaryText(){
   if(!notes.length&&!dates.length)return null;
   const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   let body=`💕 Pooja's HQ — ${today}\n`;
-  body+=`Hi Piyush, here's today's plan 👇\n`;
+  body+=`Hi ${partnerName()}, here's today's plan 👇\n`;
   // Events first (most important — they have dates)
   if(dates.length){
     body+=`\n📅 EVENTS\n`;
@@ -2552,7 +2589,7 @@ function sendDailySummary(){
   (state.dates||[]).forEach(d=>{if(isShareableDate(d))d.shared=true;});
   state.lastSummaryAt=Date.now();
   saveState();renderDates();renderNotes();renderDailySummaryBanner();
-  toast('📤 Summary sent to Piyush 💕');
+  toast(`📤 Summary sent to ${partnerName()} 💕`);
 }
 function sendUrgentNow(){
   const contacts=state.contacts||{};
@@ -2693,7 +2730,7 @@ function cycleBoardOwner(id){
   if(next==='me'){target.shared=true;}else{target.shared=false;}
   saveState();renderFamilyBoard();
   try{renderNotes();renderDates();renderDailySummaryBanner();}catch(e){}
-  const label=next==='me'?'👩 Pooja':next==='piyush'?'👨 Piyush':'👫 Both';
+  const label=next==='me'?'👩 '+ownerName():next==='piyush'?'👨 '+partnerName():'👫 Both';
   toast(`Moved to ${label}`);
 }
 
@@ -2768,7 +2805,7 @@ function submitQuickAdd(){
   closeQuickAdd();
   renderFamilyBoard();
   try{renderNotes();renderDailySummaryBanner();}catch(e){}
-  const ownerLabel=qaSelectedOwner==='me'?'👩 Pooja':qaSelectedOwner==='piyush'?'👨 Piyush':'👫 Both';
+  const ownerLabel=qaSelectedOwner==='me'?'👩 '+ownerName():qaSelectedOwner==='piyush'?'👨 '+partnerName():'👫 Both';
   toast(`✨ Added for ${ownerLabel}`);
 }
 
@@ -2815,7 +2852,7 @@ function renderDailySummaryBanner(){
     const nudgeBtn=`<button onclick="nudgePiyush()" style="background:#fff;color:#7A2E3E;border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:4px;">🔔 Nudge Piyush</button>`;
     if(!total){
       banner.style.display='block';
-      banner.innerHTML=`<div style="background:#FFF8F4;border-radius:14px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--line);text-align:center;"><div style="font-size:12px;color:#7A6A6E;font-weight:600;margin-bottom:8px;">No items queued for Piyush yet</div>${nudgeBtn}</div>`;
+      banner.innerHTML=`<div style="background:#FFF8F4;border-radius:14px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--line);text-align:center;"><div style="font-size:12px;color:#7A6A6E;font-weight:600;margin-bottom:8px;">No items queued for ${partnerName()} yet</div>${nudgeBtn}</div>`;
       return;
     }
     banner.style.display='block';
@@ -2823,7 +2860,7 @@ function renderDailySummaryBanner(){
     const isAfter8=now.getTime()>=eightPM.getTime();
     let urgentBtn=urg.total>0?`<button onclick="sendUrgentNow()" style="background:#E89AAA;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">⚡ Send ${urg.total} urgent now</button>`:'';
     const sendNowLabel=isAfter8?'📤 Send all to Piyush now':'📤 Send all to Piyush early';
-    banner.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-radius:14px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--pink);"><div style="font-size:12px;color:#7A2E3E;font-weight:700;margin-bottom:8px;">📤 ${total} item${total===1?'':'s'} queued for Piyush · auto-reminds at 8 PM</div>${urgentBtn}<button onclick="sendDailySummary()" style="background:#fff;color:var(--pink-deep);border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">${sendNowLabel}</button>${nudgeBtn}</div>`;
+    banner.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-radius:14px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--pink);"><div style="font-size:12px;color:#7A2E3E;font-weight:700;margin-bottom:8px;">📤 ${total} item${total===1?'':'s'} queued for ${partnerName()} · auto-reminds at 8 PM</div>${urgentBtn}<button onclick="sendDailySummary()" style="background:#fff;color:var(--pink-deep);border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">${sendNowLabel}</button>${nudgeBtn}</div>`;
   });
 }
 // Auto-prompt at 8 PM if there are pending items
@@ -2837,7 +2874,7 @@ function checkAutoSummary(){
   const today=new Date();today.setHours(0,0,0,0);
   if(lastNudge>=today.getTime())return;
   state.lastSummaryNudgeAt=Date.now();saveState();
-  toast(`📤 ${total} update${total===1?'':'s'} ready for Piyush — tap banner on Dates`,4000);
+  toast(`📤 ${total} update${total===1?'':'s'} ready for ${partnerName()} — tap banner on Dates`,4000);
 }
 
 function checkUpcomingDates(){
@@ -3106,7 +3143,7 @@ function fireNudge(type){
     // Evening (8 PM) — if there are items queued for Piyush, prioritize that reminder
     const queued=(typeof pendingShareItems==='function')?pendingShareItems().total:0;
     if(queued>0){
-      title=`💕 8 PM — Piyush summary ready`;
+      title=`💕 8 PM — ${partnerName()} summary ready`;
       body=`${queued} update${queued===1?'':'s'} queued. Open the app and tap Send 💛`;
     }
     else if(total===0){title="Evening wrap-up — you did it! 🎊";body="All done! Seriously Pooja, take a bow 👏";}
@@ -3710,10 +3747,29 @@ function ownerName(){return (state.setup&&state.setup.name)?state.setup.name:'Po
 function partnerName(){return (state.setup&&state.setup.partner)?state.setup.partner:'Piyush';}
 function hqName(){return ownerName()+"'s HQ";}
 function applySetup(){
-  try{const h=document.querySelector('h1.hq-shimmer');if(h)h.textContent=hqName();document.title=hqName();}catch(e){}
+  try{
+    const h=document.getElementById('hqTitle');if(h)h.textContent=hqName();
+    document.title=hqName();
+    const tn=document.getElementById('hqTagName');if(tn)tn.textContent=ownerName();
+    const lp=document.getElementById('lblPartnerPhone');if(lp)lp.textContent='💑 '+partnerName()+"'s phone";
+    const qp=document.getElementById('qaOwnerPartner');if(qp)qp.textContent='👨 '+partnerName();
+    const im=document.getElementById('obName');// (no-op guard)
+  }catch(e){}
 }
 function obVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function showOnboarding(){const o=document.getElementById('onboardOverlay');if(o)o.style.display='flex';}
+function showTour(){
+  const o=document.getElementById('tourOverlay');if(!o)return;
+  o.style.display='block';
+  const slides=document.getElementById('tourSlides');
+  if(slides&&!slides._wired){slides._wired=true;slides.addEventListener('scroll',()=>{
+    const i=Math.round(slides.scrollLeft/slides.clientWidth);
+    const total=slides.children.length;
+    const dots=document.getElementById('tourDots');
+    if(dots)dots.textContent=Array.from({length:total},(_,k)=>k===i?'●':'○').join(' ');
+  });}
+}
+function closeTour(){const o=document.getElementById('tourOverlay');if(o)o.style.display='none';if(!state.setup)state.setup={};state.setup.toured=true;saveState();}
 function saveOnboarding(){
   const name=obVal('obName')||'Friend';
   const partner=obVal('obPartner')||'Partner';
@@ -3727,6 +3783,7 @@ function saveOnboarding(){
   const o=document.getElementById('onboardOverlay');if(o)o.style.display='none';
   applySetup();render();
   toast(`Welcome, ${name}! 💕`);
+  try{showTour();}catch(e){}
 }
 // ===== Gentle health / movement nudge =====
 const HEALTH_TIPS=[
@@ -3785,7 +3842,7 @@ loadState();maybeShowInstallBanner();
 if(!state.setup){
   const fresh=!((state.tasks&&state.tasks.length)||(state.notes&&state.notes.length)||(state.dates&&state.dates.length));
   if(fresh){try{showOnboarding();}catch(e){}}
-  else{state.setup={name:'Pooja',partner:'Piyush',partnerPhone:(state.contacts&&state.contacts.piyush)||'',watchCalories:false,healthNudge:true,onboarded:true};saveState();}
+  else{state.setup={name:'Pooja',partner:'Piyush',partnerPhone:(state.contacts&&state.contacts.piyush)||'',watchCalories:false,healthNudge:true,diet:'veg',toured:true,onboarded:true};saveState();}
 }
 try{applySetup();}catch(e){}
 setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
