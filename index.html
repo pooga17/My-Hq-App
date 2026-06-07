@@ -1970,6 +1970,8 @@ function sendOptionsToPiyush(){
 function buildGroceryFromSelected(){
   const sel=[...selectedMealIdx].map(i=>currentMealOptions[i]).filter(Boolean);
   if(!sel.length){toast('Tap a few dinners first');return;}
+  // Fresh list each meal-prep run — clear the previous grocery items
+  state.notes=(state.notes||[]).filter(n=>n.section!=='grocery');
   const byStore={};
   sel.forEach(m=>m.g.forEach(pair=>{const item=pair[0],store=pair[1];if(isStaple(item))return;(byStore[store]=byStore[store]||[]).push(item);}));
   Object.keys(byStore).forEach(s=>{const seen=new Set();byStore[s]=byStore[s].filter(it=>{const k=it.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});});
@@ -1986,14 +1988,16 @@ function buildGroceryFromSelected(){
   const gr=document.getElementById('groceryRouted');
   if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<div style="display:flex;gap:8px;margin-top:8px;"><button onclick="copyStoreList(-1)" style="flex:1;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy all</button><button onclick="sendGroceryToPiyush()" style="flex:1;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;font-family:inherit;">📤 Send to Piyush</button></div><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
   toast(`🛒 ${added} item${added===1?'':'s'} added · routed by store`);
+  const costcoN=(byStore['Costco']||[]).length;
+  if(costcoN&&confirm(`${costcoN} of these are Costco items — order them from Costco same-day now?\n\n(They'll be marked "you've got it" so they drop off Piyush's list.)`)){orderCostcoSameDay();}
 }
 function sendGroceryToPiyush(){
   const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
   if(!piyush){toast('Add Piyush in Family first');go('family');return;}
-  // Offer to add anything else first
-  const extra=prompt('Anything else to add before sending? (comma-separated, or leave blank)','');
-  if(extra===null)return;
-  if(extra.trim()){const n=addGroceryItemsFromText(extra);if(n)rebuildLastMealGrocery();}
+  // Add anything first — by voice or typing — using the grocery box above
+  const sendNow=confirm('Want to add anything before sending?\n\n• Tap Cancel to add by 🎤 voice or typing in the grocery box above, then tap Send again.\n• Tap OK to send the list as-is now.');
+  if(!sendNow){go('notes');try{switchNotesTab('personal');const gi=document.getElementById('groceryQuickInput');if(gi)gi.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}return;}
+  rebuildLastMealGrocery();
   let body="🛒 Grocery list — Pooja's HQ 💕\n";let any=false;
   GROC_STORE_ORDER.forEach(s=>{const items=lastMealGrocery[s];if(items&&items.length){any=true;body+=`\n${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s}\n`+items.map(it=>`• ${it}`).join('\n')+'\n';}});
   if(!any){toast('Build a grocery list first 🛒');return;}
