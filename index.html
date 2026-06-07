@@ -523,6 +523,11 @@
   .ai-result .meal-line{padding:6px 0;border-bottom:1px dashed rgba(232,154,170,.35);}
   .ai-result .meal-line:last-child{border-bottom:none;}
   .ai-result .meal-name{font-weight:700;color:#7A2E3E;}
+  /* Professional theme (clean & calm, no pink) */
+  body.theme-pro{--pink:#9DB4C8;--pink-deep:#3E5C76;--peach:#C2D2E0;--peach-deep:#5A7A96;--line:#D6DEE6;--green:#A7C7D7;--green-deep:#2E5A7A;}
+  body.theme-pro .hq-shimmer{background:linear-gradient(90deg,#3E5C76 0%,#5A8CAA 30%,#4A7A9A 55%,#6A9AB8 80%,#3E5C76 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;}
+  body.theme-pro .affirm-card{background:linear-gradient(135deg,#EAF1F7 0%,#EEF2F6 50%,#E2EAF2 100%);border-color:rgba(62,92,118,.16);box-shadow:0 6px 22px rgba(62,92,118,.12);}
+  body.theme-pro .hq-sparkle{display:none;}
 </style>
 
 <!-- ===== OneSignal Push (waiting for your appId) ===== -->
@@ -567,6 +572,11 @@
       <input id="obPartner" type="text" placeholder="e.g. Arjun" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;"/>
       <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Partner's mobile (for shared lists & reminders)</label>
       <input id="obPhone" type="tel" placeholder="(555) 123-4567" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;"/>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Look &amp; feel</label>
+      <select id="obTheme" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;background:#fff;">
+        <option value="warm">🌸 Warm &amp; soft (pastel)</option>
+        <option value="pro">💼 Clean &amp; professional</option>
+      </select>
       <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Food preference</label>
       <select id="obDiet" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;background:#fff;">
         <option value="veg">🥦 Vegetarian</option>
@@ -2054,20 +2064,20 @@ function renderMealOptions(){
     card+=`</div>`;
     return card;
   }).join('');
-  html+=`<div style="display:flex;gap:8px;margin-top:12px;"><button onclick="shuffleUnselected()" style="flex:1;background:transparent;border:1px solid var(--line);color:#8A6A72;border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔀 Different options</button><button onclick="sendOptionsToPiyush()" style="flex:1;background:transparent;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📤 Send to Piyush</button></div>`;
+  html+=`<div style="display:flex;gap:8px;margin-top:12px;"><button onclick="shuffleUnselected()" style="flex:1;background:transparent;border:1px solid var(--line);color:#8A6A72;border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">🔀 Different options</button><button onclick="sendOptionsToPiyush()" style="flex:1;background:transparent;border:1px solid var(--pink-deep);color:var(--pink-deep);border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📤 Send to ${partnerName()}</button></div>`;
   html+=`<button onclick="buildGroceryFromSelected()" ${count?'':'disabled'} style="margin-top:8px;width:100%;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:${count?'pointer':'default'};opacity:${count?1:.5};">🛒 Build grocery from ${count} selected</button>`;
   html+=`<div id="groceryRouted"></div>`;
   res.innerHTML=html;res.classList.add('show');
 }
 function sendOptionsToPiyush(){
   const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
-  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  if(!piyush){toast(`Add ${partnerName()} in Family first`);go('family');return;}
   if(!currentMealOptions.length){toast('Plan a week first 🍽️');return;}
   const list=selectedMealIdx.size?[...selectedMealIdx].sort((a,b)=>a-b).map(i=>currentMealOptions[i]):currentMealOptions;
   const lines=list.map((m,i)=>`${i+1}.  ${m.n}  (${m.c})`).join('\n');
   const body=`🍽️ Dinner options this week — ${hqName()} 💕\n\n${lines}\n\nWhich are you feeling? Reply with the numbers, or tell me what you'd like 💕`;
   window.location.href=`sms:${piyush}&body=${encodeURIComponent(body)}`;
-  toast('📤 Sent to Piyush 💕');
+  toast(`📤 Sent to ${partnerName()} 💕`);
 }
 function buildGroceryFromSelected(){
   const sel=[...selectedMealIdx].map(i=>currentMealOptions[i]).filter(Boolean);
@@ -2088,14 +2098,14 @@ function buildGroceryFromSelected(){
     groceryHtml+=`<div style="margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(196,96,122,.12);border-left:4px solid ${m.color};padding:10px 12px;box-shadow:0 2px 8px rgba(196,96,122,.06);"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${m.emoji}</span><span style="font-weight:700;color:${m.color};font-size:13px;">${s}</span><span style="font-size:11px;font-weight:700;background:${m.color}22;color:${m.color};padding:1px 8px;border-radius:999px;">${items.length}</span><span style="flex:1;"></span><button onclick="copyStoreList(${i})" style="background:transparent;border:1px solid ${m.color};color:${m.color};border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;font-family:inherit;">📋 Copy</button></div>`+items.map(it=>`<div style="font-size:13px;color:#5A3A42;padding:2px 0 2px 24px;">• ${escapeHtml(it)}</div>`).join('')+`</div>`;
   });
   const gr=document.getElementById('groceryRouted');
-  if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<div style="display:flex;gap:8px;margin-top:8px;"><button onclick="copyStoreList(-1)" style="flex:1;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy all</button><button onclick="sendGroceryToPiyush()" style="flex:1;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;font-family:inherit;">📤 Send to Piyush</button></div><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
+  if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<div style="display:flex;gap:8px;margin-top:8px;"><button onclick="copyStoreList(-1)" style="flex:1;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy all</button><button onclick="sendGroceryToPiyush()" style="flex:1;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;font-family:inherit;">📤 Send to ${partnerName()}</button></div><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
   toast(`🛒 ${added} item${added===1?'':'s'} added · routed by store`);
   const costcoN=(byStore['Costco']||[]).length;
   if(costcoN&&confirm(`${costcoN} of these are Costco items — order them from Costco same-day now?\n\n(Yes opens Costco & marks them yours. No just keeps them on the grocery list.)`)){orderCostcoSameDay(true);}
 }
 function sendGroceryToPiyush(){
   const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
-  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  if(!piyush){toast(`Add ${partnerName()} in Family first`);go('family');return;}
   // Add anything first — by voice or typing — using the grocery box above
   const sendNow=confirm('Want to add anything before sending?\n\n• Tap Cancel to add by 🎤 voice or typing in the grocery box above, then tap Send again.\n• Tap OK to send the list as-is now.');
   if(!sendNow){go('notes');try{switchNotesTab('personal');const gi=document.getElementById('groceryQuickInput');if(gi)gi.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}return;}
@@ -2105,7 +2115,7 @@ function sendGroceryToPiyush(){
   if(!any){toast('Build a grocery list first 🛒');return;}
   body+='\nWant to add anything? Just reply 💕';
   window.location.href=`sms:${piyush}&body=${encodeURIComponent(body)}`;
-  toast('📤 Grocery sent to Piyush 💕');
+  toast(`📤 Grocery sent to ${partnerName()} 💕`);
 }
 // Rebuild the store-grouped view from the live grocery list (after additions)
 function rebuildLastMealGrocery(){
@@ -2224,8 +2234,8 @@ function renderDates(){
     const c=state.contacts||{};
     const hasP=!!digitsOnly(c.piyush),hasK=!!digitsOnly(c.kiara);
     let shareLabel='📤 Share';
-    if(hasP&&hasK)shareLabel='📤 Share with Piyush & Kiara';
-    else if(hasP)shareLabel='📤 Share with Piyush';
+    if(hasP&&hasK)shareLabel=`📤 Share with ${partnerName()} & Kiara`;
+    else if(hasP)shareLabel=`📤 Share with ${partnerName()}`;
     else if(hasK)shareLabel='📤 Share with Kiara';
     else shareLabel='📤 Set up sharing';
     const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:8px;margin-right:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit;">${shareLabel}</button>`;
@@ -2299,7 +2309,7 @@ function renderHqCalendar(){
     info.style.display='block';
     info.innerHTML=`<div class="ev-title">${niceDate}</div>`+evs.map(d=>{
       const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
-      const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;font-family:inherit;">📤 Share with Piyush</button>`;
+      const shareBtn=`<button onclick="shareDateWithFamily(${d.id})" style="margin-top:6px;background:linear-gradient(135deg,#FFD7C2,#F4B6C2);border:none;color:#7A2E3E;font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;font-family:inherit;">📤 Share with ${partnerName()}</button>`;
       return`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(232,154,170,.3);">${emoji} <strong>${escapeHtml(d.name)}</strong>${d.who?` · for ${escapeHtml(d.who)}`:''}${d.time?` · ${d.time}`:''}<br/>${shareBtn}</div>`;
     }).join('');
   }
@@ -2374,7 +2384,7 @@ function shareDateWithFamily(id){
   const recipients=[];
   if(piyush)recipients.push(piyush);
   if(kiara)recipients.push(kiara);
-  const body=buildShareText(d,piyush&&kiara?'Piyush & Kiara':(piyush?'Piyush':'Kiara'));
+  const body=buildShareText(d,piyush&&kiara?`${partnerName()} & Kiara`:(piyush?partnerName():'Kiara'));
   const smsUrl=`sms:${recipients.join(',')}&body=${encodeURIComponent(body)}`;
   window.location.href=smsUrl;
   d.shared=true;saveState();renderDates();
@@ -2389,9 +2399,9 @@ function shareNoteWithFamily(id){
   if(n.section==='office'){toast('Office notes are private — not shared');return;}
   const contacts=state.contacts||{};
   const piyush=digitsOnly(contacts.piyush);
-  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  if(!piyush){toast(`Add ${partnerName()} in Family first`);go('family');return;}
   const sectionEmoji={personal:'🌸',home:'🏡',grocery:'🛒'}[n.section]||'💛';
-  const body=`Hey Piyush 💕\n${sectionEmoji} ${n.text}\n— Pooja`;
+  const body=`Hey ${partnerName()} 💕\n${sectionEmoji} ${n.text}\n— ${ownerName()}`;
   const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
   window.location.href=smsUrl;
   n.shared=true;saveState();renderNotes();
@@ -2429,7 +2439,7 @@ function piyushOpenBoardItems(){
 function nudgePiyush(){
   const contacts=state.contacts||{};
   const piyush=digitsOnly(contacts.piyush);
-  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  if(!piyush){toast(`Add ${partnerName()} in Family first`);go('family');return;}
   const tasks=piyushOpenBoardItems(); // non-grocery, urgent-first
   // Grocery assigned to Piyush/Both, still to buy — grouped by store
   const groc=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&((n.assignedTo||'both')==='piyush'||(n.assignedTo||'both')==='both'));
@@ -2438,9 +2448,9 @@ function nudgePiyush(){
   groc.forEach(n=>{const parts=n.text.split('—');const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();(byStore[store]=byStore[store]||[]).push(item);});
   const storeKeys=(typeof GROC_STORE_ORDER!=='undefined'?GROC_STORE_ORDER:[]).concat(Object.keys(byStore));
   if(!tasks.length&&!groc.length&&!handled.length){
-    const msg=prompt('Nothing open on Piyush\'s side — send a custom reminder?','Hey, don\'t forget — ');
+    const msg=prompt(`Nothing open on ${partnerName()}'s side — send a custom reminder?`,'Hey, don\'t forget — ');
     if(!msg||!msg.trim())return;
-    const smsUrl=`sms:${piyush}&body=${encodeURIComponent(`🔔 Pooja's reminder:\n${msg.trim()}\n💕`)}`;
+    const smsUrl=`sms:${piyush}&body=${encodeURIComponent(`🔔 ${ownerName()}'s reminder:\n${msg.trim()}\n💕`)}`;
     window.location.href=smsUrl;toast('📤 Reminder sent!');return;
   }
   // Remember the task order so "Log reply" numbers line up (grocery isn't numbered)
@@ -2460,7 +2470,7 @@ function nudgePiyush(){
   }
   if(tasks.length)body+=`\nReply with the to-do numbers you've done (e.g. "done 1 3") 💕`;
   else if(groc.length)body+=`\nReply when you've grabbed these 💕`;
-  const edited=prompt('Nudge Piyush — edit if you like:',body);
+  const edited=prompt(`Nudge ${partnerName()} — edit if you like:`,body);
   if(!edited||!edited.trim())return;
   const smsUrl=`sms:${piyush}&body=${encodeURIComponent(edited.trim())}`;
   window.location.href=smsUrl;
@@ -2478,7 +2488,7 @@ function logPiyushReply(){
     const t=isDate?(state.dates||[]).find(x=>x.id===realId):(state.notes||[]).find(x=>x.id===realId);
     return t?`${idx+1}. ${isDate?t.name:t.text}`:null;
   }).filter(Boolean).join('\n');
-  const ans=prompt(`Which did Piyush take care of?\nEnter numbers (e.g. 1 3), or "all":\n\n${ref}`,'');
+  const ans=prompt(`Which did ${partnerName()} take care of?\nEnter numbers (e.g. 1 3), or "all":\n\n${ref}`,'');
   if(ans===null)return;
   const trimmed=ans.trim().toLowerCase();
   let picks=[];
@@ -2498,7 +2508,7 @@ function logPiyushReply(){
   });
   saveState();renderFamilyBoard();
   try{renderNotes();renderDates();renderDailySummaryBanner();}catch(e){}
-  toast(`✓ Logged ${count} from Piyush 💕`);
+  toast(`✓ Logged ${count} from ${partnerName()} 💕`);
 }
 
 // ===== Daily 8PM Summary to Piyush =====
@@ -2579,7 +2589,7 @@ function buildDailySummaryText(){
 function sendDailySummary(){
   const contacts=state.contacts||{};
   const piyush=digitsOnly(contacts.piyush);
-  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  if(!piyush){toast(`Add ${partnerName()} in Family first`);go('family');return;}
   const body=buildDailySummaryText();
   if(!body){toast('Nothing to share today ✨');return;}
   const smsUrl=`sms:${piyush}&body=${encodeURIComponent(body)}`;
@@ -2594,10 +2604,10 @@ function sendDailySummary(){
 function sendUrgentNow(){
   const contacts=state.contacts||{};
   const piyush=digitsOnly(contacts.piyush);
-  if(!piyush){toast('Add Piyush in Family first');go('family');return;}
+  if(!piyush){toast(`Add ${partnerName()} in Family first`);go('family');return;}
   const{notes,dates}=urgentItems();
   if(!notes.length&&!dates.length){toast('No urgent items 💛');return;}
-  let body=`⚡ Urgent from Pooja:\n`;
+  let body=`⚡ Urgent from ${ownerName()}:\n`;
   dates.forEach(d=>{
     const emoji=DATE_TYPE_EMOJI[d.type]||'📅';
     try{const p=d.date.split('-');const dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));body+=`\n${emoji} ${d.name} · ${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;}catch(e){body+=`\n${emoji} ${d.name}`;}
@@ -2671,9 +2681,9 @@ function renderFamilyBoard(){
           const dayLabel=i.when?i.when.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'';
           if(dayLabel)tags+=`<span class="fb-item-tag event">📅 ${dayLabel}</span>`;
         }
-        if(i.confirmed)tags+=`<span class="fb-item-tag ack">✓ Piyush ack'd</span>`;
+        if(i.confirmed)tags+=`<span class="fb-item-tag ack">✓ ${partnerName()} ack'd</span>`;
         const ownerIcon=i.owner==='me'?'👩':i.owner==='piyush'?'👨':'👫';
-        const ownerLabel=i.owner==='me'?'Move to Piyush':i.owner==='piyush'?'Move to Both':'Move to Me';
+        const ownerLabel=i.owner==='me'?`Move to ${partnerName()}`:i.owner==='piyush'?'Move to Both':'Move to Me';
         const ownerBtn=`<button class="fb-owner-cycle" onclick="event.stopPropagation();cycleBoardOwner('${i.id}')" title="${ownerLabel}">${ownerIcon}</button>`;
         html+=`<div class="fb-item ${i.done?'done':''}"><div class="${checkClass}" onclick="event.stopPropagation();toggleBoardItem('${i.id}')"></div><div class="fb-item-text" onclick="toggleBoardItem('${i.id}')">${escapeHtml(i.text)}${tags}</div>${ownerBtn}</div>`;
       });
@@ -2859,7 +2869,7 @@ function renderDailySummaryBanner(){
     const now=new Date();const eightPM=new Date();eightPM.setHours(20,0,0,0);
     const isAfter8=now.getTime()>=eightPM.getTime();
     let urgentBtn=urg.total>0?`<button onclick="sendUrgentNow()" style="background:#E89AAA;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">⚡ Send ${urg.total} urgent now</button>`:'';
-    const sendNowLabel=isAfter8?'📤 Send all to Piyush now':'📤 Send all to Piyush early';
+    const sendNowLabel=isAfter8?`📤 Send all to ${partnerName()} now`:`📤 Send all to ${partnerName()} early`;
     banner.innerHTML=`<div style="background:linear-gradient(135deg,#FFF1ED,#FFE0E8);border-radius:14px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--pink);"><div style="font-size:12px;color:#7A2E3E;font-weight:700;margin-bottom:8px;">📤 ${total} item${total===1?'':'s'} queued for ${partnerName()} · auto-reminds at 8 PM</div>${urgentBtn}<button onclick="sendDailySummary()" style="background:#fff;color:var(--pink-deep);border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;margin-bottom:4px;">${sendNowLabel}</button>${nudgeBtn}</div>`;
   });
 }
@@ -3056,6 +3066,34 @@ async function requestNotifications(){
 }
 
 // AFFIRMATIONS — punchy daily pep for Pooja
+function affirmDayIndex(){const d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);}
+const AFFIRMATIONS_PRO=[
+  "One clear priority at a time. That's how it gets done.",
+  "Steady focus beats frantic effort.",
+  "You've prepared for this. Trust it.",
+  "Progress over perfection, every time.",
+  "Calm mind, sharp decisions.",
+  "Handle what's in front of you. The rest can wait.",
+  "Small consistent steps win the week.",
+  "You don't have to do it all today — just the next thing.",
+  "Lead with clarity. People follow calm.",
+  "Done is better than perfect.",
+  "Breathe. Prioritize. Execute.",
+  "Today's win: one important thing, finished.",
+  "You're more on top of this than you think.",
+  "Discipline today, freedom tomorrow.",
+  "Focus is your edge.",
+  "Quiet confidence gets the job done.",
+  "Plan the work, then work the plan.",
+  "You set the pace today.",
+  "Less noise, more signal.",
+  "Show up, do the work, repeat.",
+];
+const AFFIRM_ART_PRO=[
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8" fill="none" stroke="#5A8CAA" stroke-width="3"><circle cx="60" cy="60" r="14"/><circle cx="60" cy="60" r="26" opacity="0.6"/><circle cx="60" cy="60" r="38" opacity="0.35"/></g></svg>`,
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.85"><path d="M60 95 L60 45" stroke="#3E5C76" stroke-width="3" fill="none"/><path d="M60 60 Q44 52 38 38 Q56 40 60 58 Z" fill="#7AA6C2"/><path d="M60 52 Q76 44 82 30 Q64 32 60 50 Z" fill="#9DB4C8"/></g></svg>`,
+  `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8"><path d="M25 90 L52 50 L70 74 L88 40 L100 90 Z" fill="#9DB4C8"/><path d="M25 90 L52 50 L70 74 L88 40 L100 90" stroke="#3E5C76" stroke-width="2" fill="none"/><circle cx="86" cy="34" r="7" fill="#5A8CAA"/></g></svg>`,
+];
 const AFFIRMATIONS=[
   "Today doesn't stand a chance.",
   "Messy bun, big plans. Let's go.",
@@ -3102,12 +3140,15 @@ const AFFIRM_ART=[
 ];
 function affirmDayIndex(){const d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);}
 let affirmManualOffset=0;
+function affirmIsPro(){return !!(state.setup&&state.setup.theme==='pro');}
 function renderAffirmation(){
   const txt=document.getElementById('affirmText');const art=document.getElementById('affirmArt');
   if(!txt||!art)return;
+  const pool=affirmIsPro()?AFFIRMATIONS_PRO:AFFIRMATIONS;
+  const artPool=affirmIsPro()?AFFIRM_ART_PRO:AFFIRM_ART;
   const base=affirmDayIndex()+affirmManualOffset;
-  txt.textContent=AFFIRMATIONS[((base%AFFIRMATIONS.length)+AFFIRMATIONS.length)%AFFIRMATIONS.length];
-  art.innerHTML=AFFIRM_ART[((base%AFFIRM_ART.length)+AFFIRM_ART.length)%AFFIRM_ART.length];
+  txt.textContent=pool[((base%pool.length)+pool.length)%pool.length];
+  art.innerHTML=artPool[((base%artPool.length)+artPool.length)%artPool.length];
 }
 function newAffirmation(){affirmManualOffset++;renderAffirmation();}
 
@@ -3523,7 +3564,7 @@ function detectNoteCategory(text){
   const HOME_RE=/\b(repair|fix|broken|plumber|electrician|handyman|hvac|furnace|ac|air conditioning|leak|clog|drain|garage|yard|lawn|garden|mow|trim|trash|recycle|paint|painting|install|replace|light bulb|filter|battery|smoke detector|thermostat|wifi|router|tv mount)\b/;
   if(HOME_RE.test(t))return'home';
   // OFFICE: only if work words are explicit (and not overridden above)
-  const OFFICE_RE=/\b(meeting|standup|stand-up|deck|slide|slides|presentation|review|ELT|leadership|stakeholder|domain|portfolio|intake|FPO|FBO|POR|2H|1H|TPO|TPM|JJJR|sprint|jira|asana|email draft|client|vendor|budget|forecast|roadmap|RACI|prd|brd|spec|sync|1:1|one on one|kickoff|kick-off|all hands|all-hands|quarterly|qbr|okr|kpi)\b/i;
+  const OFFICE_RE=/\b(work|office|job|boss|manager|supervisor|client|customer|coworker|colleague|teammate|meeting|standup|stand-up|deck|slide|slides|presentation|review|email|inbox|report|deadline|project|proposal|invoice|contract|budget|forecast|roadmap|spec|sync|1:1|one on one|kickoff|kick-off|all hands|all-hands|quarterly|interview|hiring|payroll|salary|raise|promotion|performance|conference|webinar|demo|launch|ELT|leadership|stakeholder|domain|portfolio|intake|FPO|FBO|POR|2H|1H|TPO|TPM|JJJR|sprint|jira|asana|slack|qbr|okr|kpi|ceo|cfo|cto|vp)\b/i;
   if(OFFICE_RE.test(t))return'office';
   return null; // stays in whichever section was active
 }
@@ -3566,7 +3607,7 @@ function orderCostcoSameDay(skipConfirm){
   const notes=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&/—\s*costco\s*$/i.test(n.text));
   const items=notes.map(n=>n.text.split('—').slice(0,-1).join('—').trim());
   if(!items.length){toast('No Costco items right now');return;}
-  if(!skipConfirm&&!confirm(`Order these ${items.length} from Costco same-day?\n\nThey'll be marked "you've got it" so Piyush only sees the rest. Your list is copied to paste into the search.`))return;
+  if(!skipConfirm&&!confirm(`Order these ${items.length} from Costco same-day?\n\nThey'll be marked "you've got it" so ${partnerName()} only sees the rest. Your list is copied to paste into the search.`))return;
   copyTextSafe(items.map(i=>`• ${i}`).join('\n'));
   notes.forEach(n=>{n.mineHandled=true;}); // Pooja is handling these — off Piyush's list
   saveState();renderNotes();try{renderFamilyBoard();renderDailySummaryBanner();}catch(e){}
@@ -3605,7 +3646,7 @@ function renderGroceryShopping(){
   Object.keys(byStore).forEach(s=>{if(!GROC_STORE_ORDER.includes(s))renderStore(s);});
   if(cart.length){html+=`<div style="font-size:11px;color:#2E7A5A;font-weight:700;margin:10px 0 6px;letter-spacing:.05em;">✓ IN CART</div>`+cart.map(row).join('');}
   if(handled.length){
-    html+=`<div style="font-size:11px;color:#3A6EA5;font-weight:700;margin:12px 0 6px;letter-spacing:.05em;">🚚 YOU'VE GOT THESE (Costco — off Piyush's list)</div>`;
+    html+=`<div style="font-size:11px;color:#3A6EA5;font-weight:700;margin:12px 0 6px;letter-spacing:.05em;">🚚 YOU'VE GOT THESE (Costco — off ${partnerName()}'s list)</div>`;
     html+=handled.map(n=>`<div onclick="toggleHandled(${n.id})" style="display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:7px;border-radius:13px;cursor:pointer;background:#EAF2FA;border:1px solid rgba(58,110,165,.28);"><div style="width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;background:#3A6EA5;color:#fff;">🚚</div><span style="flex:1;font-size:14px;font-weight:600;color:#5A7A9A;text-decoration:line-through;">${escapeHtml(disp(n.text))}</span><button onclick="event.stopPropagation();deleteNote(${n.id})" style="background:none;border:none;color:#9AB0C4;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">×</button></div>`).join('');
   }
   el.innerHTML=html;
@@ -3753,6 +3794,7 @@ function applySetup(){
     const tn=document.getElementById('hqTagName');if(tn)tn.textContent=ownerName();
     const lp=document.getElementById('lblPartnerPhone');if(lp)lp.textContent='💑 '+partnerName()+"'s phone";
     const qp=document.getElementById('qaOwnerPartner');if(qp)qp.textContent='👨 '+partnerName();
+    document.body.classList.toggle('theme-pro',!!(state.setup&&state.setup.theme==='pro'));
     const im=document.getElementById('obName');// (no-op guard)
   }catch(e){}
 }
@@ -3776,7 +3818,7 @@ function saveOnboarding(){
   const phone=digitsOnly(obVal('obPhone'));
   const watch=!!(document.getElementById('obCal')&&document.getElementById('obCal').checked);
   const health=!!(document.getElementById('obHealth')&&document.getElementById('obHealth').checked);
-  state.setup={name,partner,partnerPhone:phone,foodStyle:obVal('obFood'),diet:(obVal('obDiet')||'veg'),watchCalories:watch,healthNudge:health,onboarded:true};
+  state.setup={name,partner,partnerPhone:phone,foodStyle:obVal('obFood'),diet:(obVal('obDiet')||'veg'),theme:(obVal('obTheme')||'warm'),watchCalories:watch,healthNudge:health,onboarded:true};
   if(!state.contacts)state.contacts={};
   if(phone)state.contacts.piyush=phone;
   saveState();
@@ -3842,7 +3884,7 @@ loadState();maybeShowInstallBanner();
 if(!state.setup){
   const fresh=!((state.tasks&&state.tasks.length)||(state.notes&&state.notes.length)||(state.dates&&state.dates.length));
   if(fresh){try{showOnboarding();}catch(e){}}
-  else{state.setup={name:'Pooja',partner:'Piyush',partnerPhone:(state.contacts&&state.contacts.piyush)||'',watchCalories:false,healthNudge:true,diet:'veg',toured:true,onboarded:true};saveState();}
+  else{state.setup={name:'Pooja',partner:'Piyush',partnerPhone:(state.contacts&&state.contacts.piyush)||'',watchCalories:false,healthNudge:true,diet:'veg',theme:'warm',toured:true,onboarded:true};saveState();}
 }
 try{applySetup();}catch(e){}
 setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
