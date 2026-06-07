@@ -561,6 +561,32 @@
 </div>
 <div class="app">
 
+  <!-- INVITE GENERATOR -->
+  <div id="inviteOverlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(40,20,30,.55);overflow-y:auto;padding:24px 16px calc(30px + env(safe-area-inset-bottom));">
+    <div style="max-width:440px;margin:0 auto;background:#fff;border-radius:22px;padding:20px 18px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#7A2E3E;">💌 Create an invite</div>
+        <button onclick="closeInviteModal()" style="background:none;border:none;font-size:24px;color:#B89AA2;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Occasion</label>
+      <select id="invOccasion" onchange="renderInvitePreview()" style="width:100%;margin:5px 0 12px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:15px;background:#fff;"></select>
+      <input id="invTitle" oninput="renderInvitePreview()" placeholder="Event title (optional)" style="width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:15px;"/>
+      <div style="display:flex;gap:8px;">
+        <input id="invDate" type="date" oninput="renderInvitePreview()" style="flex:1;margin-bottom:10px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;"/>
+        <input id="invTime" type="time" oninput="renderInvitePreview()" style="flex:1;margin-bottom:10px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;"/>
+      </div>
+      <input id="invPlace" oninput="renderInvitePreview()" placeholder="Place / address" style="width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:15px;"/>
+      <input id="invHost" oninput="renderInvitePreview()" placeholder="Hosted by" style="width:100%;margin-bottom:14px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:15px;"/>
+      <div id="invCard" style="border-radius:18px;padding:22px 18px;text-align:center;margin-bottom:14px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="copyInvite()" style="flex:1;min-width:120px;border:1px solid var(--pink-deep);background:#fff;color:var(--pink-deep);border-radius:12px;padding:11px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📋 Copy message</button>
+        <button onclick="sendInvite()" style="flex:1;min-width:120px;border:none;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));color:#fff;border-radius:12px;padding:11px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">📤 Send invite</button>
+      </div>
+      <button onclick="remindInvite()" style="width:100%;margin-top:8px;border:1px dashed var(--line);background:transparent;color:#8A6A72;border-radius:12px;padding:10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">⏰ Remind me to send these a week before</button>
+      <p style="text-align:center;color:#A88;font-size:11px;margin-top:10px;">Tip: long-press the card above to save it as a picture to share.</p>
+    </div>
+  </div>
+
   <!-- ONBOARDING (first run) -->
   <div id="onboardOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#FFF4F7,#EAF4FB);overflow-y:auto;padding:32px 22px calc(40px + env(safe-area-inset-bottom));">
     <div style="max-width:420px;margin:0 auto;">
@@ -904,6 +930,9 @@
       <button class="plan-add-btn" onclick="openPlanModal()">
         <span class="pa-icon">🎉</span> Plan an Event
       </button>
+      <button class="plan-add-btn" onclick="openInviteModal()" style="margin-top:8px;">
+        <span class="pa-icon">💌</span> Create &amp; send an invite
+      </button>
       <div id="planList"></div>
       <div class="note-mic-row">
         <button class="note-mic-btn" id="noteMicPersonal" onclick="toggleNoteMic('personal')">
@@ -968,7 +997,7 @@
     <div class="step"><h4>🔔 Notifications</h4><p>Enable reminders on the home screen. You'll get nudged every 6 hours for pending tasks.</p></div>
     <div class="step"><h4>🎁 Send a Gift</h4><p>Pick an occasion, generate a heartfelt AI message, send via SMS, or open Amazon to send a gift card directly.</p></div>
     <div class="step"><h4>💝 Important Dates</h4><p>Add birthdays, anniversaries, plans. A banner appears on your home screen when a date is coming up soon.</p></div>
-    <div class="step"><h4>👨‍👩‍👧 Share with Family</h4><p>Save phone numbers for Piyush and Kiara in the Family screen. Then tap "📤 Share" on any date to send them a text with a one-tap link to add it to their calendar.</p></div>
+    <div class="step"><h4>👨‍👩‍👧 Share with Family</h4><p>Save your partner's phone number in the Family screen. Then tap "📤 Share" on any date to send them a text with a one-tap link to add it to their calendar.</p></div>
   </section>
 
   <!-- FAMILY / SHARING -->
@@ -2445,7 +2474,7 @@ function nudgePiyush(){
   const groc=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&((n.assignedTo||'both')==='piyush'||(n.assignedTo||'both')==='both'));
   const handled=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&n.mineHandled).map(n=>n.text.split('—').slice(0,-1).join('—').trim()||n.text);
   const byStore={};
-  groc.forEach(n=>{const parts=n.text.split('—');const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();(byStore[store]=byStore[store]||[]).push(item);});
+  groc.forEach(n=>{const parts=n.text.split('—');const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();const store=parts.length>1?normStore(parts[parts.length-1].trim()):routeStore(item);(byStore[store]=byStore[store]||[]).push(item);});
   const storeKeys=(typeof GROC_STORE_ORDER!=='undefined'?GROC_STORE_ORDER:[]).concat(Object.keys(byStore));
   if(!tasks.length&&!groc.length&&!handled.length){
     const msg=prompt(`Nothing open on ${partnerName()}'s side — send a custom reminder?`,'Hey, don\'t forget — ');
@@ -2565,8 +2594,8 @@ function buildDailySummaryText(){
     const byStore={};
     grocery.forEach(n=>{
       const parts=n.text.split('—');
-      const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');
       const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();
+      const store=parts.length>1?normStore(parts[parts.length-1].trim()):routeStore(item);
       (byStore[store]=byStore[store]||[]).push(item);
     });
     const order=(typeof GROC_STORE_ORDER!=='undefined')?GROC_STORE_ORDER:Object.keys(byStore);
@@ -2859,7 +2888,7 @@ function renderDailySummaryBanner(){
   banners.forEach(banner=>{
     if(!banner)return;
     // Always show the Nudge Piyush button — even when queue is empty
-    const nudgeBtn=`<button onclick="nudgePiyush()" style="background:#fff;color:#7A2E3E;border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:4px;">🔔 Nudge Piyush</button>`;
+    const nudgeBtn=`<button onclick="nudgePiyush()" style="background:#fff;color:#7A2E3E;border:1px solid var(--pink);border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:4px;">🔔 Nudge ${partnerName()}</button>`;
     if(!total){
       banner.style.display='block';
       banner.innerHTML=`<div style="background:#FFF8F4;border-radius:14px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--line);text-align:center;"><div style="font-size:12px;color:#7A6A6E;font-weight:600;margin-bottom:8px;">No items queued for ${partnerName()} yet</div>${nudgeBtn}</div>`;
@@ -3066,6 +3095,78 @@ async function requestNotifications(){
 }
 
 // AFFIRMATIONS — punchy daily pep for Pooja
+// ===== Invite generator =====
+const INVITE_THEMES={
+  diwali:{label:'🪔 Diwali',emoji:'🪔',grad:'linear-gradient(135deg,#FFE3B3,#FFB877,#E8852C)',ink:'#6A3410',line:"Wishing you light, love & laughter — join us to celebrate Diwali!"},
+  holi:{label:'🎨 Holi',emoji:'🎨',grad:'linear-gradient(135deg,#FFD1E8,#C7E8FF,#D6FFC7,#FFF3B0)',ink:'#5A2E6A',line:"Colours, sweets & joy — come play Holi with us!"},
+  christmas:{label:'🎄 Christmas',emoji:'🎄',grad:'linear-gradient(135deg,#E8F6E8,#FFD9D9)',ink:'#1F5C3A',line:"Merry & bright — celebrate Christmas with us!"},
+  newyear:{label:'🎆 New Year',emoji:'🎆',grad:'linear-gradient(135deg,#1F2A50,#3E5C9A,#C9A24B)',ink:'#FFFFFF',line:"Out with the old, in with the cheer — ring in the New Year together!"},
+  eid:{label:'🌙 Eid',emoji:'🌙',grad:'linear-gradient(135deg,#1F4A4A,#2E8B7A,#CFE8D8)',ink:'#0E3A30',line:"Eid Mubarak! Join us for food, family & festivities."},
+  thanksgiving:{label:'🦃 Thanksgiving',emoji:'🦃',grad:'linear-gradient(135deg,#FFE0B3,#E8A85C,#C46A2C)',ink:'#5A2E10',line:"Grateful for you — please join our Thanksgiving table."},
+  birthday:{label:'🎂 Birthday',emoji:'🎂',grad:'linear-gradient(135deg,#FFE3EC,#E7D9FF,#D9F0FF)',ink:'#7A2E5E',line:"It's a celebration! Come help us make it special."},
+  kids:{label:'🎈 Kids birthday',emoji:'🎈',grad:'linear-gradient(135deg,#FFF3B0,#BDE3FF,#FFC7E0)',ink:'#5A3A8A',line:"Balloons, cake & lots of fun — come celebrate!"},
+  housewarming:{label:'🏡 Housewarming',emoji:'🏡',grad:'linear-gradient(135deg,#FFE8D6,#E8F0D6)',ink:'#5A4A2E',line:"We've found our new home — come bless it with us!"},
+  anniversary:{label:'💕 Anniversary',emoji:'💕',grad:'linear-gradient(135deg,#FFE3EC,#FFD7C2)',ink:'#7A2E3E',line:"Celebrating love & all the years — join us!"},
+  getaway:{label:'🥳 Get-together',emoji:'🥳',grad:'linear-gradient(135deg,#FFE9DD,#E7F0FA,#E8F6E8)',ink:'#5A3A42',line:"Long overdue! Let's get together and catch up."}
+};
+function fmtInvDate(v){if(!v)return '';try{const p=v.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});}catch(e){return v;}}
+function fmtInvTime(v){if(!v)return '';try{const a=v.split(':');const hh=+a[0];const ap=hh>=12?'PM':'AM';const h12=((hh+11)%12)+1;return h12+':'+a[1]+' '+ap;}catch(e){return v;}}
+function openInviteModal(){
+  const sel=document.getElementById('invOccasion');
+  if(sel&&!sel.options.length){Object.keys(INVITE_THEMES).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=INVITE_THEMES[k].label;sel.appendChild(o);});}
+  const host=document.getElementById('invHost');if(host&&!host.value)host.value=ownerName();
+  document.getElementById('inviteOverlay').style.display='block';
+  renderInvitePreview();
+}
+function closeInviteModal(){document.getElementById('inviteOverlay').style.display='none';}
+function inviteData(){
+  const key=document.getElementById('invOccasion').value||'getaway';
+  const th=INVITE_THEMES[key]||INVITE_THEMES.getaway;
+  const title=(document.getElementById('invTitle').value||'').trim()||th.label.replace(/^[^ ]+ /,'');
+  const date=fmtInvDate(document.getElementById('invDate').value);
+  const time=fmtInvTime(document.getElementById('invTime').value);
+  const place=(document.getElementById('invPlace').value||'').trim();
+  const host=(document.getElementById('invHost').value||'').trim()||ownerName();
+  return {th,title,date,time,place,host};
+}
+function inviteMessage(){
+  const d=inviteData();
+  let m=`${d.th.emoji} You're invited! ${d.th.emoji}\n\n${d.th.line}\n\n✨ ${d.title}\n`;
+  if(d.date)m+=`🗓 ${d.date}\n`;
+  if(d.time)m+=`🕕 ${d.time}\n`;
+  if(d.place)m+=`📍 ${d.place}\n`;
+  m+=`\nHosted with love by ${d.host}\nPlease RSVP 💕`;
+  return m;
+}
+function renderInvitePreview(){
+  const card=document.getElementById('invCard');if(!card)return;
+  const d=inviteData();
+  card.style.background=d.th.grad;
+  card.innerHTML=`<div style="font-size:40px;margin-bottom:6px;">${d.th.emoji}</div>`+
+    `<div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:${d.th.ink};opacity:.8;">You're invited</div>`+
+    `<div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:${d.th.ink};margin:4px 0 8px;">${escapeHtml(d.title)}</div>`+
+    `<div style="font-size:13px;color:${d.th.ink};line-height:1.6;font-weight:600;">${d.date?escapeHtml(d.date)+'<br/>':''}${d.time?escapeHtml(d.time)+'<br/>':''}${d.place?escapeHtml(d.place)+'<br/>':''}</div>`+
+    `<div style="margin-top:10px;font-size:12px;color:${d.th.ink};opacity:.85;">Hosted with love by ${escapeHtml(d.host)}</div>`;
+}
+function copyInvite(){copyTextSafe(inviteMessage());toast('📋 Invite copied — paste anywhere 💌');}
+function sendInvite(){
+  const body=encodeURIComponent(inviteMessage());
+  try{window.location.href=`sms:&body=${body}`;}catch(e){copyTextSafe(inviteMessage());toast('📋 Copied — paste into your message');}
+}
+function remindInvite(){
+  const v=document.getElementById('invDate').value;
+  if(!v){toast('Add the event date first 🗓');return;}
+  try{
+    const p=v.split('-');const ev=new Date(+p[0],+p[1]-1,+p[2]);
+    const remind=new Date(ev.getTime()-7*86400000);
+    const y=remind.getFullYear(),mo=String(remind.getMonth()+1).padStart(2,'0'),da=String(remind.getDate()).padStart(2,'0');
+    const title=inviteData().title;
+    if(!state.dates)state.dates=[];
+    state.dates.push({id:Date.now(),name:`💌 Send invites: ${title}`,date:`${y}-${mo}-${da}`,type:'party',createdAt:Date.now()});
+    saveState();try{renderDates();checkUpcomingDates();}catch(e){}
+    toast(`⏰ Reminder set for ${remind.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`);
+  }catch(e){toast('Could not set reminder');}
+}
 function affirmDayIndex(){const d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);}
 const AFFIRMATIONS_PRO=[
   "One clear priority at a time. That's how it gets done.",
