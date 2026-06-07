@@ -556,6 +556,32 @@
 </div>
 <div class="app">
 
+  <!-- ONBOARDING (first run) -->
+  <div id="onboardOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#FFF4F7,#EAF4FB);overflow-y:auto;padding:32px 22px calc(40px + env(safe-area-inset-bottom));">
+    <div style="max-width:420px;margin:0 auto;">
+      <h1 class="title hq-shimmer" style="font-size:38px;text-align:center;margin-bottom:2px;">Welcome 💕</h1>
+      <p style="text-align:center;color:#8A6A72;font-size:14px;margin-bottom:22px;">Let's set up your HQ — your space to run the household with a little more ease.</p>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Your name</label>
+      <input id="obName" type="text" placeholder="e.g. Priya" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;"/>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Your partner's name</label>
+      <input id="obPartner" type="text" placeholder="e.g. Arjun" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;"/>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Partner's mobile (for shared lists & reminders)</label>
+      <input id="obPhone" type="tel" placeholder="(555) 123-4567" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;"/>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">Food preference</label>
+      <select id="obDiet" style="width:100%;margin:5px 0 14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;background:#fff;">
+        <option value="veg">🥦 Vegetarian</option>
+        <option value="nonveg">🍗 Non-vegetarian</option>
+        <option value="both">🍽️ Both</option>
+      </select>
+      <label style="font-size:12px;font-weight:700;color:#7A4E5E;">What does your household like to eat? (optional)</label>
+      <input id="obFood" type="text" placeholder="e.g. Indian, Italian, lots of veggies" style="width:100%;margin:5px 0 16px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;"/>
+      <label style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:14px;color:#5A3A42;cursor:pointer;"><input id="obCal" type="checkbox" style="width:18px;height:18px;"/> I'd like to watch calories in meal planning</label>
+      <label style="display:flex;align-items:center;gap:10px;margin-bottom:22px;font-size:14px;color:#5A3A42;cursor:pointer;"><input id="obHealth" type="checkbox" checked style="width:18px;height:18px;"/> Show me gentle health &amp; movement nudges</label>
+      <button onclick="saveOnboarding()" style="width:100%;border:none;border-radius:14px;padding:15px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;box-shadow:0 6px 16px rgba(196,96,122,.3);">Create my HQ ✨</button>
+      <p style="text-align:center;color:#A88;font-size:11px;margin-top:14px;">You can change this later in the Family screen.</p>
+    </div>
+  </div>
+
   <!-- HOME -->
   <section class="screen active" id="screen-home">
     <div class="hero" style="padding-top:24px;padding-bottom:8px;position:relative;">
@@ -570,6 +596,11 @@
         <div class="affirm-text" id="affirmText">Today doesn't stand a chance.</div>
         <div class="affirm-tap">tap for another 💫</div>
       </div>
+    </div>
+    <div id="healthCard" onclick="renderHealthTip()" style="display:none;margin:0 0 14px;border-radius:18px;padding:14px 16px;background:linear-gradient(135deg,#EAF8F0,#EFF6FB);border:1px solid rgba(46,122,90,.18);box-shadow:0 5px 16px rgba(46,122,90,.1);cursor:pointer;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--green-deep);text-transform:uppercase;margin-bottom:4px;">💚 A moment for you</div>
+      <div id="healthTip" style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#2E5A48;line-height:1.25;">You carry so much — take 15 minutes for a walk today.</div>
+      <div style="font-size:11px;color:#6A9A82;margin-top:6px;">tap for another 💫</div>
     </div>
     <div class="home-section-label">Today's snapshot</div>
     <div class="home-task-card" onclick="go('today')">
@@ -1797,7 +1828,7 @@ function copyStoreList(i){
   }
   const s=GROC_STORE_ORDER[i];const items=lastMealGrocery[s]||[];
   if(!items.length){toast('Nothing to copy');return;}
-  text=`${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s} — Pooja's HQ\n`+items.map(it=>`• ${it}`).join('\n');
+  text=`${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s} — ${hqName()}\n`+items.map(it=>`• ${it}`).join('\n');
   copyTextSafe(text);toast(`📋 ${s} list copied`);
 }
 function planMealsFromHome(){
@@ -1851,7 +1882,18 @@ const MEAL_LIBRARY=[
   {n:'Masala khichdi',c:'Light',g:[['moong dal','Patel Brothers'],['basmati rice','Costco'],['mixed vegetables','Costco'],['ghee','Patel Brothers'],['cumin & spices','Patel Brothers']]},
   {n:'Besan chila + green chutney',c:'Light',g:[['besan (gram flour)','Patel Brothers'],['onions','Costco'],['tomatoes','Costco'],['cilantro','Whole Foods'],['green chutney','Patel Brothers']]},
   {n:'Dhokla + chutney',c:'Light',g:[['besan (gram flour)','Patel Brothers'],['semolina (sooji)','Patel Brothers'],['yogurt','Costco'],['green chutney','Patel Brothers'],['mustard seeds','Patel Brothers']]},
-  {n:'Big salad + tomato soup',c:'Light',g:[['salad greens','Costco'],['cherry tomatoes','Costco'],['cucumber','Costco'],['tomato soup','Trader Joe\'s'],['feta','Costco'],['olive oil','Costco']]}
+  {n:'Big salad + tomato soup',c:'Light',g:[['salad greens','Costco'],['cherry tomatoes','Costco'],['cucumber','Costco'],['tomato soup','Trader Joe\'s'],['feta','Costco'],['olive oil','Costco']]},
+  {n:'Butter chicken + naan',c:'North Indian',d:'nonveg',g:[['chicken','Costco'],['butter','Costco'],['tomatoes','Costco'],['cream','Costco'],['naan','Trader Joe\'s'],['garam masala','Patel Brothers'],['ginger-garlic','Patel Brothers']]},
+  {n:'Chicken curry + rice',c:'North Indian',d:'nonveg',g:[['chicken','Costco'],['onions','Costco'],['tomatoes','Costco'],['basmati rice','Costco'],['curry masala','Patel Brothers'],['ginger-garlic','Patel Brothers']]},
+  {n:'Egg curry + roti',c:'North Indian',d:'nonveg',g:[['eggs','Costco'],['onions','Costco'],['tomatoes','Costco'],['atta (wheat flour)','Patel Brothers'],['garam masala','Patel Brothers']]},
+  {n:'Chicken biryani',c:'North Indian',d:'nonveg',g:[['chicken','Costco'],['basmati rice','Costco'],['onions','Costco'],['yogurt','Costco'],['biryani masala','Patel Brothers'],['mint','Whole Foods']]},
+  {n:'Fish curry + rice',c:'North Indian',d:'nonveg',g:[['fish fillets','Costco'],['onions','Costco'],['tomatoes','Costco'],['coconut milk','Trader Joe\'s'],['basmati rice','Costco'],['curry leaves','Patel Brothers']]},
+  {n:'Keema matar + roti',c:'North Indian',d:'nonveg',g:[['ground meat','Costco'],['green peas (frozen)','Costco'],['onions','Costco'],['tomatoes','Costco'],['atta (wheat flour)','Patel Brothers'],['garam masala','Patel Brothers']]},
+  {n:'Tandoori chicken + salad',c:'North Indian',d:'nonveg',g:[['chicken','Costco'],['yogurt','Costco'],['tandoori masala','Patel Brothers'],['salad greens','Costco'],['lemon','Whole Foods']]},
+  {n:'Chicken tikka masala + rice',c:'North Indian',d:'nonveg',g:[['chicken','Costco'],['tomatoes','Costco'],['cream','Costco'],['basmati rice','Costco'],['tikka masala','Patel Brothers'],['ginger-garlic','Patel Brothers']]},
+  {n:'Egg bhurji + toast',c:'North Indian',d:'nonveg',g:[['eggs','Costco'],['onions','Costco'],['tomatoes','Costco'],['bread','Trader Joe\'s'],['turmeric & spices','Patel Brothers']]},
+  {n:'Chicken tacos',c:'Mexican',d:'nonveg',g:[['chicken','Costco'],['taco shells','Trader Joe\'s'],['shredded cheese','Costco'],['lettuce','Costco'],['salsa','Trader Joe\'s'],['lime','Whole Foods']]},
+  {n:'Chicken alfredo pasta',c:'Italian',d:'nonveg',g:[['chicken','Costco'],['fettuccine','Trader Joe\'s'],['cream','Costco'],['parmesan','Costco'],['garlic','Costco'],['butter','Costco']]}
 ];
 let currentMealOptions=[];
 let selectedMealIdx=new Set();
@@ -1890,14 +1932,25 @@ const TWIST_MAP={
   'Masala khichdi':'Finish with a crispy garlic-ghee tadka and papad crumble.',
   'Besan chila + green chutney':'Stuff with paneer bhurji and roll it like a wrap.',
   'Dhokla + chutney':'Try a spinach or beetroot dhokla for colour and veggies.',
-  'Big salad + tomato soup':'Add roasted chana or paneer croutons for protein.'
+  'Big salad + tomato soup':'Add roasted chana or paneer croutons for protein.',
+  'Butter chicken + naan':'Use the gravy over rice, or stuff into a kathi roll.',
+  'Chicken curry + rice':'Add coconut milk for a South-Indian style twist.',
+  'Egg curry + roti':'Crisp the boiled eggs in spices before adding the gravy.',
+  'Chicken biryani':'Layer with fried onions and saffron milk for restaurant-style.',
+  'Fish curry + rice':'Try it Goan-style with extra coconut and kokum.',
+  'Keema matar + roti':'Turn leftovers into keema pav or stuffed parathas.',
+  'Tandoori chicken + salad':'Air-fry for charred edges; finish with chaat masala & lemon.',
+  'Chicken tikka masala + rice':'Skewer and grill the tikka first for a smoky depth.',
+  'Egg bhurji + toast':'Add grated cheese and green chili for a richer bhurji.',
+  'Chicken tacos':'Add a spoon of leftover curry for desi-Mexican fusion.',
+  'Chicken alfredo pasta':'Add a pinch of garam masala for a desi alfredo.'
 };
 function toggleTwist(i){revealedTwist.has(i)?revealedTwist.delete(i):revealedTwist.add(i);renderMealOptions();}
 // Keep the meals you already picked; replace only the unselected ones
 function shuffleUnselected(){
   if(!currentMealOptions.length){planWeek();return;}
   const used=new Set(currentMealOptions.filter((m,i)=>selectedMealIdx.has(i)).map(m=>m.n));
-  const pool=MEAL_LIBRARY.filter(m=>!used.has(m.n)).sort(()=>Math.random()-0.5);
+  const pool=dietPool().filter(m=>!used.has(m.n)).sort(()=>Math.random()-0.5);
   let pi=0;
   currentMealOptions=currentMealOptions.map((m,i)=>{
     if(selectedMealIdx.has(i))return m;
@@ -1910,9 +1963,15 @@ function shuffleUnselected(){
   renderMealOptions();
 }
 
+function currentDiet(){return (state.setup&&state.setup.diet)||'veg';}
+function dietPool(){
+  const d=currentDiet();
+  return MEAL_LIBRARY.filter(m=>{const md=m.d||'veg';return d==='both'?true:d==='nonveg'?md==='nonveg':md==='veg';});
+}
+function setMealDiet(d){if(!state.setup)state.setup={};state.setup.diet=d;saveState();planWeek();}
 function pickWeeklyOptions(n){
   const recent=(state.recentMeals||[]);
-  const pool=MEAL_LIBRARY.slice().sort(()=>Math.random()-0.5);
+  const pool=dietPool().sort(()=>Math.random()-0.5);
   const chosen=[];const usedCuisine={};
   // First pass: fresh + cuisine variety
   for(const m of pool){
@@ -1940,14 +1999,18 @@ function renderMealOptions(){
   const res=document.getElementById('mealResult');if(!res)return;
   if(!currentMealOptions.length){res.classList.remove('show');res.innerHTML='';return;}
   const count=selectedMealIdx.size;
-  let html=`<div style="font-weight:700;color:#7A2E3E;margin-bottom:2px;">This week's dinner options</div><div style="font-size:11px;color:#8A6A72;margin-bottom:6px;">Tap the ones you want to make</div>`;
+  const d=currentDiet();
+  const dietBtn=(key,label)=>`<button onclick="setMealDiet('${key}')" style="flex:1;border:1.5px solid ${d===key?'var(--pink-deep)':'rgba(196,96,122,.2)'};background:${d===key?'#FCEAF0':'#fff'};color:${d===key?'var(--pink-deep)':'#8A6A72'};border-radius:10px;padding:7px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">${label}</button>`;
+  let html=`<div style="display:flex;gap:6px;margin-bottom:10px;">${dietBtn('veg','🥦 Veg')}${dietBtn('nonveg','🍗 Non-veg')}${dietBtn('both','🍽️ Both')}</div>`;
+  html+=`<div style="font-weight:700;color:#7A2E3E;margin-bottom:2px;">This week's dinner options</div><div style="font-size:11px;color:#8A6A72;margin-bottom:6px;">Tap the ones you want to make</div>`;
   html+=currentMealOptions.map((m,i)=>{
     const sel=selectedMealIdx.has(i);const meta=CUISINE_META[m.c]||{emoji:'🍽️',color:'#C4607A'};
+    const cal=(state.setup&&state.setup.watchCalories&&CAL_MAP[m.n])?` · ~${CAL_MAP[m.n]} kcal`:'';
     const twist=TWIST_MAP[m.n];const twistOpen=revealedTwist.has(i);
     let card=`<div style="margin-top:8px;">`;
     card+=`<div onclick="toggleMealSelect(${i})" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;cursor:pointer;border:1.5px solid ${sel?meta.color:'rgba(196,96,122,.15)'};background:${sel?meta.color+'14':'#fff'};transition:all .12s;">`;
     card+=`<div style="width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:${sel?meta.color:'#F0E4E8'};color:${sel?'#fff':'#B89AA2'};">${sel?'✓':''}</div>`;
-    card+=`<div style="flex:1;"><div style="font-weight:700;color:#5A2E3A;font-size:14px;">${meta.emoji} ${escapeHtml(m.n)}</div><div style="font-size:11px;color:#8A6A72;">${escapeHtml(m.c)}</div></div>`;
+    card+=`<div style="flex:1;"><div style="font-weight:700;color:#5A2E3A;font-size:14px;">${meta.emoji} ${escapeHtml(m.n)}</div><div style="font-size:11px;color:#8A6A72;">${escapeHtml(m.c)}${cal}</div></div>`;
     if(twist)card+=`<button onclick="event.stopPropagation();toggleTwist(${i})" style="flex-shrink:0;background:${twistOpen?'#FCEAF0':'transparent'};border:1px solid var(--pink);color:var(--pink-deep);border-radius:999px;font-size:11px;font-weight:700;padding:4px 9px;cursor:pointer;font-family:inherit;">✨ twist</button>`;
     card+=`</div>`;
     if(twist&&twistOpen)card+=`<div style="margin-top:4px;margin-left:12px;font-size:12px;color:#7A4E5E;background:#FFF4F7;border-left:3px solid var(--pink);border-radius:8px;padding:8px 10px;line-height:1.4;">✨ <b>Twist:</b> ${escapeHtml(twist)}</div>`;
@@ -1965,7 +2028,7 @@ function sendOptionsToPiyush(){
   if(!currentMealOptions.length){toast('Plan a week first 🍽️');return;}
   const list=selectedMealIdx.size?[...selectedMealIdx].sort((a,b)=>a-b).map(i=>currentMealOptions[i]):currentMealOptions;
   const lines=list.map((m,i)=>`${i+1}.  ${m.n}  (${m.c})`).join('\n');
-  const body=`🍽️ Dinner options this week — Pooja's HQ 💕\n\n${lines}\n\nWhich are you feeling? Reply with the numbers, or tell me what you'd like 💕`;
+  const body=`🍽️ Dinner options this week — ${hqName()} 💕\n\n${lines}\n\nWhich are you feeling? Reply with the numbers, or tell me what you'd like 💕`;
   window.location.href=`sms:${piyush}&body=${encodeURIComponent(body)}`;
   toast('📤 Sent to Piyush 💕');
 }
@@ -2000,7 +2063,7 @@ function sendGroceryToPiyush(){
   const sendNow=confirm('Want to add anything before sending?\n\n• Tap Cancel to add by 🎤 voice or typing in the grocery box above, then tap Send again.\n• Tap OK to send the list as-is now.');
   if(!sendNow){go('notes');try{switchNotesTab('personal');const gi=document.getElementById('groceryQuickInput');if(gi)gi.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}return;}
   rebuildLastMealGrocery();
-  let body="🛒 Grocery list — Pooja's HQ 💕\n";let any=false;
+  let body=`🛒 Grocery list — ${hqName()} 💕\n`;let any=false;
   GROC_STORE_ORDER.forEach(s=>{const items=lastMealGrocery[s];if(items&&items.length){any=true;body+=`\n${(GROC_STORE_META[s]||{}).emoji||'🛒'} ${s}\n`+items.map(it=>`• ${it}`).join('\n')+'\n';}});
   if(!any){toast('Build a grocery list first 🛒');return;}
   body+='\nWant to add anything? Just reply 💕';
@@ -2346,7 +2409,7 @@ function nudgePiyush(){
   // Remember the task order so "Log reply" numbers line up (grocery isn't numbered)
   state.lastNudge={at:Date.now(),ids:tasks.map(o=>o.id)};
   saveState();
-  let body=`🔔 Pooja's HQ — for you 💕\n`;
+  let body=`🔔 ${hqName()} — for you 💕\n`;
   if(tasks.length){
     body+=`\n✅ To do first:\n`+tasks.map((i,idx)=>`${idx+1}.  ${i.text}${i.urgent?'  ⚡':''}`).join('\n')+`\n`;
   }
@@ -2539,7 +2602,8 @@ function renderFamilyBoard(){
   const items=[];
   (state.notes||[]).forEach(n=>{
     if(!n.shareable||n.section==='office')return;
-    items.push({id:'n'+n.id,raw:n,kind:'note',text:n.text,owner:n.assignedTo||'both',done:!!n.done,urgent:!!n.urgent,confirmed:!!n.confirmed,section:n.section,when:null});
+    const boardSection=(n.section==='grocery'&&/\b(return|returns|drop ?off|pick ?up|exchange|refund|deposit|mail|drop|ship)\b/i.test(n.text))?'errand':n.section;
+    items.push({id:'n'+n.id,raw:n,kind:'note',text:n.text,owner:n.assignedTo||'both',done:!!n.done,urgent:!!n.urgent,confirmed:!!n.confirmed,section:boardSection,when:null});
   });
   (state.dates||[]).forEach(d=>{
     if(!d||!d.date)return;
@@ -2586,9 +2650,9 @@ function renderFamilyBoard(){
     return html;
   }
   cols.innerHTML=
-    renderCol('PIYUSH','piyush','col-piyush','👨')+
+    renderCol(partnerName().toUpperCase(),'piyush','col-piyush','👨')+
     renderCol('BOTH','both','col-both','👫')+
-    renderCol('POOJA','me','col-me','👩');
+    renderCol(ownerName().toUpperCase(),'me','col-me','👩');
   // Send button highlight if items queued
   const sendBtn=document.getElementById('fbSendBtn');
   if(sendBtn){
@@ -3641,9 +3705,64 @@ function renderHqGreeting(){
   const idx=Math.floor(Date.now()/3600000)%greetings.length;
   el.textContent=greetings[idx];
 }
+// ===== Personalization (makes the app shareable) =====
+function ownerName(){return (state.setup&&state.setup.name)?state.setup.name:'Pooja';}
+function partnerName(){return (state.setup&&state.setup.partner)?state.setup.partner:'Piyush';}
+function hqName(){return ownerName()+"'s HQ";}
+function applySetup(){
+  try{const h=document.querySelector('h1.hq-shimmer');if(h)h.textContent=hqName();document.title=hqName();}catch(e){}
+}
+function obVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function showOnboarding(){const o=document.getElementById('onboardOverlay');if(o)o.style.display='flex';}
+function saveOnboarding(){
+  const name=obVal('obName')||'Friend';
+  const partner=obVal('obPartner')||'Partner';
+  const phone=digitsOnly(obVal('obPhone'));
+  const watch=!!(document.getElementById('obCal')&&document.getElementById('obCal').checked);
+  const health=!!(document.getElementById('obHealth')&&document.getElementById('obHealth').checked);
+  state.setup={name,partner,partnerPhone:phone,foodStyle:obVal('obFood'),diet:(obVal('obDiet')||'veg'),watchCalories:watch,healthNudge:health,onboarded:true};
+  if(!state.contacts)state.contacts={};
+  if(phone)state.contacts.piyush=phone;
+  saveState();
+  const o=document.getElementById('onboardOverlay');if(o)o.style.display='none';
+  applySetup();render();
+  toast(`Welcome, ${name}! 💕`);
+}
+// ===== Gentle health / movement nudge =====
+const HEALTH_TIPS=[
+  "You carry so much for everyone — take 15 minutes for a brisk walk today 💚",
+  "A 10-minute stretch resets the whole day. You've earned it. 🧘‍♀️",
+  "Step outside for some fresh air — even 5 minutes counts. 🌿",
+  "Hydrate! A glass of water right now is a tiny act of self-care. 💧",
+  "Park a little farther, take the stairs — small moves add up. 🚶‍♀️",
+  "You're doing amazing managing it all. A short walk after dinner is a gift to yourself. ✨",
+  "Roll your shoulders, take 3 deep breaths. Your body's been working hard. 🌸"
+];
+function renderHealthTip(){
+  const card=document.getElementById('healthCard');if(!card)return;
+  if(state.setup&&state.setup.healthNudge===false){card.style.display='none';return;}
+  card.style.display='block';
+  const tip=HEALTH_TIPS[Math.floor(Math.random()*HEALTH_TIPS.length)];
+  const t=document.getElementById('healthTip');if(t)t.textContent=tip;
+}
+// Rough per-serving calories for the meal library (shown only if "watch calories" is on)
+const CAL_MAP={
+  'Dal tadka + jeera rice':520,'Palak paneer + roti':560,'Chole + basmati rice':540,'Rajma + rice':530,
+  'Paneer butter masala + naan':680,'Aloo gobi + roti':430,'Matar paneer + roti':540,'Baingan bharta + roti':400,
+  'Dal makhani + rice':610,'Gawar nu shaak + rotli + dal-bhaat':560,'Bhinda nu shaak + rotli':430,'Kadhi + khichdi':480,
+  'Thepla + chundo + chaas':440,'Dudhi muthia + chutney':380,'Sev tameta nu shaak + rotli':470,'Undhiyu + puri':620,
+  'Batata nu shaak + puri':520,'Bean & cheese tacos':560,'Veggie quesadillas':600,'Burrito bowl':620,
+  'Veg enchiladas':640,'Penne arrabbiata':590,'Pasta primavera':560,'Margherita pizza':720,'Baked ziti':680,
+  'Pani puri night':350,'Sev puri + dahi puri':420,'Pav bhaji':620,'Aloo tikki chaat':440,
+  'Masala khichdi':420,'Besan chila + green chutney':360,'Dhokla + chutney':320,'Big salad + tomato soup':340,
+  'Butter chicken + naan':720,'Chicken curry + rice':580,'Egg curry + roti':480,'Chicken biryani':650,
+  'Fish curry + rice':540,'Keema matar + roti':560,'Tandoori chicken + salad':420,'Chicken tikka masala + rice':640,
+  'Egg bhurji + toast':400,'Chicken tacos':560,'Chicken alfredo pasta':720
+};
 function render(){
   if(state.avatar){const _ai=document.getElementById('avatarImg');const _a=document.getElementById('avatar');if(_ai)_ai.src=state.avatar;if(_a)_a.classList.add('has-photo');}
   try{renderHqGreeting();}catch(e){}
+  try{applySetup();renderHealthTip();}catch(e){}
   renderDates();renderGifts();renderPhotos();renderNotes();renderPlans();renderPQN();setTodayMessage();renderToday();checkUpcomingDates();renderAffirmation();try{renderDailySummaryBanner();checkAutoSummary();}catch(e){}try{renderFamilyBoard();}catch(e){}try{updatePushPromptVisibility();}catch(e){}
   const totalOpen=getTotalOpen();const overdue=state.tasks.filter(isOverdue);
   updateHomeCard(totalOpen,overdue.length,getDoneTodayCount());
@@ -3662,6 +3781,13 @@ function render(){
   }
 }
 loadState();maybeShowInstallBanner();
+// First-run onboarding for new users; existing data is auto-tagged so Pooja is unaffected
+if(!state.setup){
+  const fresh=!((state.tasks&&state.tasks.length)||(state.notes&&state.notes.length)||(state.dates&&state.dates.length));
+  if(fresh){try{showOnboarding();}catch(e){}}
+  else{state.setup={name:'Pooja',partner:'Piyush',partnerPhone:(state.contacts&&state.contacts.piyush)||'',watchCalories:false,healthNudge:true,onboarded:true};saveState();}
+}
+try{applySetup();}catch(e){}
 setInterval(()=>{if(document.getElementById('screen-today').classList.contains('active'))renderToday();},60000);
 </script>
 </body>
