@@ -1713,7 +1713,7 @@ function isStaple(item){
 }
 // Best-guess store for a spoken/typed item (no AI needed)
 const STORE_RULES=[
-  ['Patel Brothers',['paneer','atta','ghee','masala','dal','lentil','chana','rajma','methi','gawar','tindora','bhindi','okra','dudhi','karela','sev','puri','chutney','papad','poha','sooji','semolina','besan','jaggery','curry leaf','turmeric','cumin','mustard seed','garam','chaat','thepla','dhokla','indian','tikka','spice','masoor','moong','urad','tamarind','coriander seed','asafoetida','hing']],
+  ['Patel Brothers',['paneer','atta','ghee','masala','dal','lentil','pulse','chana','rajma','kidney bean','toor','moong','urad','masoor','methi','gawar','tindora','bhindi','okra','dudhi','karela','sev','puri','chutney','papad','poha','sooji','semolina','rava','rawa','suji','besan','jaggery','curry leaf','turmeric','haldi','cumin','jeera','dhania','coriander','mustard seed','rai','garam','chaat','thepla','dhokla','idli','dosa','sambar','rasam','upma','vermicelli','indian','tikka','spice','tamarind','kokum','asafoetida','hing','lemongras','lemongrass','green chili','ginger garlic']],
   ["Trader Joe's",['tortilla','pasta','penne','ziti','fettuccine','marinara','pizza','naan','salsa','enchilada','taco','pav','dinner roll','frozen','sauce','snack']],
   ['Costco',['milk','egg','cream','yogurt','onion','tomato','potato','cashew','almond','nuts','paper','mozzarella','parmesan','cheese','produce','spinach','peas','cauliflower','bulk','water','berries']],
   ['Whole Foods',['organic','basil','eggplant','lime','lemon','herb','salad','greens','cucumber','avocado','cilantro','mint','ricotta','feta']],
@@ -1721,15 +1721,14 @@ const STORE_RULES=[
 ];
 function routeStore(item){
   const core=groceryCore(item);
-  for(const [store,keys] of STORE_RULES){if(keys.some(k=>core.includes(k))){return store;}}
-  return 'Whole Foods';
+  for(const [store,keys] of STORE_RULES){if(keys.some(k=>core.includes(k))){return normStore(store);}}
+  return "Trader Joe's / Whole Foods";
 }
 // Add free-text grocery (one or several items) with smart store routing
 function addGroceryItemsFromText(text){
   const parts=String(text||'').split(/,|;|\band\b|\balso\b|\n/).map(s=>s.trim()).filter(Boolean);
   let n=0;
   parts.forEach(p=>{
-    if(isStaple(p))return; // skip basics she always has
     const store=routeStore(p);
     if(addGroceryItem(`${p} — ${store}`))n++;
   });
@@ -1771,16 +1770,19 @@ function addGroceryItem(text){
   return true;
 }
 // ===== Grocery store routing (shared) =====
-const GROC_STORE_ORDER=['Patel Brothers','Costco',"Trader Joe's",'Whole Foods','Amazon','Target','Other'];
+const GROC_STORE_ORDER=['Patel Brothers','Costco',"Trader Joe's / Whole Foods",'Amazon','Target','Other'];
 const GROC_STORE_META={
   'Patel Brothers':{emoji:'🫚',color:'#D9822B'},
   'Costco':{emoji:'🛒',color:'#3A6EA5'},
+  "Trader Joe's / Whole Foods":{emoji:'🛍️',color:'#2E7A5A'},
   "Trader Joe's":{emoji:'🛍️',color:'#C6414E'},
   'Whole Foods':{emoji:'🥬',color:'#2E7A5A'},
   'Amazon':{emoji:'📦',color:'#7A6A5E'},
   'Target':{emoji:'🎯',color:'#CC4452'},
   'Other':{emoji:'🛒',color:'#8A6A72'}
 };
+// Trader Joe's and Whole Foods carry the same stuff — treat as one stop
+function normStore(s){const t=String(s||'').toLowerCase();if(t.includes('trader')||t.includes('whole food'))return "Trader Joe's / Whole Foods";return s;}
 let lastMealGrocery={};
 function copyTextSafe(text){
   try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text);return;}}catch(e){}
@@ -1973,7 +1975,7 @@ function buildGroceryFromSelected(){
   // Fresh list each meal-prep run — clear the previous grocery items
   state.notes=(state.notes||[]).filter(n=>n.section!=='grocery');
   const byStore={};
-  sel.forEach(m=>m.g.forEach(pair=>{const item=pair[0],store=pair[1];if(isStaple(item))return;(byStore[store]=byStore[store]||[]).push(item);}));
+  sel.forEach(m=>m.g.forEach(pair=>{const item=pair[0],store=normStore(pair[1]);if(isStaple(item))return;(byStore[store]=byStore[store]||[]).push(item);}));
   Object.keys(byStore).forEach(s=>{const seen=new Set();byStore[s]=byStore[s].filter(it=>{const k=it.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});});
   lastMealGrocery=byStore;
   let added=0;
@@ -1989,7 +1991,7 @@ function buildGroceryFromSelected(){
   if(gr){gr.innerHTML=`<div style="margin-top:14px;font-weight:700;color:#7A2E3E;">Grocery — routed by store</div>${groceryHtml}<div style="display:flex;gap:8px;margin-top:8px;"><button onclick="copyStoreList(-1)" style="flex:1;background:transparent;border:1px dashed var(--line);color:#8A6A72;border-radius:12px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Copy all</button><button onclick="sendGroceryToPiyush()" style="flex:1;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue-deep),var(--pink-deep));cursor:pointer;font-family:inherit;">📤 Send to Piyush</button></div><div style="margin-top:8px;font-weight:700;color:#2E7A5A;font-size:12px;">✓ ${added} item${added===1?'':'s'} added to your Grocery list</div>`;}
   toast(`🛒 ${added} item${added===1?'':'s'} added · routed by store`);
   const costcoN=(byStore['Costco']||[]).length;
-  if(costcoN&&confirm(`${costcoN} of these are Costco items — order them from Costco same-day now?\n\n(They'll be marked "you've got it" so they drop off Piyush's list.)`)){orderCostcoSameDay();}
+  if(costcoN&&confirm(`${costcoN} of these are Costco items — order them from Costco same-day now?\n\n(Yes opens Costco & marks them yours. No just keeps them on the grocery list.)`)){orderCostcoSameDay(true);}
 }
 function sendGroceryToPiyush(){
   const contacts=state.contacts||{};const piyush=digitsOnly(contacts.piyush);
@@ -2010,7 +2012,7 @@ function rebuildLastMealGrocery(){
   const byStore={};
   (state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought).forEach(n=>{
     const parts=n.text.split('—');
-    const store=parts.length>1?parts[parts.length-1].trim():'Other';
+    const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');
     const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();
     (byStore[store]=byStore[store]||[]).push(item);
   });
@@ -2333,7 +2335,7 @@ function nudgePiyush(){
   const groc=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&((n.assignedTo||'both')==='piyush'||(n.assignedTo||'both')==='both'));
   const handled=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&n.mineHandled).map(n=>n.text.split('—').slice(0,-1).join('—').trim()||n.text);
   const byStore={};
-  groc.forEach(n=>{const parts=n.text.split('—');const store=parts.length>1?parts[parts.length-1].trim():'Other';const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();(byStore[store]=byStore[store]||[]).push(item);});
+  groc.forEach(n=>{const parts=n.text.split('—');const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();(byStore[store]=byStore[store]||[]).push(item);});
   const storeKeys=(typeof GROC_STORE_ORDER!=='undefined'?GROC_STORE_ORDER:[]).concat(Object.keys(byStore));
   if(!tasks.length&&!groc.length&&!handled.length){
     const msg=prompt('Nothing open on Piyush\'s side — send a custom reminder?','Hey, don\'t forget — ');
@@ -2453,7 +2455,7 @@ function buildDailySummaryText(){
     const byStore={};
     grocery.forEach(n=>{
       const parts=n.text.split('—');
-      const store=parts.length>1?parts[parts.length-1].trim():'Other';
+      const store=normStore(parts.length>1?parts[parts.length-1].trim():'Other');
       const item=parts.length>1?parts.slice(0,-1).join('—').trim():n.text.trim();
       (byStore[store]=byStore[store]||[]).push(item);
     });
@@ -3443,11 +3445,11 @@ function addNote(section){
 function deleteNote(id){state.notes=state.notes.filter(x=>x.id!==id);saveState();renderNotes();}
 
 // Grocery shown as a tap-to-check shopping list (got vs still-to-buy)
-function orderCostcoSameDay(){
+function orderCostcoSameDay(skipConfirm){
   const notes=(state.notes||[]).filter(n=>n.section==='grocery'&&!n.done&&!n.bought&&!n.mineHandled&&/—\s*costco\s*$/i.test(n.text));
   const items=notes.map(n=>n.text.split('—').slice(0,-1).join('—').trim());
   if(!items.length){toast('No Costco items right now');return;}
-  if(!confirm(`Order these ${items.length} from Costco same-day?\n\nThey'll be marked "you've got it" so Piyush only sees the rest. Your list is copied to paste into the search.`))return;
+  if(!skipConfirm&&!confirm(`Order these ${items.length} from Costco same-day?\n\nThey'll be marked "you've got it" so Piyush only sees the rest. Your list is copied to paste into the search.`))return;
   copyTextSafe(items.map(i=>`• ${i}`).join('\n'));
   notes.forEach(n=>{n.mineHandled=true;}); // Pooja is handling these — off Piyush's list
   saveState();renderNotes();try{renderFamilyBoard();renderDailySummaryBanner();}catch(e){}
