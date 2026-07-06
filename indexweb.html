@@ -645,9 +645,9 @@
     if(from) note += ' from ' + from;
     if(msg) note += ': ' + msg;
     note += ' (Rhythm & Roots, 100% to Kranti)';
-    var url = 'https://venmo.com/' + encodeURIComponent(VENMO_USERNAME) +
-              '?txn=pay&amount=' + amount + '&note=' + encodeURIComponent(note);
-    window.open(url, '_blank', 'noopener');
+    var url = 'https://account.venmo.com/pay?recipients=' + encodeURIComponent(VENMO_USERNAME) +
+              '&amount=' + amount + '&note=' + encodeURIComponent(note) + '&txn=pay';
+    window.location.href = url;
   });
 
   refresh();
