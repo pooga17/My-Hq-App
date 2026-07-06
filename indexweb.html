@@ -247,6 +247,16 @@
   .interest .btn{width:100%;justify-content:center}
   .interest .fine{font-size:12.5px;color:var(--muted-light);text-align:center;margin:12px 0 0}
 
+  /* VENMO HELPER MODAL */
+  .vmodal{position:fixed;inset:0;background:rgba(26,15,23,.72);display:none;place-items:center;z-index:200;padding:24px}
+  .vmodal.show{display:grid}
+  .vmodal .vbox{background:var(--paper);border-radius:18px;max-width:420px;width:100%;padding:30px 26px;text-align:center;position:relative}
+  .vmodal h4{font-family:"Fraunces";font-size:22px;font-weight:500;color:var(--text);margin:0 0 8px}
+  .vmodal p{font-size:14.5px;color:var(--muted);margin:0 0 20px}
+  .vmodal .vbtns{display:flex;flex-direction:column;gap:10px}
+  .vmodal .vclose{position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;padding:6px}
+  .vmodal .vweb{font-size:13.5px;color:var(--muted);text-decoration:underline;margin-top:14px;display:inline-block}
+
   @media(max-width:880px){
     .nav-links{position:fixed;inset:0 0 0 auto;width:min(78vw,320px);background:var(--ink);flex-direction:column;align-items:flex-start;justify-content:center;gap:24px;padding:40px;transform:translateX(100%);transition:transform .4s var(--ease);box-shadow:-20px 0 60px rgba(0,0,0,.4)}
     .nav-links.open{transform:none}
@@ -462,7 +472,7 @@
           <button type="button" class="amt-pill" data-amt="7">$7 · One class</button>
           <button type="button" class="amt-pill active" data-amt="50">$50 · Class series</button>
         </div>
-        <div class="field"><label for="gAmt">Or enter your own amount</label><input id="gAmt" type="number" min="1" placeholder="e.g. 35"></div>
+        <div class="field"><label for="gAmt">Or enter your own amount</label><input id="gAmt" type="number" min="1" value="50"></div>
         <div class="two">
           <div class="field"><label for="gTo">To</label><input id="gTo" type="text" placeholder="Their name"></div>
           <div class="field"><label for="gFrom">From</label><input id="gFrom" type="text" placeholder="Your name"></div>
@@ -627,7 +637,7 @@
       pills.forEach(function(x){ x.classList.remove('active'); });
       p.classList.add('active');
       amount = parseInt(p.getAttribute('data-amt'), 10);
-      gAmt.value = '';
+      gAmt.value = amount;
       refresh();
     });
   });
@@ -645,12 +655,24 @@
     if(from) note += ' from ' + from;
     if(msg) note += ': ' + msg;
     note += ' (Rhythm & Roots, 100% to Kranti)';
-    var url = 'https://account.venmo.com/pay?recipients=' + encodeURIComponent(VENMO_USERNAME) +
-              '&amount=' + amount + '&note=' + encodeURIComponent(note) + '&txn=pay';
-    window.location.href = url;
+    var qs = 'txn=pay&recipients=' + encodeURIComponent(VENMO_USERNAME) +
+             '&amount=' + amount + '&note=' + encodeURIComponent(note);
+    var appUrl = 'venmo://paycharge?' + qs;
+    var webUrl = 'https://account.venmo.com/pay?' + qs;
+    document.getElementById('vweb').href = webUrl;
+    var fallback = setTimeout(function(){
+      if(!document.hidden){ document.getElementById('vmodal').classList.add('show'); }
+    }, 1800);
+    var cancel = function(){ if(document.hidden){ clearTimeout(fallback); } };
+    document.addEventListener('visibilitychange', cancel, {once:true});
+    window.location.href = appUrl;
   });
 
   refresh();
+
+  document.getElementById('vclose').addEventListener('click', function(){
+    document.getElementById('vmodal').classList.remove('show');
+  });
 
   /* ==================== EDIT-SHEET: girls edit the site via Google Sheets ====================
      ONE-TIME SETUP:
@@ -734,5 +756,17 @@
     });
   });
 </script>
+<div class="vmodal" id="vmodal">
+  <div class="vbox">
+    <button class="vclose" id="vclose" aria-label="Close">&times;</button>
+    <h4>Almost there!</h4>
+    <p>It looks like the Venmo app isn't on this phone. Grab it free, then tap the gift button again.</p>
+    <div class="vbtns">
+      <a class="btn btn-primary" href="https://apps.apple.com/us/app/venmo/id351727428" target="_blank" rel="noopener">Get Venmo on the App Store</a>
+      <a class="btn btn-ghost" href="https://play.google.com/store/apps/details?id=com.venmo" target="_blank" rel="noopener">Get Venmo on Google Play</a>
+    </div>
+    <a class="vweb" id="vweb" href="#" target="_blank" rel="noopener">Or pay on Venmo's website</a>
+  </div>
+</div>
 </body>
 </html>
