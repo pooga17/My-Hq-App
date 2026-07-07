@@ -427,8 +427,15 @@
   <div class="wrap">
     <p class="eyebrow reveal">Mark your calendar</p>
     <h2 class="lead-2 reveal">Upcoming classes &amp; events.</h2>
-    <div class="sched-list" id="schedList" style="display:none"></div>
-    <div class="sched-empty" id="schedEmpty">Our next dates are being finalized — text any of us below and we'll tell you what's coming up!</div>
+    <div class="sched-list" id="schedList">
+      <div class="sched-row"><div class="sched-when">Sat, July 11<small>5:00 PM</small></div><div class="sched-what"><b>Bollywood in the Park</b><span>$7 · everyone welcome!</span></div><div class="sched-loc">Livingston Park</div></div>
+      <div class="sched-row"><div class="sched-when">Sun, July 12<small>10:00 AM</small></div><div class="sched-what"><b>Kids Semi-Classical</b><span>Ages 6–10 · Session 2 of 6</span></div><div class="sched-loc">Edison Community Center</div></div>
+      <div class="sched-row"><div class="sched-when">Sat, July 18<small>5:00 PM</small></div><div class="sched-what"><b>Bollywood in the Park</b><span>Bring water & sneakers</span></div><div class="sched-loc">Livingston Park</div></div>
+      <div class="sched-row"><div class="sched-when">Sun, July 26<small>11:00 AM</small></div><div class="sched-what"><b>Kids Semi-Classical</b><span>Session 3 of 6</span></div><div class="sched-loc">Edison Community Center</div></div>
+      <div class="sched-row"><div class="sched-when">Sat, Aug 1<small>4:00 PM</small></div><div class="sched-what"><b>Sweet Sixteen Performance</b><span>Booked 💛</span></div><div class="sched-loc">Private event, Edison</div></div>
+      <div class="sched-row"><div class="sched-when">Sat, Aug 8<small>5:00 PM</small></div><div class="sched-what"><b>Bollywood in the Park — Season Finale!</b><span>Last one of summer!</span></div><div class="sched-loc">Livingston Park</div></div>
+    </div>
+    <div class="sched-empty" id="schedEmpty" style="display:none">Our next dates are being finalized — text any of us below and we'll tell you what's coming up!</div>
   </div>
 </section>
 
@@ -688,20 +695,45 @@
      ============================================================================================ */
   var SHEET_ID = "1QiA5UMHPOKjZZobKZlzUMjJz91T3zpUUH3qVrk1uIfk";  /* <-- EDIT-SHEET: paste your Google Sheet ID here */
 
+  /* safety stub: absorbs Google's default reply format so it can never throw */
+  window.google = window.google || {};
+  window.google.visualization = window.google.visualization || {};
+  window.google.visualization.Query = window.google.visualization.Query || { setResponse: function(){} };
+
   function rrTab(tab, cb){
     if(!SHEET_ID) return;
-    fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(tab))
-      .then(function(r){ return r.text(); })
-      .then(function(t){
-        var json = JSON.parse(t.substring(t.indexOf('(') + 1, t.lastIndexOf(')')));
-        var rows = (json.table.rows || []).map(function(r){
+    /* Route 1: opensheet.elk.sh (CORS-friendly JSON for shared sheets) */
+    var cols = tab === 'Schedule' ? ['Date','Time','Class','Location','Notes'] : ['Key','Text'];
+    fetch('https://opensheet.elk.sh/' + SHEET_ID + '/' + encodeURIComponent(tab))
+      .then(function(r){ if(!r.ok) throw new Error('bad status'); return r.json(); })
+      .then(function(arr){
+        if(!arr || !arr.length) throw new Error('empty');
+        var rows = arr.map(function(o){
+          return cols.map(function(k){ return (o && o[k] != null) ? String(o[k]) : ''; });
+        });
+        cb(rows);
+      })
+      .catch(function(){ rrTabGviz(tab, cb); });
+  }
+
+  function rrTabGviz(tab, cb){
+    /* Route 2 (backup): Google's JSONP-style delivery */
+    var fn = 'rrCb_' + tab.replace(/[^A-Za-z0-9]/g, '');
+    window[fn] = function(json){
+      try{
+        var rows = ((json && json.table && json.table.rows) || []).map(function(r){
           return (r.c || []).map(function(c){ return (c && c.v != null) ? String(c.f || c.v) : ''; });
         });
         /* drop header row if Google returned it as data */
         if(rows.length && /^(date|key)$/i.test((rows[0][0]||'').trim())) rows.shift();
         cb(rows);
-      })
-      .catch(function(){ /* sheet unreachable: site keeps its built-in text */ });
+      }catch(e){ /* keep built-in text */ }
+    };
+    var s = document.createElement('script');
+    s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+            '/gviz/tq?tqx=out:json;responseHandler:' + fn + '&sheet=' + encodeURIComponent(tab);
+    s.onerror = function(){ /* sheet unreachable: site keeps its built-in text */ };
+    document.head.appendChild(s);
   }
 
   /* Schedule rows */
